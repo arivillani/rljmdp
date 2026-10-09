@@ -352,37 +352,86 @@ test.describe('S6 — Tipografía', () => {
   });
 });
 
-test.describe('S7 — Pie mínimo', () => {
-  test('S7.a — debajo del hero solo un footer con un p que empieza por "Lorem ipsum" (≤ 60 palabras)', async ({ page }) => {
-    await expect(page.locator('footer')).toHaveCount(1);
-    await expect(page.locator('footer > *')).toHaveCount(1);
-    const paragraphs = page.locator('footer p');
-    await expect(paragraphs).toHaveCount(1);
-    const text = ((await paragraphs.textContent()) || '').trim();
-    expect(text.startsWith('Lorem ipsum')).toBe(true);
-    expect(text.split(/\s+/).length).toBeLessThanOrEqual(60);
-    // Nada más debajo del hero: el footer es el único contenido tras él.
-    const below = await page.evaluate(() => {
-      const hero = document.querySelector('.hero').getBoundingClientRect();
-      const footer = document.querySelector('footer').getBoundingClientRect();
-      const extra = [...document.body.children].filter(
-        (el) => !['MAIN', 'FOOTER'].includes(el.tagName),
-      );
-      return { footerBelowHero: footer.top >= hero.bottom - 1, extra: extra.length };
-    });
-    expect(below.footerBelowHero).toBe(true);
-    expect(below.extra).toBe(0);
-  });
-
-  test('S7.b — footer sin a, ul, ol, h1–h6, form, img ni svg', async ({ page }) => {
-    await expect(page.locator('footer a, footer ul, footer ol, footer h1, footer h2, footer h3, footer h4, footer h5, footer h6, footer form, footer img, footer svg')).toHaveCount(0);
-  });
-
-  test('S7.c — main contiene únicamente la sección .hero', async ({ page }) => {
+test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem ipsum', () => {
+  test('S7.a — los hijos de body son solo main y footer; main contiene únicamente la sección .hero', async ({ page }) => {
+    const tags = await page.evaluate(() => [...document.body.children].map((el) => el.tagName.toLowerCase()));
+    expect(tags).toEqual(['main', 'footer']);
     const main = page.locator('main');
-    await expect(main).toHaveCount(1);
     await expect(main.locator('> *')).toHaveCount(1);
     await expect(main.locator('> section.hero')).toHaveCount(1);
+    // El footer queda debajo del hero.
+    const footerBelowHero = await page.evaluate(
+      () => document.querySelector('footer').getBoundingClientRect().top >= document.querySelector('.hero').getBoundingClientRect().bottom - 1,
+    );
+    expect(footerBelowHero).toBe(true);
+  });
+
+  test('S7.b — footer con 4 bloques .pie__bloque en orden: ul.pie__secciones (3 li), p, p, p.pie__copy que empieza por ©', async ({ page }) => {
+    const blocks = await page.evaluate(() =>
+      [...document.querySelector('footer').children].map((el) => ({
+        tag: el.tagName.toLowerCase(),
+        classes: [...el.classList],
+        items: el.tagName === 'UL' ? [...el.children].map((c) => c.tagName.toLowerCase()) : [],
+        text: (el.textContent || '').trim(),
+      })),
+    );
+    expect(blocks.map((b) => b.tag)).toEqual(['ul', 'p', 'p', 'p']);
+    for (const b of blocks) expect(b.classes, `${b.tag} sin .pie__bloque`).toContain('pie__bloque');
+    expect(blocks[0].classes).toContain('pie__secciones');
+    expect(blocks[0].items).toEqual(['li', 'li', 'li']);
+    expect(blocks[3].classes).toContain('pie__copy');
+    expect(blocks[3].text.startsWith('©')).toBe(true);
+  });
+
+  test('S7.c — solo Lorem ipsum: primer p empieza por "Lorem ipsum"; sin ©, solo letras, espacios, comas y puntos (≤ 120 palabras)', async ({ page }) => {
+    const firstParagraph = ((await page.locator('footer p').first().textContent()) || '').trim();
+    expect(firstParagraph.startsWith('Lorem ipsum'), `primer p: ${firstParagraph.slice(0, 30)}`).toBe(true);
+    const text = (await page.locator('footer').evaluate((el) => /** @type {HTMLElement} */ (el).innerText))
+      .replace('©', '')
+      .trim();
+    expect(text, 'el texto del footer tiene caracteres que no son letras, espacios, comas ni puntos').toMatch(/^[A-Za-zÀ-ÿ\s,.]+$/);
+    expect(text.split(/\s+/).length).toBeLessThanOrEqual(120);
+  });
+
+  test('S7.d — footer sin a, button, form, img, svg ni h1–h6', async ({ page }) => {
+    await expect(page.locator('footer a, footer button, footer form, footer img, footer svg, footer h1, footer h2, footer h3, footer h4, footer h5, footer h6')).toHaveCount(0);
+  });
+
+  test('S7.e — formato: alineado a la izquierda, filete de 1 px en los bloques 2–4 (no en el 1), colores de la paleta', async ({ page }) => {
+    const info = await page.evaluate(() => {
+      const footer = document.querySelector('footer');
+      return {
+        footerBackground: getComputedStyle(footer).backgroundColor,
+        blocks: [...footer.children].map((el) => {
+          const cs = getComputedStyle(el);
+          return {
+            textAlign: cs.textAlign,
+            borderTopWidth: cs.borderTopWidth,
+            borderTopStyle: cs.borderTopStyle,
+            borderTopColor: cs.borderTopColor,
+            color: cs.color,
+          };
+        }),
+      };
+    });
+    const isToken = (css) => {
+      const key = rgbKey(css);
+      return key !== null && TOKEN_KEYS.has(key);
+    };
+    expect(isToken(info.footerBackground), `fondo del footer ${info.footerBackground} no es un token`).toBe(true);
+    expect(info.blocks).toHaveLength(4);
+    info.blocks.forEach((b, i) => {
+      const n = i + 1;
+      expect(['left', 'start'], `bloque ${n}: text-align ${b.textAlign}`).toContain(b.textAlign);
+      expect(isToken(b.color), `bloque ${n}: color ${b.color} no es un token`).toBe(true);
+      if (n === 1) {
+        expect(b.borderTopWidth, 'bloque 1 no lleva filete').toBe('0px');
+      } else {
+        expect(b.borderTopWidth, `bloque ${n}: border-top-width`).toBe('1px');
+        expect(b.borderTopStyle, `bloque ${n}: border-top-style`).toBe('solid');
+        expect(isToken(b.borderTopColor), `bloque ${n}: filete ${b.borderTopColor} no es un token`).toBe(true);
+      }
+    });
   });
 });
 

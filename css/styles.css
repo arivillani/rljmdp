@@ -103,16 +103,40 @@ body {
   text-shadow: 0 0 12px rgb(27 3 3 / 0.7);
 }
 
-footer {
+/* Pie con la estructura de la referencia (L12): bloques de ancho completo separados por filetes finos,
+   alineados a la izquierda, todo en Lorem ipsum y con los colores de la paleta. */
+.pie {
+  margin: 0;
   background: var(--rosa-100);
-  padding: clamp(56px, 9vw, 112px) 16px;
 }
 
-footer p {
-  max-width: 46ch;
-  margin: 0 auto;
+.pie__bloque {
+  margin: 0;
+  padding: 28px clamp(16px, 4vw, 48px);
+  text-align: left;
+}
+
+.pie__bloque + .pie__bloque {
+  border-top: 1px solid var(--rosa-300);
+}
+
+.pie__secciones {
+  display: grid;
+  gap: 36px;
+  padding-block: 48px;
   color: var(--rojo-900);
-  font-size: 1.0625rem;
+  font-size: clamp(18px, 1.4vw, 20px);
+  list-style: none;
+}
+
+.pie p {
+  max-width: none;
+  color: var(--rojo-800);
+  font-size: 14px;
   line-height: 1.7;
-  text-align: center;
+}
+
+.pie .pie__copy {
+  padding-block: 20px 40px;
+  font-size: 13px;
 }
