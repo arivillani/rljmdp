@@ -109,9 +109,9 @@ Criterios:
 | T1 | S2 | haiku — asset | Copiar y optimizar el retrato a `assets/img/pueyrredon.jpg` | [x] | `5e0d4c3` |
 | T2 | S1–S8 | sonnet — apply (TDD) | Tests Playwright en RED observado → `index.html` + `css/styles.css` en GREEN → refactor | [x] | `c96433d` |
 | T3 | S1–S8 | sonnet — verify | Veredicto por spec (solo lectura) + capturas 1440×900 y 390×844 | [x] | — (solo lectura, L6) |
-| T2b | S8.d | sonnet — apply (TDD) | Reabierta por R1: test de contraste en RED → ajustar velo/header en GREEN | [ ] | — |
+| T2b | S8.d | sonnet — apply (TDD) | Reabierta por R1: test de contraste en RED → ajustar velo/header en GREEN | [x] | `3d7215d` |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [ ] | — |
-| R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [ ] | — |
+| R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8 |
 
 ## Log
 
@@ -130,3 +130,4 @@ Criterios:
 - **L5** (sonnet, T2): 25 tests (uno por criterio; S1.a, S4.b y S4.c en 1440×900 y 390×844). RED observado 25/25 fallando — el primer intento dio 7 verdes vacuos contra el listado de directorios de `http-server`, así que se añadió la guarda `expectLandingServed` (`main > section.hero` debe existir). GREEN 25/25 (~4 s). Desvío: el velo del hero pasó de capa de `background` a `.hero::before`, porque con dos capas el `background-size` computado es `auto, cover` y S2.c exige `cover`. `h1` medido al 0,680 del alto del hero en ambos viewports. Commit `c96433d`.
 - **L6** (sonnet, T3): `npm test` 25/25 PASS; ningún test vacuo ni más débil que su criterio. Visual: a 390×844 el título queda sobre el uniforme y el rostro libre; a 1440×900 la línea 1 del título cae sobre mentón, cuello y corbatín claro. Contraste `#ffbbba` sobre fondo promedio: h1 a 1440 = 4.24 (línea 1: 3.86), header "BUENOS AIRES" a 1440 = 4.36; resto ≥ 6.4. Pie 10.73. Capturas en el scratchpad de la sesión.
 - **L7** (opus, R1 — RDD): candidato `e55be60..c96433d`. Riesgo **pasivo** (HTML/CSS estático, sin JS, dependencias solo de desarrollo y fijadas) → relectura estructural, sin hallazgos de código. Corrección acotada (única permitida) a partir de L6: se añade S8.d (legibilidad) y se reabre el trabajo como T2b; L4 queda corregido: a 1440 el título no estaba del todo sobre el uniforme.
+- **L8** (sonnet T2b + opus R1): RED observado 26/27 — S8.d a 1440×900: h1 4.08:1, "Buenos Aires" 4.40:1. GREEN 27/27: h1 5.46 / 8.63, "Buenos Aires" 4.82 / 7.96, "1777 — 1850" 9.35 / 7.17 (1440 / 390). Velo de `.hero::before` con banda superior más oscura (0–10 %) y banda oscura desde el 52 % detrás del título; banda del rostro (12–50 %) sin cambio apreciable (±0.02 de alfa). `text-shadow` suave en el header; filete del título en `--rosa-300`. Commit `3d7215d`. R1 revisó la corrección (CSS + test, riesgo pasivo) y la da por **reconocida**; el límite revisado avanza a `3d7215d`. Commit, push y PR quedan en manos del usuario.
