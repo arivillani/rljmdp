@@ -58,6 +58,8 @@ Criterios:
 >
 > "Pone el título pequeño arriba" (L9)
 >
+> "El título "respetable logia Juan Martin de Pueyrredón" tiene que recorrer la imagen cuando scrolleo para abajo tanto ennpc como en celular, solo en la imagen, observa el título en la página de tamburnis." (L34)
+>
 > "Arriba, en el título poné "Respetable Logia" más chico centrado sobre "Juan Martin De Pueyrredón" más grande, en una relación que comprenda matemáticamente la proporción aurea." (L24)
 
 Bloque de título (L24): `hgroup.titulo` con `p.titulo__antetitulo` (`Respetable Logia`) arriba y el `h1` (`Juan Martín De Pueyrredón`, se mantiene el acento de S4.a) debajo, ambos en mayúsculas por CSS y centrados. Relaciones áureas (φ = 1,6180339…):
@@ -71,6 +73,7 @@ Criterios:
 - S4.c — El bloque de título está arriba, con el estilo de logotipo de la referencia (L11): antetítulo y `h1` con `text-transform: uppercase` (el texto del DOM no cambia, S4.a), el borde superior del `hgroup` entre 12 y 48 px del borde superior del hero, y el `font-size` del `h1` entre 16 y 26 px (1440×900 y 390×844). Cada línea cabe en un solo renglón con ≥ 16 px de margen lateral a 390 y a 360 px, y el antetítulo está centrado (±2 px) como el `h1`.
 - S4.d — `<title>` del documento es `Respetable Logia Juan Martín De Pueyrredón` (L24); `<html lang="es">`.
 - S4.f — Colocación áurea (L27, opción B, sin mover la imagen): en la franja libre entre el borde superior del hero y el borde superior de la cabeza (caja de S2.d), `margen superior del hgroup : aire entre el hgroup y la cabeza` = 1 : φ (±2 %), en los 6 viewports de S2.d. Cada renglón del bloque mide su altura de mayúsculas (`line-height` ≈ 0,66 em), así la separación áurea de S4.e es la que se ve entre la tinta de los dos renglones.
+- S4.g — Título que acompaña la imagen (L34), a 1440×900 y 390×844: al scrollear, el `hgroup.titulo` queda a la misma distancia del borde superior del viewport (su `top` áureo, ±1 px) mientras el hero esté a la vista. Al terminar el hero se va con su borde inferior: nunca se superpone al `footer` (borde inferior del `hgroup` ≤ borde inferior del hero). Se mide con el hero scrolleado 0, 25, 50 y 75 % de su alto y al pasar al pie. A esos mismos niveles de scroll, el contraste del título y del antetítulo (método de S8.d) es ≥ 4.5:1; si hace falta, se agrega una sombra suave que acompaña al título. Implementación: `position: sticky` dentro del hero, con `overflow: clip` en el hero en lugar de `hidden`.
 - S4.e — Proporción áurea (L24), a 1440×900, 1366×650 y 390×844: `font-size(h1) / font-size(antetítulo)` = φ (±0,5 %); la separación vertical entre las cajas = `font-size(antetítulo) / φ` (±1 px); `letter-spacing(antetítulo) / letter-spacing(h1)` = φ (±1 %); el antetítulo está arriba del `h1`, dentro del mismo `hgroup.titulo`, y su texto es exactamente `Respetable Logia`.
 
 ### S5 — Paleta roja con blanco hueso
@@ -201,6 +204,7 @@ Criterios:
 | S3-style | S5 | opus — style (`odd-style`) | Paleta roja con blanco hueso (L29), prototipo en una copia | [x] | — (L29) |
 | T2k | S5, S7, S8.d, S9.b | sonnet — apply (TDD) | Aplicar la paleta L29: CSS, tests, logo blanco, favicon, README | [x] | `f97d7cc` |
 | T2l | S10, S7.a | sonnet — apply (TDD) | Intro animada: escuadra y compás girando, blanco sobre rojo | [x] | `1945f51` |
+| T2m | S4.g | sonnet — apply (TDD) | Título fijo arriba mientras se ve la imagen (sticky) | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -302,3 +306,8 @@ Criterios:
 
   (opus) Emblema rediseñado en un `viewBox` de 200 (diseño de opus, probado de frente y de perfil a 55° y 80°) y entregado a T2l. Publicación: la página muestra el isologotipo real de la Gran Logia Argentina y el nombre de una logia real, así que no se publica en un enlace por iniciativa propia. Se entrega como archivo HTML autocontenido para verla, y el usuario decide si quiere un enlace.
 - **L33** (sonnet T2l + opus R1): RED 6 fallos (S7.a, S10.a ×2, S10.b, S10.c, S10.d) → GREEN **70/70**, estable en 3 corridas; dos mutaciones de control fallan el test correcto. Desvíos aceptados: `reducedMotion` va en `use.contextOptions`, porque en 1.56.1 la opción de nivel superior se ignora sin aviso; el selector `stroke: none` deja intactos los trazos de la máscara; `.intro` mantiene `pointer-events` por defecto, así que tapa los clics ~2,8 s y después queda `visibility: hidden`. Cuadros revisados (0,1 / 0,36 / 0,6 / 1,2 / 2,5 / 3,2 s): giro en Y visible y desvanecido limpio. R1 (opus): riesgo **pasivo**. Ajuste de tamaño del emblema a `clamp(140px, 34vmin, 280px)`, porque en escritorio quedaba chico (~130 px); 70/70.
+- **L34** (usuario, literal; adjunta una captura de tamburins.com con el hero scrolleado y el logotipo fijo arriba):
+  > Que defina también la cantidad de vueltas que tiene que dar el compas y la velocidad antes de abrir la página, para darle la impronta de elegancia justa
+  > El título "respetable logia Juan Martin de Pueyrredón" tiene que recorrer la imagen cuando scrolleo para abajo tanto ennpc como en celular, solo en la imagen, observa el título en la página de tamburnis.
+
+  (opus) La primera línea va a la revisión de la intro (`odd-style`), que ahora además decide vueltas, velocidad, pausa y desvanecido; S10.b se reescribe con sus valores. La segunda línea da S4.g: título sticky dentro del hero, en la misma posición del viewport mientras se ve la imagen, y se va con ella sin pisar el pie. `overflow: clip` en el hero, porque `hidden` crea un contenedor de scroll que anula el sticky. Contraste medido en varios niveles de scroll, porque el título pasa sobre la cara. Nueva tarea T2m.
