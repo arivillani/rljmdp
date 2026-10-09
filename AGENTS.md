@@ -32,7 +32,7 @@ Distribución de gentle-ai para Claude Code (agentes en `.claude/agents/`):
 
 | Fase | Modelo | Agente |
 |---|---|---|
-| propose · design · orquestación · revisión RDD | **opus** | `odd-design`, `odd-review` |
+| propose · design · orquestación · revisión RDD · revisión de estilo e identidad visual | **opus** | `odd-design`, `odd-review`, `odd-style` |
 | spec · tasks · apply · verify | **sonnet** | `odd-apply`, `odd-verify` |
 | archive · tareas mecánicas (assets, docs de cierre) | **haiku** | `odd-archive` |
 
