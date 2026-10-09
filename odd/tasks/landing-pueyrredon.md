@@ -183,8 +183,8 @@ Criterios:
 | T1c | S7.g | haiku — asset | Isologotipo a PNG transparente en `--rosa-100`, recortado | [x] | `a69e1a3` |
 | T2i | S2.d, S4, S7, S8.d | sonnet — apply (TDD) | Antetítulo áureo + bloque de auspicio con el isologotipo enlazado (L25) | [x] | `ff94e34` |
 | S2-style | S4, S7 | opus — style (`odd-style`) | Revisión de estilo del bloque de título y del auspicio (L24) | [x] | — (L27) |
-| T1d | S2.f | sonnet — asset | Corregir la unión derecha del panorama (color local) | [ ] | — |
-| T2j | S4.f, S4.e, S7.g | sonnet — apply (TDD) | Aplicar la revisión de estilo L27 (opción B) | [ ] | — |
+| T1d | S2.f | sonnet — asset | Corregir la unión derecha del panorama (color local) | [x] | `afdd76f` |
+| T2j | S4.f, S4.e, S7.g | sonnet — apply (TDD) | Aplicar la revisión de estilo L27 (opción B) | [x] | `975113e` |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -266,3 +266,4 @@ Criterios:
   > Sino que de fije también mover el Respetable Logia y el Juan Martin de Pueyrredón en proporciones aureas que queden estéticamente bien sin mover la imagen
 
   (opus) Revisión `odd-style` (opus) sobre `9c18400`, prototipada aparte con la suite en 59/59. Recomienda la **opción B** (no extender la imagen): margen superior : aire hasta la cabeza = 1 : φ, con el `top` siguiendo a la cabeza (aire mínimo de 8,8 → 24,1 px a 1366×650). La opción A (+10 %) achicaría el retrato un 9 % en escritorio y en móvil, obligaría a cambiar S2.a, S2.d y S4.c y depende de Gemini → no se pide el prompt. Aceptadas: renglones a la altura de mayúsculas (la separación áurea se ve, no solo se mide), `h1` con tope en 24 px, leyenda del auspicio en mayúsculas espaciadas, logo de 260 px y corrección de la unión derecha del panorama (franja rojiza en las filas de arriba; confirmada a la vista). Nuevas specs S4.f y S2.f; S9 alineado con el código; tareas T1d y T2j.
+- **L28** (sonnet T1d/T2j + opus R1): T1d — métrica de uniones S2.f, con umbral 45: antes, izquierda 55,2 y derecha 78,7 (falla); después, 37,3 y 27,5 (pasa). S2.e 1,80/255, 566 619 bytes, build determinista. Desvío aceptado: la receta propuesta solo bajaba la unión derecha a ~70, porque Gemini pinta su propio valle rojo oscuro junto al borde. Se reemplazó por una reconstrucción por fila del color de baja frecuencia del lado de Gemini (rampa smoothstep de 300 px; actúa solo donde la diferencia supera 16). T2j — RED 11 fallos (S4.f ×6, S4.e ×3, S7.g ×2) → GREEN **65/65**. Razón áurea de colocación entre 1,6196 y 1,6210 en los 6 viewports; renglones a 0,66 em; `h1` de 24 px; contraste mínimo 5,60 (`h1`) y 6,81 (antetítulo). R1 sobre `4c0a07c..975113e`: riesgo **pasivo**; revisión visual a 1440×900 y a 390 (página completa), sin franja en la unión y con el bloque bien ubicado → **reconocido**.
