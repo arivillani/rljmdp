@@ -62,7 +62,7 @@ Criterios:
 Bloque de título (L24): `hgroup.titulo` con `p.titulo__antetitulo` (`Respetable Logia`) arriba y el `h1` (`Juan Martín De Pueyrredón`, se mantiene el acento de S4.a) debajo, ambos en mayúsculas por CSS y centrados. Relaciones áureas (φ = 1,6180339…):
 - tamaño: `font-size(h1) = φ × font-size(antetítulo)`;
 - separación: el espacio entre la caja del antetítulo y la del `h1` = `font-size(antetítulo) / φ`;
-- tracking: `letter-spacing(antetítulo) = φ × letter-spacing(h1)` (en em).
+- tracking: `letter-spacing(antetítulo) = φ × letter-spacing(h1)`, medido en px (L26: en em la razón daría φ², porque el antetítulo mide h1/φ).
 
 Criterios:
 - S4.a — Existe exactamente un `h1` y su texto (trim) es exactamente `Juan Martín De Pueyrredón`.
@@ -179,7 +179,7 @@ Criterios:
 | T2g | S9 | sonnet — apply (TDD) | Aplicar las propuestas de estilo aceptadas, menos el velo | [x] | `3c478c7` |
 | T2h | S9.f | sonnet — apply (TDD) | Velo inferior "Sombra + corte" (L22) | [x] | `fb04701` |
 | T1c | S7.g | haiku — asset | Isologotipo a PNG transparente en `--rosa-100`, recortado | [x] | `a69e1a3` |
-| T2i | S2.d, S4, S7, S8.d | sonnet — apply (TDD) | Antetítulo áureo + bloque de auspicio con el isologotipo enlazado (L25) | [ ] | — |
+| T2i | S2.d, S4, S7, S8.d | sonnet — apply (TDD) | Antetítulo áureo + bloque de auspicio con el isologotipo enlazado (L25) | [x] | `ff94e34` |
 | S2-style | S4, S7 | opus — style (`odd-style`) | Revisión de estilo del bloque de título y del auspicio (L24) | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
@@ -255,3 +255,4 @@ Criterios:
   > Que sea un link a la página https://www.masoneria-argentina.org.ar/
 
   (opus) T1c (haiku) listo: `assets/img/gran-logia-argentina.png` RGBA de 719×274, 28 269 bytes, todo `#ffbbba` sobre alfa, fondo transparente, sin halo; commit `a69e1a3`. Para el enlace se reescribe S7 (S7.d permite solo este `a`) y se añade S7.h: el logo enlaza al sitio en una pestaña nueva, con `rel="noopener"`, un nombre accesible que avisa la pestaña nueva y foco visible. Se suma a T2i, que estaba en curso.
+- **L26** (sonnet T2i + opus R1): RED 21 fallos, todos por el motivo esperado (S2.d ×6, S4.c ×3, S4.d, S4.e ×3, S7.b, S7.c, S7.d, S7.g ×2, S7.h, S8.d ×2) → GREEN **59/59** en la primera pasada. Tres mutaciones de control fallan el test correcto (tracking en em → S4.e; sin contorno → S7.h; enlace en línea → S7.g). Medido en los 6 viewports: razón de tamaños 1,6180, separación = antetítulo/φ (±0,01 px), razón de tracking 1,6180; la cabeza queda ≥ 8,8 px por debajo del bloque (mínimo a 1366×650). Contraste: `h1` 5,18 / 5,71 y antetítulo 7,10 / 7,12 (1440 / 390). Logo de 280 px de ancho en escritorio y 200 px en móvil. Desvíos aceptados: el enlace es `display: block; width: fit-content` (con `inline-block` el logo quedaba al lado del texto) y se corrige en la spec la unidad del tracking (px, no em). R1 sobre `57d156a..ff94e34`: riesgo **pasivo** (HTML/CSS estático y un enlace externo con `noopener`); revisión visual a 1440 (página completa) y a 390, sin hallazgos → **reconocido**.
