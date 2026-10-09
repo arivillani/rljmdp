@@ -1,0 +1,125 @@
+# landing-pueyrredon
+
+Landing page de una sola pantalla para Juan Martín De Pueyrredón, con el formato
+minimalista de tamburins.com (hero a sangre completa + header transparente + pie mínimo).
+
+- **Flujo:** ODD (gentle-ai) — SDD (este documento) + TDD (Playwright, RED → GREEN → REFACTOR) + RDD (revisión por recibo de cada commit).
+- **Rama:** `claude/tamburins-style-landing-page-vwou1y`
+- **Runner de tests:** `npm test` → `@playwright/test@1.56.1` (Chromium) contra `http-server` en `http://127.0.0.1:4173`.
+- **Entrega:** `single-pr` — pronóstico ~450 líneas autoradas, una sola rama; sin slicing.
+- **Engram:** no disponible en este entorno → espejo `odd/landing-pueyrredon/tasks` pendiente; este archivo es la fuente de verdad.
+
+## Specs
+
+### S1 — Formato Tamburins
+> "Quiero que copies el formato de la página https://www.tamburins.com/en/."
+
+Se replica el *patrón de layout* (no marca, textos, código ni assets de Tamburins):
+- Hero a sangre completa que ocupa exactamente el alto del viewport (`100svh`).
+- Header transparente superpuesto arriba del hero, solo microtexto: izquierda `Buenos Aires`, derecha `1777 — 1850`. Sin enlaces ni iconos.
+- Microtipografía en mayúsculas con tracking amplio; mucho aire; sin bordes ni sombras pesadas.
+
+Criterios:
+- S1.a — `.hero` mide el alto del viewport (±1 px) a 1440×900 y a 390×844.
+- S1.b — `header` tiene `position` `absolute` o `fixed`, `background-color` transparente y está en `top: 0`.
+- S1.c — Sin scroll horizontal a 390 px (`scrollWidth <= clientWidth`).
+
+### S2 — Imagen de fondo
+> "la imagen de fondo que te adjunto."
+
+- Asset: `assets/img/pueyrredon.jpg` (retrato adjunto, 1181×1424, JPEG optimizado, ≤ 400 KB).
+- Se usa como `background-image` CSS de `.hero`, con `background-size: cover` y foco en el rostro (`background-position: center 28%`), bajo un velo en degradé de la paleta (S5) para legibilidad del título.
+
+Criterios:
+- S2.a — `getComputedStyle(.hero).backgroundImage` contiene `pueyrredon.jpg`.
+- S2.b — `GET /assets/img/pueyrredon.jpg` responde 200 con `content-type` `image/jpeg`.
+- S2.c — `background-size` es `cover`.
+
+### S3 — Sin menú lateral
+> "sin menú en el lateral"
+
+Criterios:
+- S3.a — No existen `aside`, `nav`, ni elementos cuyo `class`/`id`/`aria-label` contenga `menu`, `drawer`, `sidebar` u `hamburger` (sin distinguir mayúsculas).
+- S3.b — La página no contiene `button` ni elementos con `role="button"`.
+
+### S4 — Título centrado
+> "que de título diga Juan Martín De Pueyrredón centrado."
+
+Criterios:
+- S4.a — Existe exactamente un `h1` y su texto (trim) es exactamente `Juan Martín De Pueyrredón`.
+- S4.b — El centro horizontal de la caja del `h1` está a ±2 px del centro del viewport, y `text-align` es `center` (1440×900 y 390×844).
+- S4.c — El centro vertical del `h1` está a ±10 % del centro vertical del hero.
+- S4.d — `<title>` del documento es `Juan Martín De Pueyrredón`; `<html lang="es">`.
+
+### S5 — Paleta de la foto adjunta
+> "que tenga la paleta de colores de la foto adjunta"
+
+Tokens muestreados de la imagen "RED COLOR PALETTE" (declarados en `:root`, valores exactos):
+
+| Token | Hex |
+|---|---|
+| `--rojo-950` | `#1b0303` |
+| `--rojo-900` | `#400001` |
+| `--rojo-800` | `#7c0000` |
+| `--rojo-700` | `#a60000` |
+| `--rojo-600` | `#ce0201` |
+| `--carmesi-700` | `#81001f` |
+| `--carmesi-500` | `#a41727` |
+| `--carmesi-300` | `#ca302e` |
+| `--oxido-600` | `#9b1307` |
+| `--rosa-300` | `#ff7a7b` |
+| `--rosa-100` | `#ffbbba` |
+| `--tinta` | `#1c1c26` |
+
+Uso: fondo del documento `--rojo-950`; título y microtexto del header `--rosa-100`; velo del hero en degradé `--rojo-950` → `--carmesi-700` (con alfa); pie con fondo `--rosa-100` y texto `--rojo-900`; filete de acento `--rojo-600`.
+
+Criterios:
+- S5.a — Los 12 tokens existen en `:root` con esos valores exactos.
+- S5.b — Colores computados (sin alfa) de: `body` background, `h1` color, `header` color, `footer` background y color de `footer p` pertenecen al conjunto de tokens.
+
+### S6 — Tipografía
+> "letra times new Roman o similar"
+
+- `font-family: "Times New Roman", Times, "Liberation Serif", Tinos, serif;` — sin fuentes web externas.
+
+Criterios:
+- S6.a — El `font-family` computado de `body`, `h1`, `header` y `footer p` empieza por `"Times New Roman"`.
+- S6.b — La página no hace ninguna petición de red fuera de su propio origen.
+
+### S7 — Pie mínimo
+> "abajo que no tenga mucha información solo un Lorem ipsum"
+
+Criterios:
+- S7.a — Debajo del hero solo existe un `footer` con exactamente un `p` cuyo texto empieza por `Lorem ipsum` (≤ 60 palabras).
+- S7.b — El `footer` no contiene `a`, `ul`, `ol`, `h1`–`h6`, `form`, `img` ni `svg`.
+- S7.c — `main` contiene únicamente la sección `.hero`.
+
+### S8 — Calidad base
+Criterios:
+- S8.a — `<meta name="viewport" content="width=device-width, initial-scale=1">` presente.
+- S8.b — Sin JavaScript en la página (ningún `script`).
+- S8.c — Sin errores de consola al cargar.
+
+## Tasks
+
+| ID | Specs | Ruta (modelo) | Trabajo | Estado | Commit |
+|---|---|---|---|---|---|
+| T0 | S1–S8 | opus — propose/design/spec/tasks | Este documento + `AGENTS.md` + agentes ODD en `.claude/agents/` | [x] | ver Log L2 |
+| T1 | S2 | haiku — asset | Copiar y optimizar el retrato a `assets/img/pueyrredon.jpg` | [ ] | — |
+| T2 | S1–S8 | sonnet — apply (TDD) | Tests Playwright en RED observado → `index.html` + `css/styles.css` en GREEN → refactor | [ ] | — |
+| T3 | S1–S8 | sonnet — verify | Veredicto por spec (solo lectura) + capturas 1440×900 y 390×844 | [ ] | — |
+| T4 | — | haiku — archive | `README.md` + cierre del Log | [ ] | — |
+| R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [ ] | — |
+
+## Log
+
+- **L1** (pedido original, literal):
+  > Adopta el enfoque odd (sdd+rdd+tdd) de gentle-ai de gentleman; Y también la distribución de tareas entre los agentes opus, sonnet y haiku de gentle-ai, para desarrollar este proyecto.
+  > Quiero que copies el formato de la página https://www.tamburins.com/en/. Con:
+  > - la imagen de fondo que te adjunto.
+  > - sin menú en el lateral
+  > - que de título diga Juan Martín De Pueyrredón centrado.
+  > - que tenga la paleta de colores de la foto adjunta
+  > - letra times new Roman o similar
+  > - abajo que no tenga mucha información solo un Lorem ipsum
+- **L2** (opus, T0): explorado — repo vacío, sin commits. tamburins.com no es accesible desde el entorno (DNS bloqueado por la política de red); S1 se basa en el patrón conocido del sitio (hero a pantalla completa, header transparente, microtipografía) y no copia marca, textos ni código. Paleta muestreada con PIL sobre la imagen adjunta (6 columnas × 5 filas); se eligieron 11 tonos representativos + el fondo `#1c1c26` de la lámina. Ruteo de modelos según gentle-ai v1.23: propose/design → opus; spec/tasks/apply/verify → sonnet; archive → haiku. Aquí opus (orquestador) redactó spec/tasks porque ya tenía todo el contexto explorado.
