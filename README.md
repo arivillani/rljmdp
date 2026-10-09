@@ -45,7 +45,7 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 npm install   # dependencias de desarrollo (Playwright, http-server)
 npm start     # sirve el sitio en http://127.0.0.1:4173
 npm test      # tests Playwright (Chromium): 59 en total
-python3 -I scripts/build_panorama.py   # regenera assets/img/pueyrredon-panorama.jpg (requiere Pillow y numpy)
+python3 -I scripts/build_panorama.py   # regenera assets/img/pueyrredon-panorama.jpg y verifica S2.e y S2.f (requiere Pillow y numpy)
 ```
 
 - Requiere Node 18 o superior.

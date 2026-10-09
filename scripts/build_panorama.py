@@ -12,14 +12,21 @@ Pasos
      original (recorta o rellena reflejando el borde).
   3. Ajusta el color de Gemini al del original: mapa lineal por canal (ganancia, sesgo)
      a partir de media y desvio sobre la region de solapamiento, sin las franjas de fundido.
-  4. Pega el original a resolucion nativa con un fundido horizontal (smoothstep) de
+  4. Correccion de color local (S2.f), por fila y en cada union: el color de baja frecuencia (gaussiano de
+     LOCAL_BLUR px) del lado de Gemini pasa a ser una rampa suave (smoothstep) entre el color del original justo
+     dentro de la franja de fundido y el que Gemini ya tiene a LOCAL_REACH px de la union; el detalle fino de
+     Gemini se conserva y los colores de referencia se suavizan entre filas (LOCAL_SIGMA). Elimina la franja
+     rojiza que dejaban el ajuste global y el valle oscuro que Gemini pinta junto al borde del original.
+  5. Pega el original a resolucion nativa con un fundido horizontal (smoothstep) de
      FEATHER px en sus bordes izquierdo y derecho.
-  5. Guarda el JPEG (RGB, progresivo, sin metadatos, <= MAX_BYTES) y verifica S2.e sobre
-     el archivo guardado: la region central coincide con el original (error medio < 3/255).
-  6. Imprime el desplazamiento del pegado y la caja de la cabeza en px del panorama.
+  6. Guarda el JPEG (RGB, progresivo, sin metadatos, <= MAX_BYTES) y verifica sobre el
+     archivo guardado S2.e (la region central coincide con el original, error medio < 3/255)
+     y S2.f (uniones invisibles: ver seam_report).
+  7. Imprime el desplazamiento del pegado y la caja de la cabeza en px del panorama.
 
 Uso (desde la raiz del repo):  python3 -I scripts/build_panorama.py
-Sale con codigo != 0 si no logra registrar, ajustar el peso o verificar S2.e.
+  --sin-correccion-local   omite el paso 4 (reproduce la version anterior; debe fallar S2.f)
+Sale con codigo != 0 si no logra registrar, ajustar el peso o verificar S2.e o S2.f.
 """
 import os
 import sys
@@ -37,6 +44,13 @@ HEAD_BOX = (270, 150, 760, 710)  # x1, y1, x2, y2 en px del original (S2)
 MAX_BYTES = 700 * 1000  # S2.b: <= 700 KB
 QUALITY_START, QUALITY_MIN, QUALITY_STEP = 82, 72, 2
 MAE_LIMIT = 3.0  # S2.e: error absoluto medio < 3 sobre 255
+LOCAL_BLUR = 24.0  # px, desvio del gaussiano que separa el color de baja frecuencia del detalle de Gemini
+LOCAL_SIGMA = 40.0  # px, desvio del gaussiano vertical que suaviza los colores de referencia entre filas
+LOCAL_GAP_FROM, LOCAL_GAP_FULL = 16.0, 32.0  # distancia RGB en la union: sin correccion / correccion plena
+LOCAL_REACH = 300  # px hacia afuera del borde hasta que la correccion cae a 0
+SEAM_STRIP = 24  # S2.f: ancho de cada franja que se compara a los lados de una union
+SEAM_BLOCK = 32  # S2.f: filas por bloque
+SEAM_LIMIT = 45.0  # S2.f: distancia RGB maxima (0-441) entre franjas, por bloque y union (antes 55.2 / 78.7; ahora 37.3 / 27.5)
 
 COARSE_SCALES = np.arange(0.47, 0.54 + 1e-9, 0.005)
 COARSE_RADIUS, COARSE_STEP = 16, 2  # px de busqueda alrededor del centro
@@ -139,11 +153,90 @@ def color_match(canvas, original, px, band):
     return np.clip(canvas * gain + bias, 0, 255), gain, bias
 
 
+def gaussian_blur(values, sigma, axis):
+    """Gaussiano 1D a lo largo de `axis` (borde reflejado, convolucion por FFT) de un arreglo float."""
+    radius = int(np.ceil(4 * sigma))
+    kernel = np.exp(-0.5 * (np.arange(-radius, radius + 1) / sigma) ** 2)
+    kernel /= kernel.sum()
+    moved = np.moveaxis(values, axis, 0)
+    padded = np.pad(moved, [(radius, radius)] + [(0, 0)] * (moved.ndim - 1), mode="reflect")
+    size = padded.shape[0] + kernel.size - 1
+    shape = (kernel.size,) + (1,) * (moved.ndim - 1)
+    blurred = np.fft.irfft(np.fft.rfft(padded, size, axis=0) * np.fft.rfft(kernel.reshape(shape), size, axis=0), size, axis=0)
+    return np.moveaxis(blurred[2 * radius:2 * radius + moved.shape[0]], 0, axis)
+
+
+def smoothstep(t):
+    t = np.clip(t, 0.0, 1.0)
+    return t * t * (3 - 2 * t)
+
+
+def match_right_seam(canvas, original, edge):
+    """Corrige el color de Gemini a la derecha del borde derecho del original (columna `edge` = primera de Gemini).
+    Por fila y, el color de baja frecuencia a lo largo de la distancia d al borde pasa a ser una rampa suave (smoothstep)
+    entre el color del original justo dentro de la franja de fundido (mapa O) y el color de baja frecuencia que Gemini
+    ya tiene a LOCAL_REACH px (mapa L lejos); el detalle de Gemini por debajo de LOCAL_BLUR px se conserva. Se aplica
+    desde el inicio de la franja de fundido hasta LOCAL_REACH px fuera y vale 0 mas alla. Modifica `canvas` in situ."""
+    ow = original.shape[1]
+    x0, x1 = edge - FEATHER, edge + LOCAL_REACH + 1
+    pad = int(np.ceil(4 * LOCAL_BLUR))
+    window = canvas[:, x0 - pad:x1 + pad]
+    low = gaussian_blur(gaussian_blur(window, LOCAL_BLUR, 1), LOCAL_BLUR, 0)[:, pad:pad + (x1 - x0)]  # H x (x1-x0) x 3
+    inner = original[:, ow - FEATHER - SEAM_STRIP:ow - FEATHER].mean(axis=1)  # H x 3, franja interior (la de S2.f)
+    inner = gaussian_blur(inner, LOCAL_SIGMA, 0)
+    far = gaussian_blur(low[:, -1], LOCAL_SIGMA, 0)
+    s = smoothstep((np.arange(x1 - x0) + 0.5) / (x1 - x0))[None, :, None]
+    target = inner[:, None, :] * (1 - s) + far[:, None, :] * s
+    # Solo se corrige donde hace falta: segun la discontinuidad de la fila (distancia RGB entre el color del original y el
+    # de Gemini junto al borde), la correccion pasa de 0 (<= LOCAL_GAP_FROM) a plena (>= LOCAL_GAP_FULL) con smoothstep.
+    # Asi las filas donde la union ya era buena conservan los colores de Gemini (bosque, cielo anaranjado).
+    gap = np.linalg.norm(inner - low[:, FEATHER + SEAM_STRIP // 2], axis=1)
+    strength = smoothstep((gap - LOCAL_GAP_FROM) / (LOCAL_GAP_FULL - LOCAL_GAP_FROM))
+    correction = (target - low) * strength[:, None, None]
+    correction[:, -1:] = 0.0
+    canvas[:, x0:x1] = np.clip(canvas[:, x0:x1] + correction, 0, 255)
+    return float(np.abs(correction).max()), correction[:, FEATHER].mean(axis=0)
+
+
+def local_color_match(canvas, original, px):
+    """Aplica match_right_seam a las dos uniones (la izquierda se trabaja espejada). Devuelve (lienzo, resumen)."""
+    ow = original.shape[1]
+    width = canvas.shape[1]
+    out = canvas.copy()
+    summary = {}
+    summary["derecha"] = match_right_seam(out, original, px + ow)
+    mirrored = out[:, ::-1].copy()
+    summary["izquierda"] = match_right_seam(mirrored, original[:, ::-1], width - px)
+    return mirrored[:, ::-1].copy(), summary
+
+
 def smoothstep_ramp(width, feather):
     """Alfa por columna: 0->1 en los primeros `feather` px y 1->0 en los ultimos (smoothstep)."""
     t = np.clip((np.arange(width) + 0.5) / feather, 0.0, 1.0)
     left = t * t * (3 - 2 * t)
     return np.minimum(left, left[::-1]).astype(np.float32)
+
+
+def seam_report(rgb, px, width):
+    """S2.f: para cada union (borde izquierdo y derecho del original pegado en px, de ancho `width`) y cada bloque
+    de SEAM_BLOCK filas, distancia euclidea RGB entre el color medio de la franja de SEAM_STRIP px del lado de
+    Gemini (justo fuera del original) y el de la franja de SEAM_STRIP px del lado del original justo despues de la
+    franja de fundido. Devuelve {nombre: (maximo, fila inicial del peor bloque)}."""
+    strips = {
+        "izquierda": ((px - SEAM_STRIP, px), (px + FEATHER, px + FEATHER + SEAM_STRIP)),
+        "derecha": ((px + width, px + width + SEAM_STRIP), (px + width - FEATHER - SEAM_STRIP, px + width - FEATHER)),
+    }
+    report = {}
+    for name, (gemini, original) in strips.items():
+        worst, worst_row = 0.0, 0
+        for row in range(0, rgb.shape[0] - SEAM_BLOCK + 1, SEAM_BLOCK):
+            a = rgb[row:row + SEAM_BLOCK, gemini[0]:gemini[1]].reshape(-1, 3).mean(axis=0)
+            b = rgb[row:row + SEAM_BLOCK, original[0]:original[1]].reshape(-1, 3).mean(axis=0)
+            distance = float(np.linalg.norm(a - b))
+            if distance > worst:
+                worst, worst_row = distance, row
+        report[name] = (worst, worst_row)
+    return report
 
 
 def save_jpeg(array, path):
@@ -155,6 +248,9 @@ def save_jpeg(array, path):
         if size <= MAX_BYTES:
             return quality, size
     fail(f"el panorama pesa {size} bytes con calidad {QUALITY_MIN}; el limite es {MAX_BYTES}")
+
+
+LOCAL_MATCH = "--sin-correccion-local" not in sys.argv[1:]  # esa opcion reproduce el panorama anterior (evidencia RED de S2.f)
 
 
 def main():
@@ -181,13 +277,19 @@ def main():
     canvas, gain, bias = color_match(canvas, original_rgb, px, FEATHER)
     print("mapa de color (R, G, B) ganancia:", " ".join(f"{g:.4f}" for g in gain), "| sesgo:", " ".join(f"{b:+.2f}" for b in bias))
 
-    # 4. Pegado con fundido horizontal
+    # 4. Correccion de color local en las uniones (S2.f)
+    if LOCAL_MATCH:
+        canvas, summary = local_color_match(canvas, original_rgb, px)
+        for name, (peak, mean) in summary.items():
+            print(f"correccion local {name}: maximo {peak:.1f}, en el borde (R, G, B) {' '.join(f'{m:+.1f}' for m in mean)}")
+
+    # 5. Pegado con fundido horizontal
     alpha = smoothstep_ramp(ow, FEATHER)[None, :, None]
     canvas[py:py + oh, px:px + ow] = alpha * original_rgb + (1 - alpha) * canvas[py:py + oh, px:px + ow]
     panorama = np.clip(np.rint(canvas), 0, 255).astype(np.uint8)
     height, width = panorama.shape[:2]
 
-    # 5-6. Guardado y verificacion (S2.e) sobre el archivo guardado
+    # 6. Guardado y verificacion (S2.e, S2.f) sobre el archivo guardado
     tmp = OUTPUT + ".tmp"
     try:
         quality, size = save_jpeg(panorama, tmp)
@@ -198,6 +300,12 @@ def main():
         mae = float(np.abs(centre - reference).mean())
         if not mae < MAE_LIMIT:
             fail(f"S2.e: el error absoluto medio de la region central es {mae:.3f} (limite {MAE_LIMIT})")
+        seams = seam_report(saved_rgb, px, ow)
+        for name, (worst, row) in seams.items():
+            print(f"S2.f union {name}: maximo {worst:.2f} (limite {SEAM_LIMIT}), peor bloque filas {row}-{row + SEAM_BLOCK - 1}")
+        failed = [name for name, (worst, _) in seams.items() if not worst < SEAM_LIMIT]
+        if failed:
+            fail(f"S2.f: union {' y '.join(failed)} supera {SEAM_LIMIT} (distancia RGB entre franjas de {SEAM_STRIP} px)")
         os.replace(tmp, OUTPUT)
     finally:
         if os.path.exists(tmp):
