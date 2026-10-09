@@ -41,6 +41,7 @@ Criterios:
 - S2.b — `GET /assets/img/pueyrredon-panorama.jpg` responde 200 con `content-type` `image/jpeg` y pesa ≤ 700 KB.
 - S2.c — Sangre completa sin desenfoque: `object-fit` del `img` es `cover`, su caja coincide con la del hero (±1 px) en los 6 viewports de S2.d, y ni `.hero` ni sus pseudo-elementos tienen `filter` con `blur`.
 - S2.d — Cabeza sin cortar: la caja de la cabeza, proyectada con la geometría de `object-fit: cover` + `object-position`, queda entera dentro del viewport con ≥ 8 px de margen y empieza ≥ 4 px por debajo del borde inferior del `hgroup.titulo` completo (L24), a 1440×900, 1920×950, 1366×650, 2560×1080, 390×844 y 360×740.
+- S2.f — Uniones invisibles (L27): fuera de las franjas de fundido, en cada bloque de 32 filas, la diferencia de color medio (distancia euclídea RGB) entre las franjas de 24 px a cada lado de cada unión queda por debajo del umbral que fija y verifica `scripts/build_panorama.py`. El umbral se calibra para que la unión derecha actual (x ≈ 1085–1105 a 1440×900, filas superiores) falle y la corregida pase.
 - S2.e — Autenticidad: el script verifica que la región central del panorama coincide con el original (error absoluto medio < 3 sobre 255 fuera de la franja de fundido) e imprime el desplazamiento y la caja de la cabeza.
 
 ### S3 — Sin menú lateral
@@ -69,6 +70,7 @@ Criterios:
 - S4.b — El centro horizontal de la caja del `h1` está a ±2 px del centro del viewport, y `text-align` es `center` (1440×900 y 390×844).
 - S4.c — El bloque de título está arriba, con el estilo de logotipo de la referencia (L11): antetítulo y `h1` con `text-transform: uppercase` (el texto del DOM no cambia, S4.a), el borde superior del `hgroup` entre 12 y 48 px del borde superior del hero, y el `font-size` del `h1` entre 16 y 26 px (1440×900 y 390×844). Cada línea cabe en un solo renglón con ≥ 16 px de margen lateral a 390 y a 360 px, y el antetítulo está centrado (±2 px) como el `h1`.
 - S4.d — `<title>` del documento es `Respetable Logia Juan Martín De Pueyrredón` (L24); `<html lang="es">`.
+- S4.f — Colocación áurea (L27, opción B, sin mover la imagen): en la franja libre entre el borde superior del hero y el borde superior de la cabeza (caja de S2.d), `margen superior del hgroup : aire entre el hgroup y la cabeza` = 1 : φ (±2 %), en los 6 viewports de S2.d. Cada renglón del bloque mide su altura de mayúsculas (`line-height` ≈ 0,66 em), así la separación áurea de S4.e es la que se ve entre la tinta de los dos renglones.
 - S4.e — Proporción áurea (L24), a 1440×900, 1366×650 y 390×844: `font-size(h1) / font-size(antetítulo)` = φ (±0,5 %); la separación vertical entre las cajas = `font-size(antetítulo) / φ` (±1 px); `letter-spacing(antetítulo) / letter-spacing(h1)` = φ (±1 %); el antetítulo está arriba del `h1`, dentro del mismo `hgroup.titulo`, y su texto es exactamente `Respetable Logia`.
 
 ### S5 — Paleta de la foto adjunta
@@ -121,7 +123,7 @@ Se replica la *estructura* del pie de la referencia (L12) con texto de relleno: 
 bloques de ancho completo separados por filetes finos, todo alineado a la izquierda:
 1. `ul.pie__secciones` con tres renglones cortos (≈ 18–20 px), con mucho aire vertical: `Lorem ipsum`, `Dolor sit amet`, `Consectetur adipiscing`.
 2. `p` chico (≈ 13–14 px, interlineado ≈ 1,7) de Lorem ipsum (≈ 35 palabras).
-3. `p.pie__auspicio` (L24): el texto `Bajo los auspicios de la` y, debajo, el isologotipo de la Gran Logia Argentina como `img` en línea (`alt="Gran Logia Argentina de Libres y Aceptados Masones"`), de modo que la oración se lee completa con lector de pantalla. El logo es un PNG con transparencia en `--rosa-100` (`assets/img/gran-logia-argentina.png`), generado desde el original blanco sobre negro (`assets/src/gran-logia-argentina-original.png`).
+3. `p.pie__auspicio` (L24): el texto `Bajo los auspicios de la` en mayúsculas espaciadas (L27: 12 px, `letter-spacing` 0,2 em, rima con el antetítulo) y, debajo, el isologotipo de la Gran Logia Argentina (260 px de ancho, ≈ medida de los párrafos ÷ φ) como `img` en línea (`alt="Gran Logia Argentina de Libres y Aceptados Masones"`), de modo que la oración se lee completa con lector de pantalla. El logo es un PNG con transparencia en `--rosa-100` (`assets/img/gran-logia-argentina.png`), generado desde el original blanco sobre negro (`assets/src/gran-logia-argentina-original.png`).
 4. `p.pie__copy` chico: `© Lorem ipsum`.
 
 Colores (L15): fondo `--rojo-700` (`#a60000`); todo el texto `--rosa-100` (contraste 4.99:1); filetes 1 px `--carmesi-300`.
@@ -149,7 +151,7 @@ Criterios:
 
 Propuestas de `odd-style` aceptadas (ver L21). Velo inferior: el usuario eligió "Sombra + corte" (L22).
 - Pie: columna de texto de 60ch en los párrafos (L22) (los filetes siguen a ancho completo), `text-wrap: pretty`, margen lateral `clamp(24px, 4.5vw, 64px)` común a todos los bloques y escala de espaciado de 8 px.
-- Título como logotipo: `letter-spacing: .14em` con compensación óptica (`padding-left` igual al tracking), `font-size: clamp(16px, 4.2vw, 22px)`.
+- Título como logotipo: `letter-spacing: .14em` con compensación óptica (`padding-left` igual al tracking). Tamaño desde L24/L27: `clamp(16px, min(4.2vw, 3vh), 24px)`.
 - Suavizado tipográfico, selección de texto con la paleta, `theme-color` y `color-scheme`, favicon SVG propio.
 - Velo inferior (L22): `.hero::after` en `mix-blend-mode: multiply` con degradé `rgb(27 3 3 / .55) 0` → `rgb(27 3 3 / 0) 14%` → `rgb(129 0 31 / 0) 68%` → `rgb(129 0 31 / .7) 100%`. La base del cuadro se hunde en una sombra borravino casi negra y pasa al rojo del pie con un corte limpio, sin el tono lila.
 
@@ -180,7 +182,9 @@ Criterios:
 | T2h | S9.f | sonnet — apply (TDD) | Velo inferior "Sombra + corte" (L22) | [x] | `fb04701` |
 | T1c | S7.g | haiku — asset | Isologotipo a PNG transparente en `--rosa-100`, recortado | [x] | `a69e1a3` |
 | T2i | S2.d, S4, S7, S8.d | sonnet — apply (TDD) | Antetítulo áureo + bloque de auspicio con el isologotipo enlazado (L25) | [x] | `ff94e34` |
-| S2-style | S4, S7 | opus — style (`odd-style`) | Revisión de estilo del bloque de título y del auspicio (L24) | [ ] | — |
+| S2-style | S4, S7 | opus — style (`odd-style`) | Revisión de estilo del bloque de título y del auspicio (L24) | [x] | — (L27) |
+| T1d | S2.f | sonnet — asset | Corregir la unión derecha del panorama (color local) | [ ] | — |
+| T2j | S4.f, S4.e, S7.g | sonnet — apply (TDD) | Aplicar la revisión de estilo L27 (opción B) | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -256,3 +260,9 @@ Criterios:
 
   (opus) T1c (haiku) listo: `assets/img/gran-logia-argentina.png` RGBA de 719×274, 28 269 bytes, todo `#ffbbba` sobre alfa, fondo transparente, sin halo; commit `a69e1a3`. Para el enlace se reescribe S7 (S7.d permite solo este `a`) y se añade S7.h: el logo enlaza al sitio en una pestaña nueva, con `rel="noopener"`, un nombre accesible que avisa la pestaña nueva y foco visible. Se suma a T2i, que estaba en curso.
 - **L26** (sonnet T2i + opus R1): RED 21 fallos, todos por el motivo esperado (S2.d ×6, S4.c ×3, S4.d, S4.e ×3, S7.b, S7.c, S7.d, S7.g ×2, S7.h, S8.d ×2) → GREEN **59/59** en la primera pasada. Tres mutaciones de control fallan el test correcto (tracking en em → S4.e; sin contorno → S7.h; enlace en línea → S7.g). Medido en los 6 viewports: razón de tamaños 1,6180, separación = antetítulo/φ (±0,01 px), razón de tracking 1,6180; la cabeza queda ≥ 8,8 px por debajo del bloque (mínimo a 1366×650). Contraste: `h1` 5,18 / 5,71 y antetítulo 7,10 / 7,12 (1440 / 390). Logo de 280 px de ancho en escritorio y 200 px en móvil. Desvíos aceptados: el enlace es `display: block; width: fit-content` (con `inline-block` el logo quedaba al lado del texto) y se corrige en la spec la unidad del tracking (px, no em). R1 sobre `57d156a..ff94e34`: riesgo **pasivo** (HTML/CSS estático y un enlace externo con `noopener`); revisión visual a 1440 (página completa) y a 390, sin hallazgos → **reconocido**.
+- **L27** (usuario, durante la revisión, literal):
+  > Tené en cuenta que podemos agrandar la imagen un poco para arriba también decile al agente que lo tenga enncuenta
+  > Pásame el promt si querés que lo agrande espera a ver qué dice el agente así no gastamos tokens
+  > Sino que de fije también mover el Respetable Logia y el Juan Martin de Pueyrredón en proporciones aureas que queden estéticamente bien sin mover la imagen
+
+  (opus) Revisión `odd-style` (opus) sobre `9c18400`, prototipada aparte con la suite en 59/59. Recomienda la **opción B** (no extender la imagen): margen superior : aire hasta la cabeza = 1 : φ, con el `top` siguiendo a la cabeza (aire mínimo de 8,8 → 24,1 px a 1366×650). La opción A (+10 %) achicaría el retrato un 9 % en escritorio y en móvil, obligaría a cambiar S2.a, S2.d y S4.c y depende de Gemini → no se pide el prompt. Aceptadas: renglones a la altura de mayúsculas (la separación áurea se ve, no solo se mide), `h1` con tope en 24 px, leyenda del auspicio en mayúsculas espaciadas, logo de 260 px y corrección de la unión derecha del panorama (franja rojiza en las filas de arriba; confirmada a la vista). Nuevas specs S4.f y S2.f; S9 alineado con el código; tareas T1d y T2j.
