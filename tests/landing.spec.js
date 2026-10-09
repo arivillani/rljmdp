@@ -433,6 +433,30 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
       }
     });
   });
+
+  test('S7.f — fondo del pie rojo (--rojo-700), filetes --carmesi-300 y contraste ≥ 4.5:1', async ({ page }) => {
+    const info = await page.evaluate(() => {
+      const footer = document.querySelector('footer');
+      return {
+        footerBackground: getComputedStyle(footer).backgroundColor,
+        blocks: [...footer.querySelectorAll('.pie__bloque')].map((el) => {
+          const cs = getComputedStyle(el);
+          return { color: cs.color, borderTopColor: cs.borderTopColor };
+        }),
+      };
+    });
+    expect(info.footerBackground, 'fondo del footer').toBe('rgb(166, 0, 0)');
+    expect(info.blocks).toHaveLength(4);
+    info.blocks.slice(1).forEach((b, i) => {
+      expect(b.borderTopColor, `bloque ${i + 2}: filete`).toBe('rgb(202, 48, 46)');
+    });
+    const toRgb = (css) => rgbKey(css).split(',').map(Number);
+    const background = toRgb(info.footerBackground);
+    info.blocks.forEach((b, i) => {
+      const ratio = contrastRatio(toRgb(b.color), background);
+      expect(ratio, `bloque ${i + 1}: contraste ${b.color} sobre ${info.footerBackground} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+    });
+  });
 });
 
 test.describe('S8 — Calidad base', () => {

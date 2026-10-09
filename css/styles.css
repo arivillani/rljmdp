@@ -107,7 +107,7 @@ body {
    alineados a la izquierda, todo en Lorem ipsum y con los colores de la paleta. */
 .pie {
   margin: 0;
-  background: var(--rosa-100);
+  background: var(--rojo-700);
 }
 
 .pie__bloque {
@@ -117,21 +117,21 @@ body {
 }
 
 .pie__bloque + .pie__bloque {
-  border-top: 1px solid var(--rosa-300);
+  border-top: 1px solid var(--carmesi-300);
 }
 
 .pie__secciones {
   display: grid;
   gap: 36px;
   padding-block: 48px;
-  color: var(--rojo-900);
+  color: var(--rosa-100);
   font-size: clamp(18px, 1.4vw, 20px);
   list-style: none;
 }
 
 .pie p {
   max-width: none;
-  color: var(--rojo-800);
+  color: var(--rosa-100);
   font-size: 14px;
   line-height: 1.7;
 }
