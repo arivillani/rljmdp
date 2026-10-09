@@ -164,7 +164,10 @@ body {
   top: var(--titulo-top);
   z-index: 2;
   width: fit-content;
-  margin: 0 auto;
+  /* Aire para los descendentes (L38, S4.h): los renglones miden la altura de mayúsculas, pero en serifas como Noto Serif
+     (Android) la J de JUAN baja ≈ 0,21 em. Sticky respeta el margin-bottom, así que el bloque se detiene 0,25 em del
+     nombre antes del borde inferior del hero y ninguna letra queda recortada por su overflow: clip. */
+  margin: 0 auto calc(var(--t-nombre) * 0.25);
   color: var(--blanco);
   text-align: center;
   text-transform: uppercase;

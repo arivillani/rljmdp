@@ -74,6 +74,7 @@ Criterios:
 - S4.d — `<title>` del documento es `Respetable Logia Juan Martín De Pueyrredón` (L24); `<html lang="es">`.
 - S4.f — Colocación áurea (L27, opción B, sin mover la imagen): en la franja libre entre el borde superior del hero y el borde superior de la cabeza (caja de S2.d), `margen superior del hgroup : aire entre el hgroup y la cabeza` = 1 : φ (±2 %), en los 6 viewports de S2.d. Cada renglón del bloque mide su altura de mayúsculas (`line-height` ≈ 0,66 em), así la separación áurea de S4.e es la que se ve entre la tinta de los dos renglones.
 - S4.g — Título que acompaña la imagen (L34), a 1440×900 y 390×844: al scrollear, el `hgroup.titulo` queda a la misma distancia del borde superior del viewport (su `top` áureo, ±1 px) mientras el hero esté a la vista. Al terminar el hero se va con su borde inferior: nunca se superpone al `footer` (borde inferior del `hgroup` ≤ borde inferior del hero). Se mide con el hero scrolleado 0, 25, 50 y 75 % de su alto y al pasar al pie. A esos mismos niveles de scroll, el contraste del título y del antetítulo (método de S8.d) es ≥ 4.5:1; si hace falta, se agrega una sombra suave que acompaña al título. Implementación: `position: sticky` dentro del hero, con `overflow: clip` en el hero en lugar de `hidden`.
+- S4.h — Sin recorte de letras (L38): mientras el título se va con el hero, la tinta real de cada renglón (línea base + descendente medido con la fuente computada) queda por encima del borde inferior del hero (+0,5 px), que la recorta con `overflow: clip`. Se mide con la pila de fuentes real y con una serif de J descendente (DejaVu Serif, como Noto Serif en Android) a 1440×900, 390×844 y 844×390 (celular apaisado). Solución: `margin-bottom` del `hgroup` = 0,25 × tamaño del nombre, que sticky respeta.
 - S4.e — Proporción áurea (L24), a 1440×900, 1366×650 y 390×844: `font-size(h1) / font-size(antetítulo)` = φ (±0,5 %); la separación vertical entre las cajas = `font-size(antetítulo) / φ` (±1 px); `letter-spacing(antetítulo) / letter-spacing(h1)` = φ (±1 %); el antetítulo está arriba del `h1`, dentro del mismo `hgroup.titulo`, y su texto es exactamente `Respetable Logia`.
 
 ### S5 — Paleta roja con blanco hueso
@@ -211,6 +212,7 @@ Criterios:
 | S4-style | S10 | opus — style (`odd-style`) | Tamaño, centrado óptico y movimiento de la intro (L35) | [x] | — (L35) |
 | T2n | S10 | aplicar diffs de `odd-style` | Intro: tamaño, muescas caladas, movimiento | [x] | `c9ff0df` |
 | T2o | S10 | opus — style (`odd-style`) + apply | Intro áurea de 3 s (L37) | [x] | ver L37 |
+| T2p | S4.h | opus — fix (TDD) | La J de JUAN no se recorta al irse con la imagen (L38) | [x] | ver L38 |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -327,3 +329,8 @@ Criterios:
   > El resto está todo bien, que mantenga número aureo y elegancia
 
   (opus) `odd-style` (opus, ahora como agente nativo) prototipó la línea de tiempo áurea en una copia aparte, con la suite en 76/76 en 3 corridas. T = 3 s. El giro dura T/φ y el resto T/φ²; el resto se reparte en un preludio de T/φ⁴ (pausa de T/φ⁶ y apagado del emblema de T/φ⁵) y el desvanecido del fondo de T/φ³. Curvas con puntos de control en 1/φ, 1/φ² y 1/φ³. El retrato queda a medias a los 2,646 s, antes a los 2,18 s. Tests: S10.b exige duraciones 3 s/φⁿ y el final a los 3 s; S10.c mide desde que arranca la intro, porque con el final a los 3 s medir desde la navegación dejaba un margen de casi cero. RED observado acá: S10.b falla con el CSS anterior → GREEN 76/76 con el CSS nuevo. R1: riesgo **pasivo**.
+- **L38** (usuario, literal; adjunta una captura en un celular apaisado con la J de JUAN cortada abajo al borde de la imagen):
+  > Arregla eso de la J de Juan que nunca llegue a borrarse la parte de abajo por favor
+  > En el título de la página
+
+  (opus) Causa: los renglones miden la altura de mayúsculas (S4.e), pero en Android la pila cae en Noto Serif, cuya J desciende ≈ 0,21 em bajo la línea base. Cuando el sticky lleva el bloque hasta el borde inferior del hero, `overflow: clip` corta la cola. En el contenedor no se veía porque la J de Liberation Serif no desciende: con la pila real el test nuevo pasó en vacío, así que se agregó la variante con DejaVu Serif (J ≈ 0,21 em). RED: 3 fallos (1440, 390 y 844×390), con la tinta 3,2–4,2 px por debajo del borde. Arreglo: `margin-bottom: calc(var(--t-nombre) * 0.25)` en `.titulo`; el test del borde inferior de S4.g ahora suma ese margen. GREEN **81/81**. R1: riesgo **pasivo**.

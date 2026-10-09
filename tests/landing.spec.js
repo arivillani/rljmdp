@@ -255,6 +255,43 @@ async function expectLandingServed(page) {
   await expect(page.locator('main > section.hero'), 'la landing no está servida').toHaveCount(1);
 }
 
+/**
+ * S4.h (L38): la tinta real del título (con descendentes, p. ej. la J de JUAN en Noto Serif o Times) nunca queda por debajo
+ * del borde inferior del hero, que la recorta (overflow: clip). Mide la línea base con un inline-block de alto 0 y el
+ * descendente con canvas.measureText sobre la fuente computada; recorre el tramo en que el título se va con el hero.
+ * @param {import('@playwright/test').Page} page @param {{width:number,height:number}} viewport
+ */
+async function expectTitleInkInsideHero(page, viewport) {
+  await page.addStyleTag({ content: '.pie { min-height: 200vh; }' });
+  const heroHeight = await page.locator('.hero').evaluate((el) => el.getBoundingClientRect().height);
+  for (const heroBottomAt of [0.4, 0.2, 0.12, 0.08, 0.05, 0.02]) {
+    await page.evaluate((y) => window.scrollTo(0, y), heroHeight - heroBottomAt * viewport.height);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const m = await page.evaluate(() => {
+      const heroBottom = document.querySelector('.hero').getBoundingClientRect().bottom;
+      const lines = [...document.querySelectorAll('hgroup.titulo > *')].map((el) => {
+        const cs = getComputedStyle(el);
+        const probe = document.createElement('span');
+        probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
+        el.appendChild(probe);
+        const baseline = probe.getBoundingClientRect().bottom;
+        probe.remove();
+        const ctx = document.createElement('canvas').getContext('2d');
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const descent = ctx.measureText((el.textContent || '').toUpperCase()).actualBoundingBoxDescent;
+        return { tag: el.tagName.toLowerCase(), inkBottom: baseline + descent };
+      });
+      return { heroBottom, lines };
+    });
+    for (const l of m.lines) {
+      expect.soft(
+        l.inkBottom,
+        `hero abajo al ${heroBottomAt * 100} %: tinta del ${l.tag} hasta ${l.inkBottom.toFixed(2)}px vs borde del hero ${m.heroBottom.toFixed(2)}px`,
+      ).toBeLessThanOrEqual(m.heroBottom + 0.5);
+    }
+  }
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expectLandingServed(page);
@@ -633,13 +670,19 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
           // todavía a la vista: el título sigue en su top
           expect.soft(Math.abs(m.title.top - top0), `${when}: top ${m.title.top.toFixed(2)}px vs ${top0.toFixed(2)}px`).toBeLessThanOrEqual(TITLE_TOP_TOLERANCE);
         } else {
-          // ya no cabe: viaja pegado al borde inferior del hero
+          // ya no cabe: viaja pegado al borde inferior del hero, a su margin-bottom de distancia (L38: aire para los descendentes)
+          const mb = await page.locator('hgroup.titulo').evaluate((el) => parseFloat(getComputedStyle(el).marginBottom));
           expect.soft(
-            Math.abs(m.title.bottom - m.hero.bottom),
+            Math.abs(m.title.bottom + mb - m.hero.bottom),
             `${when}: el hgroup debe irse con el borde inferior del hero (abajo ${m.title.bottom.toFixed(2)}px vs ${m.hero.bottom.toFixed(2)}px)`,
           ).toBeLessThanOrEqual(0.5);
         }
       }
+    });
+
+    test(`S4.h — ninguna letra del título se recorta abajo al irse con el hero (L38) a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await expectTitleInkInsideHero(page, viewport);
     });
 
     test(`S4.g — contraste ≥ 4.5:1 del h1 y del antetítulo con el hero scrolleado 0, 25, 50 y 75 % a ${label}`, async ({ page }) => {
@@ -1338,3 +1381,17 @@ test.describe('S10 — Intro animada (L31)', () => {
     expect(m.display, `display de .intro a los ${Math.round(m.now)} ms`).toBe('none');
   });
 });
+
+
+// S4.h (L38) con una serif cuya J desciende, como Noto Serif en Android (en este contenedor: DejaVu Serif, J ≈ 0,21 em
+// bajo la línea base), y en un celular apaisado como el de la captura del usuario.
+test.describe('S4.h — título sin recorte con J descendente (Android)', () => {
+  for (const [label, viewport] of [['1440×900', { width: 1440, height: 900 }], ['390×844', { width: 390, height: 844 }], ['844×390', { width: 844, height: 390 }]]) {
+    test(`S4.h — con serif de J descendente, ninguna letra se recorta a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.addStyleTag({ content: 'hgroup.titulo, hgroup.titulo * { font-family: "DejaVu Serif", serif !important; }' });
+      await expectTitleInkInsideHero(page, viewport);
+    });
+  }
+});
+
