@@ -142,7 +142,7 @@ Criterios:
 ### S8 — Calidad base
 Criterios:
 - S8.a — `<meta name="viewport" content="width=device-width, initial-scale=1">` presente.
-- S8.b — Sin JavaScript en la página (ningún `script`).
+- S8.b — Sin JavaScript salvo un único `<script>` en línea: la guarda de atajos de S12.c (L40). No hay scripts externos.
 - S8.c — Sin errores de consola al cargar.
 - S8.d — Legibilidad (añadido en R1, ver L7; ajustado en L9): con el texto oculto (`visibility: hidden`), el color promedio del fondo detrás de la caja del `h1` y de la del antetítulo (L24) da un contraste WCAG ≥ 4.5:1 contra `--blanco` (L29), a 1440×900 y a 390×844. Los ojos, nariz y boca del retrato siguen visibles y sin texto encima.
 
@@ -188,11 +188,24 @@ Criterios:
 
 - Workflow `.github/workflows/pages.yml`: corre `npm test` en cada pull request y en cada push a `main`; con los tests en verde y solo en `main`, publica en GitHub Pages un sitio armado únicamente con los archivos públicos (`index.html`, `css/styles.css`, `assets/favicon.svg`, `assets/img/pueyrredon-panorama.jpg`, `assets/img/gran-logia-argentina.png`, `.nojekyll`). Tests, scripts, fuentes de los assets y documentos de trabajo no se publican.
 - Paso manual del usuario, por única vez: Settings → Pages → Source: **GitHub Actions**. Pages gratuito requiere repositorio público.
-- La parte "about blank" queda pendiente de una decisión del usuario (L39).
+- La parte "about blank" se resolvió en S12 (L40).
 
 Criterios:
 - S11.a — El YAML del workflow es válido y tiene un job `test` (sin condiciones) y un job `deploy` que depende de `test` y solo corre en `main` fuera de pull requests.
 - S11.b — La carpeta `_site` que arma el workflow sirve la página completa: todas las imágenes cargan, se aplica el CSS y ningún pedido devuelve 4xx. Verificado localmente con un servidor estático.
+
+### S12 — Protección del estilo (L40)
+> "El tema es que no quiero que alguien copie el estilo de la pagina" · elegidas: "Derechos reservados", "Minificar lo publicado", "Bloquear atajos igual"
+
+Nada técnico impide copiar una página que el navegador tiene que descargar. Estas medidas suman protección legal y disuasión:
+- **Derechos reservados:** `LICENSE` con «© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.» El diseño, el código y el emblema de la intro quedan bajo esos derechos. Se excluyen el isologotipo de la Gran Logia Argentina y el retrato al óleo, que pertenecen a sus titulares. Al principio de `css/styles.css` va un comentario preservable (`/*! … */`) y en el `<head>` un `<meta name="copyright">`.
+- **Publicado comprimido:** `npm run build` arma `_site/` con el HTML y el CSS minificados (sin comentarios salvo el aviso `/*!`) y los mismos assets. El workflow de Pages publica ese `_site/`, y la suite completa corre también contra el build.
+- **Atajos:** un `<script>` en línea manda a `about:blank` (con `location.replace`) ante los atajos de ver código o herramientas de desarrollo: Ctrl+U, F12, Ctrl+Shift+I/J/C, y en Mac ⌘⌥U/I/J/C. Usa `event.code`, porque en Mac ⌥ cambia `event.key`. No bloquea el clic derecho, la selección ni otros atajos. Es disuasión: `view-source:` y el repo público siguen mostrando el código.
+
+Criterios:
+- S12.a — Existe `LICENSE` con «Todos los derechos reservados» y las exclusiones; `<meta name="copyright">` presente; el CSS publicado conserva el aviso `/*! … */`.
+- S12.b — `npm run build` genera `_site/` con `index.html`, `css/styles.css`, `assets/favicon.svg`, las dos imágenes y `.nojekyll`. El HTML y el CSS publicados son más chicos que los fuentes y no tienen comentarios, salvo el aviso. La suite completa (proyecto Playwright `sitio-publicado`, servido desde `_site/`) pasa igual que contra la fuente.
+- S12.c — Con la página cargada, cada uno de Control+U, F12, Control+Shift+I, Control+Shift+J, Control+Shift+C, Meta+Alt+U y Meta+Alt+I lleva a `about:blank`. Control+C, Control+A, Tab, una letra suelta y el clic derecho no cambian la URL, y el `contextmenu` no se cancela.
 
 ## Tasks
 
@@ -225,6 +238,7 @@ Criterios:
 | T2o | S10 | opus — style (`odd-style`) + apply | Intro áurea de 3 s (L37) | [x] | ver L37 |
 | T2p | S4.h | opus — fix (TDD) | La J de JUAN no se recorta al irse con la imagen (L38) | [x] | ver L38 |
 | T3b | S11 | opus — CI/CD | Workflow de tests + GitHub Pages (solo archivos públicos) | [x] | ver L39 |
+| T2q | S12, S8.b, S11 | sonnet — apply (TDD) | LICENSE, build minificado + suite contra el build, guarda de atajos | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -350,3 +364,8 @@ Criterios:
   > Excelente, me gustaría subirla a un pages de Github y que si alguien quiere ver el código le derive un about blank
 
   (opus) Pages: workflow con tests como compuerta y despliegue de un `_site` mínimo (S11). S11.a se verificó leyendo el YAML; S11.b, armando `_site` y cargándolo con Chromium, sin errores 4xx y con imágenes y estilos aplicados. "About blank": se cuestiona la premisa (una sola vez, según el protocolo). El navegador siempre descarga el HTML y el CSS, `view-source:` no se puede interceptar, y el repo es público si se usa Pages gratuito. Además, la técnica obliga a agregar JavaScript (contra S8.b) y castiga clics legítimos, como el derecho sobre el logo para abrirlo en otra pestaña. Queda pendiente de la decisión del usuario.
+- **L40** (usuario, respuestas a las preguntas sobre «about blank», literales):
+  > El tema es que no quiero que alguien copie el estilo de la pagina
+  > Derechos reservados, Minificar lo publicado, Bloquear atajos igual
+
+  (opus) La preocupación real es la copia del estilo. Se explicó que ninguna técnica la impide y se ofrecieron medidas que suman: el usuario eligió las tres de S12 y descartó el repo privado. S8.b se reescribe para admitir un único script en línea. Nueva tarea T2q (sonnet).
