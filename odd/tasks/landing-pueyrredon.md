@@ -163,7 +163,7 @@ Criterios:
 | T2f | S2 | sonnet — apply (TDD) | Hero con el panorama a sangre completa (S2.a, S2.c, S2.d) | [x] | `969a32b` |
 | S1 | S1–S8 | opus — style (`odd-style`) | Revisión de estilo e identidad visual (L17), solo lectura | [x] | — (L21) |
 | T2g | S9 | sonnet — apply (TDD) | Aplicar las propuestas de estilo aceptadas, menos el velo | [x] | `3c478c7` |
-| T2h | S9.f | sonnet — apply (TDD) | Velo inferior "Sombra + corte" (L22) | [ ] | — |
+| T2h | S9.f | sonnet — apply (TDD) | Velo inferior "Sombra + corte" (L22) | [x] | `fb04701` |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -227,3 +227,4 @@ Criterios:
   > Sombra + corte (Recomendado)
 
   (opus) T2g (sonnet): RED 8 fallos (S9.a ×3, S9.b, S9.c, S9.d, S9.e ×2) → GREEN **51/51**. Desvío aceptado: la columna del pie queda en 60ch y no en 64ch, porque con 64ch salía un renglón de 78 caracteres y S9.a exige ≤ 75 (máximo medido con 60ch: 73). Título: 22 px a 1440, 16,4 px a 390, centrado exacto, contraste 6,26–6,36. El suavizado tipográfico no tiene un test útil en Chromium para Linux, así que se aplica sin test. Commit `3c478c7`. Nueva tarea T2h para el velo (S9.f).
+- **L23** (sonnet T2h + opus R1): RED S9.f en los dos viewports (`mix-blend-mode` `normal`; luminancia de la base 0.0257 / 0.0264, rgb(79, 26, 43)) → GREEN **53/53**. Luminancia final 0.0065 / 0.0068 (rgb(28, 15, 21)); contraste del `h1` 6.43 / 6.54. Commit `fb04701`. R1 sobre `f8250f0..fb04701`: riesgo **pasivo** (CSS/HTML estático, favicon SVG del mismo origen, tests); relectura estructural y revisión visual a 1440 (página completa), sin hallazgos → **reconocido**. README actualizado a 53 tests. Pendiente: espejo Engram (no disponible).

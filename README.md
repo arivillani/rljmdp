@@ -42,13 +42,13 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ```bash
 npm install   # dependencias de desarrollo (Playwright, http-server)
 npm start     # sirve el sitio en http://127.0.0.1:4173
-npm test      # tests Playwright (Chromium): 42 en total
+npm test      # tests Playwright (Chromium): 53 en total
 python3 -I scripts/build_panorama.py   # regenera assets/img/pueyrredon-panorama.jpg (requiere Pillow y numpy)
 ```
 
 - Requiere Node 18 o superior.
 - En una máquina nueva, instalar Chromium para Playwright con `npx playwright install chromium`.
-- Los 42 tests cubren los criterios S1.a–S8.d (28 criterios); S1.a, S2.c, S2.d, S4.b, S4.c y S8.d se repiten por viewport.
+- Los 53 tests cubren los criterios S1.a–S9.f; varios se repiten por viewport (S1.a, S2.c, S2.d, S4.b, S4.c, S8.d, S9.a, S9.e, S9.f).
 
 ## Cómo se desarrolló
 
