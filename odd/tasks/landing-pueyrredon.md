@@ -28,18 +28,20 @@ Criterios:
 > "la imagen de fondo que te adjunto."
 >
 > "Que la cabeza no aparezca cortada" (L10)
+>
+> "Ahí va la foto de gemini" (L18)
 
-- Asset: `assets/img/pueyrredon.jpg` (retrato adjunto, 1181×1424, JPEG optimizado, ≤ 400 KB).
-- El retrato es vertical (≈ 0,83) y el hero suele ser apaisado: con `cover` la cabeza se recorta (L10). Por eso el hero lleva dos capas del mismo retrato:
-  - **Fondo a sangre completa:** `.hero::before` con el retrato en `background-size: cover`, desenfocado y oscurecido (`filter: blur(…) brightness(…)`), que llena el viewport en cualquier proporción.
-  - **Retrato nítido:** `<img class="hero__retrato">` dentro del hero, alto 100 % del hero y ancho proporcional, centrado; los bordes laterales se funden con el fondo mediante `mask-image`. En pantallas angostas (más altas que el retrato) se desborda a los lados, recortado por `overflow: hidden`, y la cabeza queda dentro.
-- Caja de la cabeza en el original (px de 1181×1424, con pelo, patillas y mentón): **x 270–760, y 150–710**.
+- Fuente: `assets/img/pueyrredon.jpg` (retrato original, 1181×1424) y `assets/src/pueyrredon-gemini.jpg` (extensión lateral con nubes hecha por el usuario con Gemini, 1456×720, 2,02:1).
+- **Panorama:** `assets/img/pueyrredon-panorama.jpg`, generado por `scripts/build_panorama.py` (reproducible): la extensión de Gemini ampliada a la escala del original, con el color ajustado al original, y el **original pegado píxel a píxel en el centro** con un fundido horizontal de ≤ 48 px en sus bordes. La cara y la figura son las del original, no las de Gemini.
+- El hero muestra el panorama con `<img class="hero__retrato">` a sangre completa (`object-fit: cover`). Hasta 2:1 se ve el alto completo y solo se recortan nubes a los lados; en pantallas más anchas se recorta un poco abajo, nunca la cabeza. Desaparecen el fondo desenfocado y el fundido lateral de L10.
+- Caja de la cabeza: x 270–760, y 150–710 en px del original, trasladada al panorama con el desplazamiento del pegado que reporta el script.
 
 Criterios:
-- S2.a — Existe un único `img.hero__retrato` dentro de `.hero`, cuyo `src` termina en `assets/img/pueyrredon.jpg`, con `alt` no vacío, y la imagen cargó (`naturalWidth` es 1181).
-- S2.b — `GET /assets/img/pueyrredon.jpg` responde 200 con `content-type` `image/jpeg`.
-- S2.c — En `getComputedStyle(.hero, '::before')`, `backgroundImage` contiene `pueyrredon.jpg`, `backgroundSize` es `cover` y `filter` contiene `blur`.
-- S2.d — Cabeza sin cortar: la caja de la cabeza proyectada sobre la caja renderizada de `.hero__retrato` queda entera dentro del viewport con ≥ 8 px de margen y no se superpone con la caja del `h1`, a 1440×900, 1920×950, 1366×650, 390×844 y 360×740.
+- S2.a — Existe un único `img.hero__retrato` dentro de `.hero`, cuyo `src` termina en `assets/img/pueyrredon-panorama.jpg`, con `alt` no vacío; la imagen cargó, con `naturalWidth` ≥ 2400 y proporción entre 1,9 y 2,1.
+- S2.b — `GET /assets/img/pueyrredon-panorama.jpg` responde 200 con `content-type` `image/jpeg` y pesa ≤ 700 KB.
+- S2.c — Sangre completa sin desenfoque: `object-fit` del `img` es `cover`, su caja coincide con la del hero (±1 px) en los 6 viewports de S2.d, y ni `.hero` ni sus pseudo-elementos tienen `filter` con `blur`.
+- S2.d — Cabeza sin cortar: la caja de la cabeza, proyectada con la geometría de `object-fit: cover` + `object-position`, queda entera dentro del viewport con ≥ 8 px de margen y no se superpone con el `h1`, a 1440×900, 1920×950, 1366×650, 2560×1080, 390×844 y 360×740.
+- S2.e — Autenticidad: el script verifica que la región central del panorama coincide con el original (error absoluto medio < 3 sobre 255 fuera de la franja de fundido) e imprime el desplazamiento y la caja de la cabeza.
 
 ### S3 — Sin menú lateral
 > "sin menú en el lateral"
@@ -140,6 +142,8 @@ Criterios:
 | T2c | S1, S2, S4, S5, S6, S8.d | sonnet — apply (TDD) | Reabierta por L9, L10 y L11: título pequeño arriba en mayúsculas, sin fecha ni ciudad, cabeza sin cortar | [x] | `fd3b70a` |
 | T2d | S7 | sonnet — apply (TDD) | Reabierta por L12: pie con el formato de la referencia, en la paleta, solo Lorem ipsum | [x] | `35a9d05` |
 | T2e | S7 | sonnet — apply (TDD) | Reabierta por L15: fondo del pie más rojo | [x] | `43f74a2` |
+| T1b | S2 | sonnet — asset | `scripts/build_panorama.py` → `assets/img/pueyrredon-panorama.jpg` (S2.b, S2.e) | [ ] | — |
+| T2f | S2 | sonnet — apply (TDD) | Hero con el panorama a sangre completa (S2.a, S2.c, S2.d) | [ ] | — |
 | S1 | S1–S8 | opus — style (`odd-style`) | Revisión de estilo e identidad visual (L17), solo lectura | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
@@ -190,3 +194,7 @@ Criterios:
   > Hace que el front lo revise algún agente de estilo e identidad visual así queda lindo y elegante
 
   (opus) Nuevo agente `odd-style` (opus, solo lectura) en `.claude/agents/`, commit `3321eeb`. Sus propuestas no pueden romper ninguna spec; lo que choque con una spec vuelve como pregunta al usuario. Las propuestas aceptadas se aplican como tarea de sonnet con TDD.
+- **L18** (usuario, literal):
+  > Ahí va la foto de gemini
+
+  (opus) Recibida: 1456×720 (2,02:1), un solo par de firmas en su lugar (la original), sin texto añadido. Está a la mitad de resolución del original (la cabeza quedaría con ~50 % del detalle), así que no se usa tal cual: se arma un panorama de ~2880×1424 con los costados de Gemini ampliados y el original pegado en el centro píxel a píxel. Así la figura no depende de lo que Gemini haya redibujado. Se reescribe S2 y se crean T1b (asset) y T2f (integración). La revisión de estilo (S1-style) va después, sobre la versión con el panorama.
