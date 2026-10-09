@@ -40,7 +40,7 @@ Criterios:
 - S2.a — Existe un único `img.hero__retrato` dentro de `.hero`, cuyo `src` termina en `assets/img/pueyrredon-panorama.jpg`, con `alt` no vacío; la imagen cargó, con `naturalWidth` ≥ 2400 y proporción entre 1,9 y 2,1.
 - S2.b — `GET /assets/img/pueyrredon-panorama.jpg` responde 200 con `content-type` `image/jpeg` y pesa ≤ 700 KB.
 - S2.c — Sangre completa sin desenfoque: `object-fit` del `img` es `cover`, su caja coincide con la del hero (±1 px) en los 6 viewports de S2.d, y ni `.hero` ni sus pseudo-elementos tienen `filter` con `blur`.
-- S2.d — Cabeza sin cortar: la caja de la cabeza, proyectada con la geometría de `object-fit: cover` + `object-position`, queda entera dentro del viewport con ≥ 8 px de margen y no se superpone con el `h1`, a 1440×900, 1920×950, 1366×650, 2560×1080, 390×844 y 360×740.
+- S2.d — Cabeza sin cortar: la caja de la cabeza, proyectada con la geometría de `object-fit: cover` + `object-position`, queda entera dentro del viewport con ≥ 8 px de margen y empieza ≥ 4 px por debajo del borde inferior del `hgroup.titulo` completo (L24), a 1440×900, 1920×950, 1366×650, 2560×1080, 390×844 y 360×740.
 - S2.e — Autenticidad: el script verifica que la región central del panorama coincide con el original (error absoluto medio < 3 sobre 255 fuera de la franja de fundido) e imprime el desplazamiento y la caja de la cabeza.
 
 ### S3 — Sin menú lateral
@@ -56,12 +56,20 @@ Criterios:
 > "que de título diga Juan Martín De Pueyrredón centrado."
 >
 > "Pone el título pequeño arriba" (L9)
+>
+> "Arriba, en el título poné "Respetable Logia" más chico centrado sobre "Juan Martin De Pueyrredón" más grande, en una relación que comprenda matemáticamente la proporción aurea." (L24)
+
+Bloque de título (L24): `hgroup.titulo` con `p.titulo__antetitulo` (`Respetable Logia`) arriba y el `h1` (`Juan Martín De Pueyrredón`, se mantiene el acento de S4.a) debajo, ambos en mayúsculas por CSS y centrados. Relaciones áureas (φ = 1,6180339…):
+- tamaño: `font-size(h1) = φ × font-size(antetítulo)`;
+- separación: el espacio entre la caja del antetítulo y la del `h1` = `font-size(antetítulo) / φ`;
+- tracking: `letter-spacing(antetítulo) = φ × letter-spacing(h1)` (en em).
 
 Criterios:
 - S4.a — Existe exactamente un `h1` y su texto (trim) es exactamente `Juan Martín De Pueyrredón`.
 - S4.b — El centro horizontal de la caja del `h1` está a ±2 px del centro del viewport, y `text-align` es `center` (1440×900 y 390×844).
-- S4.c — El `h1` está arriba, con el estilo de logotipo de la referencia (L11): `text-transform: uppercase` (el texto del DOM no cambia, S4.a), su borde superior queda entre 12 px y 48 px del borde superior del hero, y su `font-size` computado está entre 16 px y 26 px (1440×900 y 390×844). Cabe en una sola línea con ≥ 16 px de margen lateral a 390 px y a 360 px.
-- S4.d — `<title>` del documento es `Juan Martín De Pueyrredón`; `<html lang="es">`.
+- S4.c — El bloque de título está arriba, con el estilo de logotipo de la referencia (L11): antetítulo y `h1` con `text-transform: uppercase` (el texto del DOM no cambia, S4.a), el borde superior del `hgroup` entre 12 y 48 px del borde superior del hero, y el `font-size` del `h1` entre 16 y 26 px (1440×900 y 390×844). Cada línea cabe en un solo renglón con ≥ 16 px de margen lateral a 390 y a 360 px, y el antetítulo está centrado (±2 px) como el `h1`.
+- S4.d — `<title>` del documento es `Respetable Logia Juan Martín De Pueyrredón` (L24); `<html lang="es">`.
+- S4.e — Proporción áurea (L24), a 1440×900, 1366×650 y 390×844: `font-size(h1) / font-size(antetítulo)` = φ (±0,5 %); la separación vertical entre las cajas = `font-size(antetítulo) / φ` (±1 px); `letter-spacing(antetítulo) / letter-spacing(h1)` = φ (±1 %); el antetítulo está arriba del `h1`, dentro del mismo `hgroup.titulo`, y su texto es exactamente `Respetable Logia`.
 
 ### S5 — Paleta de la foto adjunta
 > "que tenga la paleta de colores de la foto adjunta"
@@ -104,22 +112,25 @@ Criterios:
 > "Y está es la parte de abajo que va en la paleta de colores que te pedi" (L12)
 >
 > "Elegí un tono más rojo para el fondo de la parte de abajo." (L15)
+>
+> "Y en la sección donde está el "Ut enmi ad minim" pone "Bajo los auspicios de la" Y este isologotipo de la gran logia argentina." (L24)
 
 Se replica la *estructura* del pie de la referencia (L12) con texto de relleno: fondo claro y texto oscuro,
 bloques de ancho completo separados por filetes finos, todo alineado a la izquierda:
 1. `ul.pie__secciones` con tres renglones cortos (≈ 18–20 px), con mucho aire vertical: `Lorem ipsum`, `Dolor sit amet`, `Consectetur adipiscing`.
 2. `p` chico (≈ 13–14 px, interlineado ≈ 1,7) de Lorem ipsum (≈ 35 palabras).
-3. `p` chico de Lorem ipsum (≈ 20 palabras).
+3. `p.pie__auspicio` (L24): el texto `Bajo los auspicios de la` y, debajo, el isologotipo de la Gran Logia Argentina como `img` en línea (`alt="Gran Logia Argentina de Libres y Aceptados Masones"`), de modo que la oración se lee completa con lector de pantalla. El logo es un PNG con transparencia en `--rosa-100` (`assets/img/gran-logia-argentina.png`), generado desde el original blanco sobre negro (`assets/src/gran-logia-argentina-original.png`).
 4. `p.pie__copy` chico: `© Lorem ipsum`.
 
 Colores (L15): fondo `--rojo-700` (`#a60000`); todo el texto `--rosa-100` (contraste 4.99:1); filetes 1 px `--carmesi-300`.
-Sin enlaces, botones ni datos reales.
+Sin enlaces ni botones; el único contenido real es el bloque de auspicio (L24).
 
 Criterios:
 - S7.a — Los hijos de `body` son solo `main` y `footer`; `main` contiene únicamente la sección `.hero`.
-- S7.b — Estructura: el `footer` tiene exactamente 4 hijos directos con clase `pie__bloque`, en este orden: un `ul.pie__secciones` con exactamente 3 `li`; un `p`; un `p`; un `p.pie__copy` cuyo texto empieza por `©`.
-- S7.c — Solo Lorem ipsum: el primer `p` empieza por `Lorem ipsum`; el texto del `footer` sin el `©` contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
-- S7.d — El `footer` no contiene `a`, `button`, `form`, `img`, `svg` ni `h1`–`h6`.
+- S7.b — Estructura: el `footer` tiene exactamente 4 hijos directos con clase `pie__bloque`, en este orden: un `ul.pie__secciones` con exactamente 3 `li`; un `p`; un `p.pie__auspicio`; un `p.pie__copy` cuyo texto empieza por `©`.
+- S7.c — Lorem ipsum salvo el auspicio: el primer `p` empieza por `Lorem ipsum`; el texto de los bloques 1, 2 y 4 sin el `©` contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
+- S7.g — Auspicio (L24): el texto de `p.pie__auspicio` (trim) es exactamente `Bajo los auspicios de la`; contiene un único `img` con `src` terminado en `assets/img/gran-logia-argentina.png`, `alt` `Gran Logia Argentina de Libres y Aceptados Masones`, que cargó (`naturalWidth` > 0), con píxel de esquina transparente (alfa 0) y renderizado debajo del texto, con ancho entre 200 y 320 px a 1440×900 y ≤ el ancho disponible a 360 px.
+- S7.d — El `footer` no contiene `a`, `button`, `form`, `svg` ni `h1`–`h6`; su único `img` es el isologotipo de S7.g.
 - S7.e — Formato: `text-align` de los bloques es `left` o `start`; los bloques 2, 3 y 4 tienen `border-top` de 1 px y el bloque 1 no; el color de esos filetes, el fondo del `footer` y el color del texto de cada bloque pertenecen a los tokens de S5.
 - S7.f — Fondo rojo (L15): el `background-color` del `footer` es `--rojo-700` (`#a60000`), los filetes son `--carmesi-300`, y el color de texto de cada bloque da contraste WCAG ≥ 4.5:1 contra ese fondo.
 
@@ -128,7 +139,7 @@ Criterios:
 - S8.a — `<meta name="viewport" content="width=device-width, initial-scale=1">` presente.
 - S8.b — Sin JavaScript en la página (ningún `script`).
 - S8.c — Sin errores de consola al cargar.
-- S8.d — Legibilidad (añadido en R1, ver L7; ajustado en L9): con el texto oculto (`visibility: hidden`), el color promedio del fondo detrás de la caja del `h1` da un contraste WCAG ≥ 4.5:1 contra `--rosa-100`, a 1440×900 y a 390×844. Los ojos, nariz y boca del retrato siguen visibles y sin texto encima.
+- S8.d — Legibilidad (añadido en R1, ver L7; ajustado en L9): con el texto oculto (`visibility: hidden`), el color promedio del fondo detrás de la caja del `h1` y de la del antetítulo (L24) da un contraste WCAG ≥ 4.5:1 contra `--rosa-100`, a 1440×900 y a 390×844. Los ojos, nariz y boca del retrato siguen visibles y sin texto encima.
 
 ### S9 — Refinamiento visual (revisión de estilo, L21)
 > "Hace que el front lo revise algún agente de estilo e identidad visual así queda lindo y elegante" (L17)
@@ -164,6 +175,9 @@ Criterios:
 | S1 | S1–S8 | opus — style (`odd-style`) | Revisión de estilo e identidad visual (L17), solo lectura | [x] | — (L21) |
 | T2g | S9 | sonnet — apply (TDD) | Aplicar las propuestas de estilo aceptadas, menos el velo | [x] | `3c478c7` |
 | T2h | S9.f | sonnet — apply (TDD) | Velo inferior "Sombra + corte" (L22) | [x] | `fb04701` |
+| T1c | S7.g | haiku — asset | Isologotipo a PNG transparente en `--rosa-100`, recortado | [ ] | — |
+| T2i | S2.d, S4, S7, S8.d | sonnet — apply (TDD) | Antetítulo áureo + bloque de auspicio con el isologotipo | [ ] | — |
+| S2-style | S4, S7 | opus — style (`odd-style`) | Revisión de estilo del bloque de título y del auspicio (L24) | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -228,3 +242,9 @@ Criterios:
 
   (opus) T2g (sonnet): RED 8 fallos (S9.a ×3, S9.b, S9.c, S9.d, S9.e ×2) → GREEN **51/51**. Desvío aceptado: la columna del pie queda en 60ch y no en 64ch, porque con 64ch salía un renglón de 78 caracteres y S9.a exige ≤ 75 (máximo medido con 60ch: 73). Título: 22 px a 1440, 16,4 px a 390, centrado exacto, contraste 6,26–6,36. El suavizado tipográfico no tiene un test útil en Chromium para Linux, así que se aplica sin test. Commit `3c478c7`. Nueva tarea T2h para el velo (S9.f).
 - **L23** (sonnet T2h + opus R1): RED S9.f en los dos viewports (`mix-blend-mode` `normal`; luminancia de la base 0.0257 / 0.0264, rgb(79, 26, 43)) → GREEN **53/53**. Luminancia final 0.0065 / 0.0068 (rgb(28, 15, 21)); contraste del `h1` 6.43 / 6.54. Commit `fb04701`. R1 sobre `f8250f0..fb04701`: riesgo **pasivo** (CSS/HTML estático, favicon SVG del mismo origen, tests); relectura estructural y revisión visual a 1440 (página completa), sin hallazgos → **reconocido**. README actualizado a 53 tests. Pendiente: espejo Engram (no disponible).
+- **L24** (usuario, literal; adjunta el isologotipo de la Gran Logia Argentina, blanco sobre negro, 903×492):
+  > Arriba, en el título poné "Respetable Logia" más chico centrado sobre "Juan Martin De Pueyrredón" más grande, en una relación que comprenda matemáticamente la proporción aurea.
+  > Y en la sección donde está el "Ut enmi ad minim" pone "Bajo los auspicios de la"
+  > Y este isologotipo de la gran logia argentina. Después pásalo por el agente de imagen a ver el estilo que le da
+
+  (opus) Se reescriben S4 (bloque `hgroup` + S4.e con tres relaciones áureas: tamaño ×φ, separación ÷φ y tracking ×φ), S4.d (título del documento con el nombre de la logia), S2.d (la cabeza empieza debajo de todo el bloque de título), S8.d (contraste del antetítulo) y S7 (el bloque 3 pasa a ser el auspicio con el isologotipo, S7.g). Se mantiene el acento de "Martín" (S4.a). El bloque de título suma altura y a 1366×650 la cabeza empieza a ~67 px del borde superior, así que el tamaño del `h1` también tiene que depender del alto del viewport. Nuevas tareas: T1c (haiku), T2i (sonnet) y S2-style (opus, "agente de imagen").
