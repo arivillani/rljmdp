@@ -1,0 +1,101 @@
+:root {
+  --rojo-950: #1b0303;
+  --rojo-900: #400001;
+  --rojo-800: #7c0000;
+  --rojo-700: #a60000;
+  --rojo-600: #ce0201;
+  --carmesi-700: #81001f;
+  --carmesi-500: #a41727;
+  --carmesi-300: #ca302e;
+  --oxido-600: #9b1307;
+  --rosa-300: #ff7a7b;
+  --rosa-100: #ffbbba;
+  --tinta: #1c1c26;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: var(--rojo-950);
+  font-family: "Times New Roman", Times, "Liberation Serif", Tinos, serif;
+}
+
+/* Header transparente superpuesto al hero: solo microtexto. */
+.topbar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  padding: clamp(18px, 3vw, 32px) clamp(16px, 4vw, 48px);
+  background: transparent;
+  color: var(--rosa-100);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+/* Hero a sangre completa: alto exacto del viewport; el retrato es la única capa de fondo. */
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  background: url("../assets/img/pueyrredon.jpg") center 35% / cover no-repeat;
+}
+
+/* Velo en degradé de la paleta para legibilidad del título (S2). */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgb(27 3 3 / 0.45) 0%,
+    rgb(27 3 3 / 0.15) 40%,
+    rgb(129 0 31 / 0.6) 100%
+  );
+}
+
+/* Centrado horizontal estricto; vertical al 68 % para no tapar el rostro (L4). */
+.hero h1 {
+  position: absolute;
+  top: 68%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(100% - 32px, 16ch);
+  margin: 0;
+  color: var(--rosa-100);
+  font-size: clamp(2.6rem, 7vw, 6.5rem);
+  font-weight: 400;
+  line-height: 1.05;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: 0 1px 24px rgb(27 3 3 / 0.55);
+}
+
+/* Filete de acento bajo el título. */
+.hero h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 1px;
+  margin: 0.35em auto 0;
+  background: var(--rojo-600);
+}
+
+footer {
+  background: var(--rosa-100);
+  padding: clamp(56px, 9vw, 112px) 16px;
+}
+
+footer p {
+  max-width: 46ch;
+  margin: 0 auto;
+  color: var(--rojo-900);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  text-align: center;
+}
