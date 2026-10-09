@@ -81,6 +81,11 @@ const LOGO_LINK_HREF = 'https://www.masoneria-argentina.org.ar/';
 const LOGO_LINK_NAME = `${LOGO_ALT} (se abre en una pestaña nueva)`;
 const LOGO_MIN_WIDTH = 200;
 const LOGO_MAX_WIDTH = 320;
+const LOGO_WIDTH = 260; // S7 punto 3 (L27): ≈ medida de los párrafos ÷ φ; S7.g exacto a ±1 px
+const AUSPICIO_MIN_TRACKING = 0.15; // S7.g (L27): leyenda en mayúsculas espaciadas, letter-spacing ≥ 0,15 em
+const CAP_LINE_HEIGHT = 0.66; // S4.e/S4.f (L27): cada renglón del título mide su altura de mayúsculas, ±0,02 em
+const CAP_LINE_HEIGHT_TOLERANCE = 0.02;
+const GOLDEN_TOLERANCE = 0.02; // S4.f: 1 : φ a ±2 %
 
 /** '#rrggbb' -> 'r,g,b' */
 function hexToRgbKey(hex) {
@@ -117,6 +122,50 @@ function contrastRatio(a, b) {
  * @param {Buffer} png
  * @returns {Promise<[number, number, number]>}
  */
+/**
+ * Geometría de object-fit: cover + object-position (en %) aplicada a la caja de la cabeza (S2.d, S4.f) y caja del
+ * hgroup.titulo, ambas en px relativos al borde superior del hero.
+ * @param {import('@playwright/test').Page} page
+ */
+async function measureHeadAndTitle(page) {
+  return page.evaluate(async ({ headBox }) => {
+    const hero = document.querySelector('.hero').getBoundingClientRect();
+    const img = /** @type {HTMLImageElement} */ (document.querySelector('img.hero__retrato'));
+    try {
+      await img.decode();
+    } catch (e) {
+      /* se informa vía naturalWidth */
+    }
+    const r = img.getBoundingClientRect();
+    const block = document.querySelector('hgroup.titulo');
+    const t = block ? block.getBoundingClientRect() : null;
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+    const position = getComputedStyle(img).objectPosition;
+    const objectFit = getComputedStyle(img).objectFit;
+    const [px, py] = position.split(/\s+/).map((v) => (v.endsWith('%') ? parseFloat(v) / 100 : NaN));
+    const scale = Math.max(r.width / iw, r.height / ih);
+    const dx = (r.width - iw * scale) * px;
+    const dy = (r.height - ih * scale) * py;
+    return {
+      position,
+      objectFit,
+      src: img.src,
+      naturalWidth: iw,
+      scale,
+      clientWidth: document.documentElement.clientWidth,
+      heroHeight: hero.height,
+      head: {
+        left: r.left + dx + headBox.x1 * scale,
+        right: r.left + dx + headBox.x2 * scale,
+        top: r.top - hero.top + dy + headBox.y1 * scale,
+        bottom: r.top - hero.top + dy + headBox.y2 * scale,
+      },
+      titulo: t && { left: t.left, right: t.right, top: t.top - hero.top, bottom: t.bottom - hero.top },
+    };
+  }, { headBox: HEAD_BOX });
+}
+
 function averageColor(page, png) {
   return page.evaluate(async (base64) => {
     const img = new Image();
@@ -249,43 +298,7 @@ test.describe('S2 — Imagen de fondo, con la cabeza entera', () => {
   for (const [label, viewport] of HERO_VIEWPORTS) {
     test(`S2.d — cabeza entera con ≥ 8 px de margen y ≥ ${HEAD_TITLE_GAP} px por debajo de todo el hgroup.titulo a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      // Geometría de object-fit: cover + object-position (en %) aplicada a la caja de la cabeza.
-      const m = await page.evaluate(async ({ headBox }) => {
-        const hero = document.querySelector('.hero').getBoundingClientRect();
-        const img = /** @type {HTMLImageElement} */ (document.querySelector('img.hero__retrato'));
-        try {
-          await img.decode();
-        } catch (e) {
-          /* se informa vía naturalWidth */
-        }
-        const r = img.getBoundingClientRect();
-        const block = document.querySelector('hgroup.titulo');
-        const t = block ? block.getBoundingClientRect() : null;
-        const iw = img.naturalWidth;
-        const ih = img.naturalHeight;
-        const position = getComputedStyle(img).objectPosition;
-        const objectFit = getComputedStyle(img).objectFit;
-        const [px, py] = position.split(/\s+/).map((v) => (v.endsWith('%') ? parseFloat(v) / 100 : NaN));
-        const scale = Math.max(r.width / iw, r.height / ih);
-        const dx = (r.width - iw * scale) * px;
-        const dy = (r.height - ih * scale) * py;
-        return {
-          position,
-          objectFit,
-          src: img.src,
-          naturalWidth: iw,
-          scale,
-          clientWidth: document.documentElement.clientWidth,
-          heroHeight: hero.height,
-          head: {
-            left: r.left + dx + headBox.x1 * scale,
-            right: r.left + dx + headBox.x2 * scale,
-            top: r.top - hero.top + dy + headBox.y1 * scale,
-            bottom: r.top - hero.top + dy + headBox.y2 * scale,
-          },
-          titulo: t && { left: t.left, right: t.right, top: t.top - hero.top, bottom: t.bottom - hero.top },
-        };
-      }, { headBox: HEAD_BOX });
+      const m = await measureHeadAndTitle(page);
       // Guarda: la proyección solo significa algo con el panorama (la caja está en sus px) y con object-fit: cover.
       expect(m.src.endsWith('assets/img/pueyrredon-panorama.jpg'), `src: ${m.src}`).toBe(true);
       expect(m.objectFit, 'object-fit del img').toBe('cover');
@@ -408,6 +421,29 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   });
 
+  for (const [label, viewport] of HERO_VIEWPORTS) {
+    test(`S4.f — colocación áurea: margen superior del hgroup : aire hasta la cabeza = 1 : φ (±${GOLDEN_TOLERANCE * 100} %) a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const m = await measureHeadAndTitle(page);
+      // Guardas: la proyección solo significa algo con el panorama y con object-fit: cover (igual que S2.d).
+      expect(m.src.endsWith('assets/img/pueyrredon-panorama.jpg'), `src: ${m.src}`).toBe(true);
+      expect(m.objectFit, 'object-fit del img').toBe('cover');
+      expect(m.naturalWidth, 'la imagen no cargó').toBeGreaterThan(0);
+      expect(Number.isFinite(m.scale), `object-position "${m.position}" no está en %`).toBe(true);
+      expect(m.titulo, 'falta hgroup.titulo (L24)').not.toBeNull();
+      const { head, titulo } = /** @type {{ head: any, titulo: any }} */ (m);
+      const above = titulo.top; // margen superior del hgroup (el hero empieza en y = 0)
+      const air = head.top - titulo.bottom; // aire entre el hgroup y la cabeza
+      expect(above, `margen superior del hgroup: ${above.toFixed(2)}px`).toBeGreaterThan(0);
+      const ratio = air / above;
+      test.info().annotations.push({ type: 'razón aire / margen', description: `${label}: ${ratio.toFixed(4)} (φ = ${PHI.toFixed(4)})` });
+      expect(
+        Math.abs(ratio - PHI) / PHI,
+        `aire ${air.toFixed(2)}px (cabeza y ${head.top.toFixed(2)} − hgroup abajo ${titulo.bottom.toFixed(2)}) / margen ${above.toFixed(2)}px = ${ratio.toFixed(4)} (φ = ${PHI.toFixed(4)}, ±${GOLDEN_TOLERANCE * 100} %)`,
+      ).toBeLessThanOrEqual(GOLDEN_TOLERANCE);
+    });
+  }
+
   for (const [label, viewport] of PHI_VIEWPORTS) {
     test(`S4.e — proporción áurea: tamaño ×φ, separación ÷φ y tracking ×φ; antetítulo "${KICKER}" sobre el h1 en hgroup.titulo a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
@@ -425,6 +461,8 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
           h1Top: n.top,
           kickerFontSize: parseFloat(getComputedStyle(kicker).fontSize),
           h1FontSize: parseFloat(getComputedStyle(h1).fontSize),
+          kickerLineHeight: getComputedStyle(kicker).lineHeight,
+          h1LineHeight: getComputedStyle(h1).lineHeight,
           kickerTracking: getComputedStyle(kicker).letterSpacing,
           h1Tracking: getComputedStyle(h1).letterSpacing,
         };
@@ -447,6 +485,18 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
         Math.abs(gap - wanted),
         `separación: ${gap.toFixed(2)}px entre las cajas vs antetítulo/φ = ${wanted.toFixed(2)}px (±1 px)`,
       ).toBeLessThanOrEqual(1);
+
+      // L27: cada renglón mide su altura de mayúsculas, así la separación áurea es la que se ve entre la tinta.
+      for (const [name, lineHeight, fontSize] of /** @type {const} */ ([
+        ['antetítulo', r.kickerLineHeight, r.kickerFontSize],
+        ['h1', r.h1LineHeight, r.h1FontSize],
+      ])) {
+        const em = parseFloat(lineHeight) / fontSize; // "normal" -> NaN
+        expect.soft(
+          Math.abs(em - CAP_LINE_HEIGHT),
+          `line-height del ${name}: ${lineHeight} / ${fontSize}px = ${em.toFixed(3)} em (altura de mayúsculas ${CAP_LINE_HEIGHT} em, ±${CAP_LINE_HEIGHT_TOLERANCE})`,
+        ).toBeLessThanOrEqual(CAP_LINE_HEIGHT_TOLERANCE);
+      }
 
       const kickerPx = parseFloat(r.kickerTracking); // "normal" -> NaN
       const h1Px = parseFloat(r.h1Tracking);
@@ -602,6 +652,9 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
       const r = el.getBoundingClientRect();
       return {
         paragraphText: (p.textContent || '').trim(),
+        textTransform: pStyle.textTransform,
+        letterSpacing: pStyle.letterSpacing,
+        fontSize: parseFloat(pStyle.fontSize),
         src: el.src,
         alt: el.alt,
         naturalWidth: el.naturalWidth,
@@ -627,6 +680,14 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
     expect(m.imgTop, `img top ${m.imgTop.toFixed(1)} vs fondo del texto ${m.textBottom.toFixed(1)}: el logo va debajo del texto`).toBeGreaterThanOrEqual(m.textBottom);
     expect(m.width, `ancho del logo: ${m.width.toFixed(1)}px`).toBeGreaterThanOrEqual(LOGO_MIN_WIDTH);
     expect(m.width, `ancho del logo: ${m.width.toFixed(1)}px`).toBeLessThanOrEqual(LOGO_MAX_WIDTH);
+    // L27: leyenda en mayúsculas espaciadas y logo de 260 px exactos.
+    expect.soft(m.textTransform, 'text-transform de la leyenda').toBe('uppercase');
+    const tracking = parseFloat(m.letterSpacing) / m.fontSize; // "normal" -> NaN
+    expect.soft(
+      tracking >= AUSPICIO_MIN_TRACKING,
+      `letter-spacing de la leyenda: ${m.letterSpacing} / ${m.fontSize}px = ${tracking.toFixed(3)} em (mínimo ${AUSPICIO_MIN_TRACKING})`,
+    ).toBe(true);
+    expect.soft(Math.abs(m.width - LOGO_WIDTH), `ancho del logo ${m.width.toFixed(1)}px vs ${LOGO_WIDTH}px (±1)`).toBeLessThanOrEqual(1);
   });
 
   test('S7.g — el isologotipo cabe en el ancho disponible del bloque a 360×740', async ({ page }) => {
@@ -635,6 +696,7 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
     expect(m.naturalWidth, 'el isologotipo no cargó').toBeGreaterThan(0);
     expect(m.width, `ancho del logo ${m.width.toFixed(1)}px vs ancho disponible ${m.availableWidth.toFixed(1)}px`).toBeLessThanOrEqual(m.availableWidth + 0.5);
     expect(m.imgRight, `borde derecho del logo ${m.imgRight.toFixed(1)}px vs viewport ${m.clientWidth}px`).toBeLessThanOrEqual(m.clientWidth);
+    expect.soft(Math.abs(m.width - LOGO_WIDTH), `ancho del logo ${m.width.toFixed(1)}px vs ${LOGO_WIDTH}px (±1)`).toBeLessThanOrEqual(1);
   });
 
   test('S7.h — el isologotipo está dentro de un único enlace a la Gran Logia (nueva pestaña, noopener, nombre accesible) con foco de teclado visible en --rosa-100', async ({ page }) => {

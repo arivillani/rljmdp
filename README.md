@@ -5,7 +5,7 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ## Qué hay
 
 - Panorama a sangre completa (`object-fit: cover`): el retrato original pegado píxel a píxel entre dos costados de nubes; sin fondo desenfocado y con la cabeza entera en los viewports probados (S2.d).
-- Título pequeño arriba, centrado, en mayúsculas: "Respetable Logia" sobre el nombre, en proporción áurea (tamaño ×φ, separación ÷φ, tracking ×φ); sin menú.
+- Título pequeño arriba, centrado, en mayúsculas: "Respetable Logia" sobre el nombre, en proporción áurea (tamaño ×φ, separación ÷φ, tracking ×φ), con renglones a la altura de mayúsculas y el bloque colocado entre el borde del hero y la cabeza en 1 : φ; sin menú.
 - Paleta roja de la foto adjunta: 12 tokens declarados en `:root`.
 
 | Token | Hex | Token | Hex |
@@ -18,7 +18,7 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 | `--carmesi-700` | `#81001f` | `--tinta` | `#1c1c26` |
 
 - Times New Roman (con respaldos), sin fuentes web.
-- Pie: tres renglones, filetes finos, un párrafo y © en Lorem ipsum, más el bloque "Bajo los auspicios de la" con el isologotipo de la Gran Logia Argentina, que enlaza a https://www.masoneria-argentina.org.ar/ en una pestaña nueva.
+- Pie: tres renglones, filetes finos, un párrafo y © en Lorem ipsum, más el bloque "BAJO LOS AUSPICIOS DE LA" (mayúsculas espaciadas) con el isologotipo de la Gran Logia Argentina (260 px), que enlaza a https://www.masoneria-argentina.org.ar/ en una pestaña nueva.
 
 ## Estructura
 
@@ -44,13 +44,13 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ```bash
 npm install   # dependencias de desarrollo (Playwright, http-server)
 npm start     # sirve el sitio en http://127.0.0.1:4173
-npm test      # tests Playwright (Chromium): 59 en total
+npm test      # tests Playwright (Chromium): 65 en total
 python3 -I scripts/build_panorama.py   # regenera assets/img/pueyrredon-panorama.jpg y verifica S2.e y S2.f (requiere Pillow y numpy)
 ```
 
 - Requiere Node 18 o superior.
 - En una máquina nueva, instalar Chromium para Playwright con `npx playwright install chromium`.
-- Los 59 tests cubren los criterios S1.a–S9.f; varios se repiten por viewport (S1.a, S2.c, S2.d, S4.b, S4.c, S4.e, S7.g, S8.d, S9.a, S9.e, S9.f).
+- Los 65 tests cubren los criterios S1.a–S9.f salvo S2.f, que verifica `scripts/build_panorama.py` al generar el panorama; varios se repiten por viewport (S1.a, S2.c, S2.d, S4.b, S4.c, S4.e, S4.f, S7.g, S8.d, S9.a, S9.e, S9.f).
 
 ## Cómo se desarrolló
 

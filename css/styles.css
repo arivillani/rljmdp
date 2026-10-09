@@ -80,15 +80,26 @@ body {
      tamaño     h1 = φ × antetítulo
      separación (antetítulo → h1) = tamaño del antetítulo / φ
      tracking   antetítulo = φ × h1 (en px)
-   El tamaño del h1 depende también del alto del viewport (3vh) para que, en pantallas bajas, la cabeza (S2.d)
-   empiece debajo de todo el bloque. */
+   Cada renglón mide exactamente su altura de mayúsculas (line-height = --mayus): las cajas coinciden con la tinta, así
+   que la separación áurea que se mide es la que se ve.
+   El tamaño del h1 sigue también al alto del viewport (3vh, con tope de 24 px) para que, en pantallas bajas, el bloque
+   quepa entre el borde del hero y la cabeza (S2.d).
+   Colocación áurea (S4.f): en la franja libre entre el borde del hero y el pelo, margen superior : aire hasta la
+   cabeza = 1 : φ; el bloque sigue a la cabeza (top entre 12 y 48 px). */
 .titulo {
   --phi: 1.6180339887;
-  --t-nombre: clamp(16px, min(4.2vw, 3vh), 26px);
+  --mayus: 0.66; /* altura de mayúsculas de Times New Roman / Liberation Serif, en em */
+  --t-nombre: clamp(16px, min(4.2vw, 3vh), 24px);
   --t-ante: calc(var(--t-nombre) / var(--phi));
   --tr-nombre: calc(var(--t-nombre) * 0.14); /* = 0.14em del h1 */
+  /* Borde superior de la cabeza (caja de S2: y 150 de 1424 px en el panorama de 2869×1424) con object-fit: cover y
+     object-position 47% 15% del .hero__retrato: 150/1424 = 10,534 % del alto si la imagen escala por alto (hasta
+     2,015:1); 15 % del alto − 2,217 % del ancho si escala por ancho. DEPENDE de esos tres datos (object-position,
+     caja de la cabeza y geometría del panorama): si cambia alguno, hay que recalcular --cabeza (S4.f lo verifica). */
+  --cabeza: min(10.534svh, 15svh - 2.217vw);
+  --alto-bloque: calc(var(--t-ante) * var(--mayus) + var(--t-ante) / var(--phi) + var(--t-nombre) * var(--mayus));
   position: absolute;
-  top: clamp(12px, 2.5vh, 28px);
+  top: clamp(12px, (var(--cabeza) - var(--alto-bloque)) / (1 + var(--phi)), 48px);
   left: 50%;
   z-index: 2;
   transform: translateX(-50%);
@@ -106,7 +117,7 @@ body {
   padding-left: calc(var(--tr-nombre) * var(--phi));
   font-size: var(--t-ante);
   letter-spacing: calc(var(--tr-nombre) * var(--phi));
-  line-height: 1.1;
+  line-height: var(--mayus);
 }
 
 .hero h1 {
@@ -115,7 +126,7 @@ body {
   font-size: var(--t-nombre);
   font-weight: 400;
   letter-spacing: var(--tr-nombre);
-  line-height: 1.1;
+  line-height: var(--mayus);
 }
 
 /* Pie con la estructura de la referencia (L12): bloques de ancho completo separados por filetes finos,
@@ -163,7 +174,14 @@ body {
 }
 
 /* Auspicio (L24): "Bajo los auspicios de la" y, debajo, el isologotipo de la Gran Logia como enlace (L25). El logo es un
-   PNG transparente en --rosa-100. El enlace es de bloque (y ajustado al logo) para que quede siempre debajo del texto. */
+   PNG transparente en --rosa-100. El enlace es de bloque (y ajustado al logo) para que quede siempre debajo del texto.
+   La leyenda va en mayúsculas espaciadas, como el antetítulo del hero, y continúa en las mayúsculas del logotipo. */
+.pie .pie__auspicio {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
 .pie__enlace {
   display: block;
   width: fit-content;
@@ -181,9 +199,10 @@ body {
   outline-offset: 6px;
 }
 
+/* Ancho fijo de 260 px ≈ la medida de los párrafos (60ch de 14 px = 420 px) / φ; nunca más que el ancho disponible. */
 .pie__logo {
   display: block;
-  width: clamp(200px, 22vw, 280px);
+  width: min(260px, 100vw - 2 * var(--pie-margen));
   height: auto;
 }
 
