@@ -43,6 +43,8 @@ Criterios:
 
 ### S3 — Sin menú lateral
 > "sin menú en el lateral"
+>
+> "Mira una foto de la página de tamburnis, el botón de menú no va" (L11)
 
 Criterios:
 - S3.a — No existen `aside`, `nav`, ni elementos cuyo `class`/`id`/`aria-label` contenga `menu`, `drawer`, `sidebar` u `hamburger` (sin distinguir mayúsculas).
@@ -56,7 +58,7 @@ Criterios:
 Criterios:
 - S4.a — Existe exactamente un `h1` y su texto (trim) es exactamente `Juan Martín De Pueyrredón`.
 - S4.b — El centro horizontal de la caja del `h1` está a ±2 px del centro del viewport, y `text-align` es `center` (1440×900 y 390×844).
-- S4.c — El `h1` está arriba: su borde superior queda entre 12 px y 48 px del borde superior del hero, y su `font-size` computado está entre 14 px y 22 px (1440×900 y 390×844). Cabe en una sola línea a 390 px.
+- S4.c — El `h1` está arriba, con el estilo de logotipo de la referencia (L11): `text-transform: uppercase` (el texto del DOM no cambia, S4.a), su borde superior queda entre 12 px y 48 px del borde superior del hero, y su `font-size` computado está entre 16 px y 26 px (1440×900 y 390×844). Cabe en una sola línea con ≥ 16 px de margen lateral a 390 px y a 360 px.
 - S4.d — `<title>` del documento es `Juan Martín De Pueyrredón`; `<html lang="es">`.
 
 ### S5 — Paleta de la foto adjunta
@@ -149,3 +151,7 @@ Criterios:
   > Que la cabeza no aparezca cortada
 
   (opus) Con `cover` y foco al 35 %, a 1440×900 el pelo ya quedaba cortado arriba. Además, en viewports de escritorio reales (≈ 2:1 por la barra del navegador), `cover` solo deja ver ~560 px del alto original, y la cabeza mide ~560, así que ningún `background-position` la salva. Se reescribe S2: retrato nítido entero a alto completo + el mismo retrato desenfocado a sangre completa detrás (el hero sigue cubriendo toda la pantalla). Caja de la cabeza medida sobre el original con grilla: x 270–760, y 150–710. Se suma a T2c.
+- **L11** (usuario, referencia visual, literal):
+  > Mira una foto de la página de tamburnis, el botón de menú no va
+
+  (opus) La captura móvil de tamburins.com/en/ muestra: logotipo serif en mayúsculas arriba a la izquierda, botón de menú (hamburguesa) arriba a la derecha, retrato a sangre completa con la cabeza entera y aire arriba, nombre de producto y dos enlaces abajo al centro, e indicadores de carrusel. Se aplica: sin botón de menú (ya cubierto por S3.a/S3.b) y título con estilo de logotipo (mayúsculas por CSS, 16–26 px, S4.c). Se mantiene "centrado" (S4.b) por el pedido original; producto, enlaces y carrusel quedan fuera porque el pedido dice "solo un Lorem ipsum" abajo (S7). Se suma a T2c.
