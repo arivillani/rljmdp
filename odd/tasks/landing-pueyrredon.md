@@ -139,7 +139,8 @@ Criterios:
 | T2b | S8.d | sonnet — apply (TDD) | Reabierta por R1: test de contraste en RED → ajustar velo/header en GREEN | [x] | `3d7215d` |
 | T2c | S1, S2, S4, S5, S6, S8.d | sonnet — apply (TDD) | Reabierta por L9, L10 y L11: título pequeño arriba en mayúsculas, sin fecha ni ciudad, cabeza sin cortar | [x] | `fd3b70a` |
 | T2d | S7 | sonnet — apply (TDD) | Reabierta por L12: pie con el formato de la referencia, en la paleta, solo Lorem ipsum | [x] | `35a9d05` |
-| T2e | S7 | sonnet — apply (TDD) | Reabierta por L15: fondo del pie más rojo | [ ] | — |
+| T2e | S7 | sonnet — apply (TDD) | Reabierta por L15: fondo del pie más rojo | [x] | `43f74a2` |
+| S1 | S1–S8 | opus — style (`odd-style`) | Revisión de estilo e identidad visual (L17), solo lectura | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -184,3 +185,8 @@ Criterios:
   > Elegí un tono más rojo para el fondo de la parte de abajo.
 
   (opus) De los rojos de la paleta, `--rojo-600` (`#ce0201`) da solo 3.59:1 con `--rosa-100` y no sirve para el texto chico del pie; `--rojo-700` (`#a60000`) es un rojo pleno y da 4.99:1 → elegido. `--rosa-300` sobre ese rojo da 3.18:1, así que todo el texto pasa a `--rosa-100`; filetes en `--carmesi-300` (rojo más claro, sutil, como el gris claro de la referencia). Se reescribe S7 (colores) y se añade S7.f; nueva tarea T2e.
+- **L16** (sonnet, T2e): RED solo S7.f (pie rosa `rgb(255, 187, 186)` en vez de `rgb(166, 0, 0)`) → GREEN 36/36. Contraste del texto en los 4 bloques: 4.986:1. Commit `43f74a2`.
+- **L17** (usuario, literal):
+  > Hace que el front lo revise algún agente de estilo e identidad visual así queda lindo y elegante
+
+  (opus) Nuevo agente `odd-style` (opus, solo lectura) en `.claude/agents/`, commit `3321eeb`. Sus propuestas no pueden romper ninguna spec; lo que choque con una spec vuelve como pregunta al usuario. Las propuestas aceptadas se aplican como tarea de sonnet con TDD.
