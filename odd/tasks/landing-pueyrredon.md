@@ -165,14 +165,14 @@ Criterios:
 > "Es el compas de arriba y la escuadra girando" · "No lo puedo bajar, es el que está sin la G"
 
 - Pantalla de entrada a sangre completa (`div.intro`, primer hijo de `body`, fija) con fondo `--rojo-800` y, en el centro, un emblema de escuadra y compás sin la G, en `--blanco`.
-- El emblema es un dibujo propio (`svg` en línea), no una copia del GIF de referencia.
+- El emblema es un dibujo propio (`svg` en línea), no una copia del GIF de referencia. Versión de calidad (L32): facetas en dos opacidades del mismo blanco, para dar volumen; bisagra con anillo; piernas del compás biseladas, más anchas arriba y en punta abajo; escuadra con marcas de medida; y un corte fino (máscara) donde el compás pasa sobre la escuadra.
 - Gira sobre su eje vertical (`rotateY`, con perspectiva), como el GIF: 2 vueltas de 1,1 s. Después la pantalla se desvanece en 0,6 s y deja ver el retrato (≈ 2,8 s en total).
 - Solo CSS, sin JavaScript (S8.b) y sin pedidos externos (S6.b).
 - Decorativa: `aria-hidden="true"`; al terminar no tapa ni recibe clics. Con `prefers-reduced-motion: reduce` no se muestra.
 
 Criterios:
 - S10.a — Al cargar (sin reducción de movimiento), a 1440×900 y 390×844: `div.intro` es el primer hijo de `body`, tiene `position: fixed` y cubre todo el viewport, su fondo es rgb(138, 11, 18) y tiene `aria-hidden="true"`; el elemento en el centro de la pantalla está dentro de `.intro`.
-- S10.b — `.intro` contiene un único `svg` en línea, con todos sus rellenos y trazos visibles en `#f0ebe3`. Su elemento animado tiene una animación cuyos keyframes giran en Y (`rotateY`), con 2 iteraciones de 1,1 s (±0,05 s).
+- S10.b — `.intro` contiene un único `svg` en línea. Todas sus formas visibles, fuera de `<defs>`/`<mask>`, rellenan o trazan en `#f0ebe3`; las facetas usan `fill-opacity`, no otro color. Su elemento animado tiene una animación cuyos keyframes giran en Y (`rotateY`), con 2 iteraciones de 1,1 s (±0,05 s).
 - S10.c — A los 3,2 s, `.intro` tiene `opacity` 0 y `visibility: hidden`, y el elemento en el centro de la pantalla ya no está dentro de `.intro`.
 - S10.d — Con `reducedMotion: 'reduce'`, el `display` computado de `.intro` es `none` desde el inicio.
 
@@ -297,3 +297,7 @@ Criterios:
   > No lo puedo bajar, es el que está sin la G
 
   (opus) La política de red bloquea `share.google` y `nexus-solutions.co`; se trabaja con las capturas. El GIF es de un tercero y no se copia: se dibuja un emblema propio de escuadra y compás en SVG, probado en blanco hueso sobre lacre y de perfil a 55° y 80°, y se anima con CSS 3D. Se agrega S10, se ajusta S7.a para incluir `div.intro`, y la suite pasa a correr con `reducedMotion: 'reduce'` por defecto. Nueva tarea T2l.
+- **L32** (usuario, literal):
+  > Publica la página así lo veo, dale calidad al compas y la escuadra
+
+  (opus) Emblema rediseñado en un `viewBox` de 200 (diseño de opus, probado de frente y de perfil a 55° y 80°) y entregado a T2l. Publicación: la página muestra el isologotipo real de la Gran Logia Argentina y el nombre de una logia real, así que no se publica en un enlace por iniciativa propia. Se entrega como archivo HTML autocontenido para verla, y el usuario decide si quiere un enlace.
