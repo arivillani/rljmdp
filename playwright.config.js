@@ -11,6 +11,10 @@ module.exports = defineConfig({
   expect: { timeout: 3000 },
   use: {
     baseURL: BASE_URL,
+    // S10.d (L31): por defecto la suite corre sin la intro animada; los tests de S10 piden 'no-preference'.
+    // En @playwright/test 1.56 reducedMotion no es una opción de test de primer nivel (se ignora en silencio):
+    // solo llega al contexto vía contextOptions.
+    contextOptions: { reducedMotion: 'reduce' },
   },
   projects: [
     {

@@ -11,6 +11,31 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <div class="intro" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="intro__emblema" focusable="false">
+      <defs>
+        <mask id="corte-escuadra" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+          <rect width="200" height="200" fill="#fff"/>
+          <polygon points="93.0,39.1 82.4,60.0 38.0,190.0 92.8,64.0 99.0,41.4" fill="#000" stroke="#000" stroke-width="6" stroke-linejoin="round"/>
+          <polygon points="101.0,41.4 107.2,64.0 162.0,190.0 117.6,60.0 107.0,39.1" fill="#000" stroke="#000" stroke-width="6" stroke-linejoin="round"/>
+        </mask>
+      </defs>
+      <g class="escuadra" mask="url(#corte-escuadra)">
+        <polygon points="26.5,96.5 100.0,170.0 173.5,96.5 169.7,92.6 100.0,162.2 30.3,92.6"/>
+        <polygon points="30.3,92.6 100.0,162.2 169.7,92.6 165.8,88.7 100.0,154.4 34.2,88.7" fill-opacity="0.74"/>
+        <g class="escuadra__marcas" fill="none" stroke-width="1.1" stroke-linecap="round" stroke-opacity="0.55"><line x1="92.7" y1="161.0" x2="95.0" y2="158.8"/><line x1="84.6" y1="152.9" x2="88.3" y2="149.2"/><line x1="76.5" y1="144.8" x2="78.7" y2="142.5"/><line x1="68.3" y1="136.6" x2="72.0" y2="132.9"/><line x1="60.2" y1="128.5" x2="62.5" y2="126.2"/><line x1="52.1" y1="120.4" x2="55.7" y2="116.7"/><line x1="43.9" y1="112.2" x2="46.2" y2="110.0"/><line x1="107.3" y1="161.0" x2="105.0" y2="158.8"/><line x1="115.4" y1="152.9" x2="111.7" y2="149.2"/><line x1="123.5" y1="144.8" x2="121.3" y2="142.5"/><line x1="131.7" y1="136.6" x2="128.0" y2="132.9"/><line x1="139.8" y1="128.5" x2="137.5" y2="126.2"/><line x1="147.9" y1="120.4" x2="144.3" y2="116.7"/><line x1="156.1" y1="112.2" x2="153.8" y2="110.0"/></g>
+      </g>
+      <g class="compas">
+        <polygon points="96.0,40.3 93.0,39.1 82.4,60.0 38.0,190.0 87.6,62.0"/>
+        <polygon points="96.0,40.3 99.0,41.4 92.8,64.0 38.0,190.0 87.6,62.0" fill-opacity="0.74"/>
+        <polygon points="104.0,40.3 101.0,41.4 107.2,64.0 162.0,190.0 112.4,62.0" fill-opacity="0.74"/>
+        <polygon points="104.0,40.3 107.0,39.1 117.6,60.0 162.0,190.0 112.4,62.0"/>
+        <path d="M100 18a12 12 0 1 1 0 24a12 12 0 1 1 0-24zm0 6.4a5.6 5.6 0 1 0 0 11.2a5.6 5.6 0 1 0 0-11.2z" fill-rule="evenodd"/>
+        <circle cx="100" cy="30" r="2.2" fill-opacity="0.74"/>
+      </g>
+    </svg>
+  </div>
+
   <main>
     <section class="hero" aria-labelledby="titulo">
       <img class="hero__retrato" src="assets/img/pueyrredon-panorama.jpg" alt="Retrato al óleo de Juan Martín De Pueyrredón con uniforme militar" width="2869" height="1424" fetchpriority="high" decoding="async">

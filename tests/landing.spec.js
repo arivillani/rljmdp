@@ -1,5 +1,5 @@
 // @ts-check
-// Suite de aceptación de odd/tasks/landing-pueyrredon.md (S1–S9).
+// Suite de aceptación de odd/tasks/landing-pueyrredon.md (S1–S10).
 // Cada test lleva el ID del criterio (S#.x) en su nombre.
 const { test, expect } = require('@playwright/test');
 
@@ -558,9 +558,10 @@ test.describe('S6 — Tipografía', () => {
 });
 
 test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem ipsum', () => {
-  test('S7.a — los hijos de body son solo main y footer; main contiene únicamente la sección .hero', async ({ page }) => {
+  test('S7.a — los hijos de body son solo div.intro, main y footer; main contiene únicamente la sección .hero', async ({ page }) => {
     const tags = await page.evaluate(() => [...document.body.children].map((el) => el.tagName.toLowerCase()));
-    expect(tags).toEqual(['main', 'footer']);
+    expect(tags).toEqual(['div', 'main', 'footer']);
+    await expect(page.locator('body > div:first-child')).toHaveClass('intro');
     const main = page.locator('main');
     await expect(main.locator('> *')).toHaveCount(1);
     await expect(main.locator('> section.hero')).toHaveCount(1);
@@ -1024,4 +1025,151 @@ test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
       ).toBeLessThanOrEqual(BASE_MAX_LUMINANCE);
     });
   }
+});
+
+// S10 (L31): intro animada. Colores y tiempos de la spec.
+const INTRO_BG = 'rgb(138, 11, 18)'; // --rojo-800
+const INTRO_INK = 'rgb(240, 235, 227)'; // --blanco
+const INTRO_TURN_MS = 1100; // una vuelta
+const INTRO_TURN_TOLERANCE_MS = 50;
+const INTRO_TURNS = 2;
+const INTRO_GONE_AT_MS = 3200; // S10.c: medido desde el inicio de la navegación
+
+/** ¿El transform de un keyframe gira en Y? `rotateY(...)` o una matrix3d que no sea 2D. */
+function isYRotation(transform) {
+  if (typeof transform !== 'string') return false;
+  if (/rotateY\(/i.test(transform)) return true;
+  const m = /^matrix3d\(([^)]*)\)$/i.exec(transform.trim());
+  if (!m) return false;
+  const v = m[1].split(',').map(Number);
+  // En 2D, matrix3d tiene ceros en m13, m23, m31, m32 (índices 2, 6, 8, 9).
+  return v.length === 16 && [2, 6, 8, 9].some((i) => Math.abs(v[i]) > 1e-9);
+}
+
+test.describe('S10 — Intro animada (L31)', () => {
+  test.describe('sin reducción de movimiento', () => {
+    test.use({ contextOptions: { reducedMotion: 'no-preference' } });
+
+    for (const [label, viewport] of VIEWPORTS) {
+      test(`S10.a — div.intro fija a sangre completa, en --rojo-800, aria-hidden, y al centro hay intro a ${label}`, async ({ page }) => {
+        await page.setViewportSize(viewport);
+        const m = await page.evaluate(() => {
+          const intro = document.querySelector('.intro');
+          if (!intro) return null;
+          const r = intro.getBoundingClientRect();
+          const cs = getComputedStyle(intro);
+          const center = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+          return {
+            firstChildIsIntroDiv: document.body.firstElementChild === intro && intro.tagName === 'DIV',
+            position: cs.position,
+            box: { left: r.left, top: r.top, width: r.width, height: r.height },
+            background: cs.backgroundColor,
+            ariaHidden: intro.getAttribute('aria-hidden'),
+            centerInsideIntro: !!center && !!center.closest('.intro'),
+            centerTag: center ? center.tagName.toLowerCase() + (center.getAttribute('class') ? `.${center.getAttribute('class')}` : '') : null,
+          };
+        });
+        expect(m, 'falta div.intro (S10)').not.toBeNull();
+        const a = /** @type {NonNullable<typeof m>} */ (m);
+        expect.soft(a.firstChildIsIntroDiv, 'div.intro es el primer hijo de body').toBe(true);
+        expect.soft(a.position, 'position de .intro').toBe('fixed');
+        expect.soft(Math.abs(a.box.left) <= 1 && Math.abs(a.box.top) <= 1, `esquina de .intro (${a.box.left}, ${a.box.top})`).toBe(true);
+        expect.soft(Math.abs(a.box.width - viewport.width) <= 1, `ancho de .intro ${a.box.width} vs ${viewport.width}`).toBe(true);
+        expect.soft(Math.abs(a.box.height - viewport.height) <= 1, `alto de .intro ${a.box.height} vs ${viewport.height}`).toBe(true);
+        expect.soft(a.background, 'background-color de .intro').toBe(INTRO_BG);
+        expect.soft(a.ariaHidden, 'aria-hidden de .intro').toBe('true');
+        expect.soft(a.centerInsideIntro, `elemento en el centro: ${a.centerTag}`).toBe(true);
+      });
+    }
+
+    test('S10.b — un único svg en línea con rellenos y trazos en #f0ebe3, girando en Y: 2 vueltas de 1,1 s', async ({ page }) => {
+      const m = await page.evaluate(() => {
+        const intro = document.querySelector('.intro');
+        if (!intro) return null;
+        // Las formas dentro de defs/mask solo recortan (máscara); no se pintan, así que no cuentan (S10.b).
+        const visible = [...intro.querySelectorAll('polygon, path, circle, rect, line')].filter((el) => !el.closest('defs, mask'));
+        const shapes = visible.map((el) => {
+          const cs = getComputedStyle(el);
+          return { tag: el.tagName.toLowerCase(), fill: cs.fill, stroke: cs.stroke };
+        });
+        const animations = [intro, ...intro.querySelectorAll('*')].flatMap((el) =>
+          el.getAnimations().map((a) => {
+            const effect = /** @type {KeyframeEffect} */ (a.effect);
+            const timing = effect.getTiming();
+            return {
+              target: el.tagName.toLowerCase() + (el.getAttribute('class') ? `.${el.getAttribute('class')}` : ''),
+              transforms: effect.getKeyframes().map((k) => /** @type {any} */ (k).transform),
+              iterations: timing.iterations,
+              duration: timing.duration,
+            };
+          }),
+        );
+        return {
+          svgCount: intro.querySelectorAll('svg').length,
+          imgCount: intro.querySelectorAll('img').length,
+          shapes,
+          animations,
+        };
+      });
+      expect(m, 'falta div.intro (S10)').not.toBeNull();
+      const b = /** @type {NonNullable<typeof m>} */ (m);
+      expect.soft(b.svgCount, 'svg en .intro').toBe(1);
+      expect.soft(b.imgCount, 'img en .intro (el emblema es un svg en línea)').toBe(0);
+      expect.soft(b.shapes.length, 'formas del svg').toBeGreaterThan(0);
+      for (const s of b.shapes) {
+        const painted = [s.fill, s.stroke].filter((v) => v !== 'none');
+        expect.soft(painted.length, `${s.tag}: sin relleno ni trazo (fill ${s.fill}, stroke ${s.stroke})`).toBeGreaterThan(0);
+        for (const color of painted) expect.soft(color, `${s.tag}: color de relleno/trazo`).toBe(INTRO_INK);
+      }
+      const spins = b.animations.filter((a) => a.transforms.some(isYRotation));
+      expect(spins.length, `animación con rotateY entre: ${JSON.stringify(b.animations)}`).toBeGreaterThan(0);
+      for (const a of spins) {
+        expect.soft(a.iterations, `iteraciones de la animación de ${a.target}`).toBe(INTRO_TURNS);
+        expect.soft(
+          Math.abs(Number(a.duration) - INTRO_TURN_MS) <= INTRO_TURN_TOLERANCE_MS,
+          `duración ${a.duration} ms de la animación de ${a.target}`,
+        ).toBe(true);
+      }
+    });
+
+    test('S10.c — a los 3,2 s .intro tiene opacity 0 y visibility hidden, y el centro ya no es .intro', async ({ page }) => {
+      // performance.now() cuenta desde el inicio de la navegación (timeOrigin).
+      const elapsed = await page.evaluate(() => performance.now());
+      await page.waitForTimeout(Math.max(0, INTRO_GONE_AT_MS - elapsed));
+      const m = await page.evaluate(() => {
+        const intro = document.querySelector('.intro');
+        if (!intro) return null;
+        const cs = getComputedStyle(intro);
+        const center = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+        return {
+          now: performance.now(),
+          opacity: cs.opacity,
+          visibility: cs.visibility,
+          centerInsideIntro: !!center && !!center.closest('.intro'),
+          centerTag: center ? center.tagName.toLowerCase() + (center.getAttribute('class') ? `.${center.getAttribute('class')}` : '') : null,
+        };
+      });
+      expect(m, 'falta div.intro (S10)').not.toBeNull();
+      const c = /** @type {NonNullable<typeof m>} */ (m);
+      expect(c.now, 'la medición debe ser posterior a los 3,2 s').toBeGreaterThanOrEqual(INTRO_GONE_AT_MS);
+      expect.soft(c.opacity, 'opacity de .intro').toBe('0');
+      expect.soft(c.visibility, 'visibility de .intro').toBe('hidden');
+      expect.soft(c.centerInsideIntro, `elemento en el centro: ${c.centerTag}`).toBe(false);
+    });
+  });
+
+  // Sin test.use: corre con el reducedMotion 'reduce' por defecto de playwright.config.js.
+  test('S10.d — con reducedMotion reduce, el display computado de .intro es none desde el inicio', async ({ page }) => {
+    const m = await page.evaluate(() => {
+      const intro = document.querySelector('.intro');
+      return {
+        reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
+        display: intro ? getComputedStyle(intro).display : null,
+        now: performance.now(),
+      };
+    });
+    expect(m.reduce, 'el contexto de prueba debe pedir reducción de movimiento').toBe(true);
+    expect(m.display, 'falta div.intro (S10)').not.toBeNull();
+    expect(m.display, `display de .intro a los ${Math.round(m.now)} ms`).toBe('none');
+  });
 });
