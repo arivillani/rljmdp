@@ -1,16 +1,9 @@
 :root {
-  --rojo-950: #1b0303;
-  --rojo-900: #400001;
-  --rojo-800: #7c0000;
-  --rojo-700: #a60000;
-  --rojo-600: #ce0201;
-  --carmesi-700: #81001f;
-  --carmesi-500: #a41727;
-  --carmesi-300: #ca302e;
-  --oxido-600: #9b1307;
-  --rosa-300: #ff7a7b;
-  --rosa-100: #ffbbba;
-  --tinta: #1c1c26;
+  /* Paleta roja (L29): blanco hueso para todo el texto y el isologotipo; rojo lacre, más hondo que el #a60000 anterior. */
+  --blanco: #f0ebe3; /* blanco hueso: apagado, sin tinte rosado (a* ≈ 0) */
+  --rojo-950: #1b0303; /* fondo del documento, theme-color, banda superior del velo y sombra del título */
+  --rojo-800: #8a0b12; /* lacre: fondo del pie, tinte del velo inferior, texto de la selección, favicon */
+  --rojo-600: #b0262c; /* filetes del pie: visibles pero quietos sobre --rojo-800 (1,48:1) */
 }
 
 html,
@@ -28,8 +21,8 @@ body {
 }
 
 ::selection {
-  background: var(--rosa-100);
-  color: var(--rojo-700);
+  background: var(--blanco);
+  color: var(--rojo-800);
 }
 
 /* Hero a sangre completa: alto exacto del viewport. Capas, de atrás hacia adelante:
@@ -56,9 +49,9 @@ body {
   object-position: 47% 15%;
 }
 
-/* Velo de la paleta (L22, "sombra + corte"): banda superior para el título y, abajo, --carmesi-700 *multiplicado* con
-   el cuadro (no superpuesto con alfa, que daba un lila): la base se hunde en una sombra borravino casi negra y pasa
-   al rojo del pie con un corte limpio. El rostro (14–68 %) queda sin velo. */
+/* Velo de la paleta (L22, "sombra + corte"): banda superior para el título y, abajo, el rojo del pie (--rojo-800)
+   *multiplicado* con el cuadro (no superpuesto con alfa, que daba un lila): la base se hunde en una sombra lacre casi
+   negra, del mismo tono que el pie, y pasa a él con un corte limpio. El rostro (14–68 %) queda sin velo. */
 .hero::after {
   content: "";
   position: absolute;
@@ -70,8 +63,8 @@ body {
     to bottom,
     rgb(27 3 3 / 0.55) 0,
     rgb(27 3 3 / 0) 14%,
-    rgb(129 0 31 / 0) 68%,
-    rgb(129 0 31 / 0.7) 100%
+    rgb(138 11 18 / 0) 68%,
+    rgb(138 11 18 / 0.7) 100%
   );
 }
 
@@ -104,7 +97,7 @@ body {
   z-index: 2;
   transform: translateX(-50%);
   margin: 0;
-  color: var(--rosa-100);
+  color: var(--blanco);
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
@@ -134,7 +127,7 @@ body {
 .pie {
   --pie-margen: clamp(24px, 4.5vw, 64px);
   margin: 0;
-  background: var(--rojo-700);
+  background: var(--rojo-800);
 }
 
 .pie__bloque {
@@ -144,14 +137,14 @@ body {
 }
 
 .pie__bloque + .pie__bloque {
-  border-top: 1px solid var(--carmesi-300);
+  border-top: 1px solid var(--rojo-600);
 }
 
 .pie__secciones {
   display: grid;
   gap: 32px;
   padding-block: 56px;
-  color: var(--rosa-100);
+  color: var(--blanco);
   font-size: clamp(18px, 1.4vw, 20px);
   line-height: 1.3;
   list-style: none;
@@ -161,7 +154,7 @@ body {
   /* Medida de 60ch (≤ 64ch, S9): con Times a 14 px son ≈ 70 caracteres por renglón, bajo el tope de 75 (64ch daba 78).
      La caja (y su filete) sigue a ancho completo. */
   padding-inline-end: max(var(--pie-margen), calc(100% - var(--pie-margen) - 60ch));
-  color: var(--rosa-100);
+  color: var(--blanco);
   font-size: 14px;
   line-height: 1.7;
   text-wrap: pretty;
@@ -174,7 +167,7 @@ body {
 }
 
 /* Auspicio (L24): "Bajo los auspicios de la" y, debajo, el isologotipo de la Gran Logia como enlace (L25). El logo es un
-   PNG transparente en --rosa-100. El enlace es de bloque (y ajustado al logo) para que quede siempre debajo del texto.
+   PNG transparente en --blanco. El enlace es de bloque (y ajustado al logo) para que quede siempre debajo del texto.
    La leyenda va en mayúsculas espaciadas, como el antetítulo del hero, y continúa en las mayúsculas del logotipo. */
 .pie .pie__auspicio {
   font-size: 12px;
@@ -195,7 +188,7 @@ body {
 }
 
 .pie__enlace:focus-visible {
-  outline: 1px solid var(--rosa-100);
+  outline: 1px solid var(--blanco);
   outline-offset: 6px;
 }
 

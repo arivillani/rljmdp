@@ -6,16 +6,14 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 
 - Panorama a sangre completa (`object-fit: cover`): el retrato original pegado píxel a píxel entre dos costados de nubes; sin fondo desenfocado y con la cabeza entera en los viewports probados (S2.d).
 - Título pequeño arriba, centrado, en mayúsculas: "Respetable Logia" sobre el nombre, en proporción áurea (tamaño ×φ, separación ÷φ, tracking ×φ), con renglones a la altura de mayúsculas y el bloque colocado entre el borde del hero y la cabeza en 1 : φ; sin menú.
-- Paleta roja de la foto adjunta: 12 tokens declarados en `:root`.
+- Paleta roja con blanco hueso: 4 tokens declarados en `:root`. Todo el texto y el isologotipo van en un blanco apagado, sin tinte rosado, y el pie en un rojo lacre profundo (contraste del texto del pie 8,28:1).
 
-| Token | Hex | Token | Hex |
-|---|---|---|---|
-| `--rojo-950` | `#1b0303` | `--carmesi-500` | `#a41727` |
-| `--rojo-900` | `#400001` | `--carmesi-300` | `#ca302e` |
-| `--rojo-800` | `#7c0000` | `--oxido-600` | `#9b1307` |
-| `--rojo-700` | `#a60000` | `--rosa-300` | `#ff7a7b` |
-| `--rojo-600` | `#ce0201` | `--rosa-100` | `#ffbbba` |
-| `--carmesi-700` | `#81001f` | `--tinta` | `#1c1c26` |
+| Token | Hex | Uso |
+|---|---|---|
+| `--blanco` | `#f0ebe3` | todo el texto, isologotipo, «P» del favicon, foco y fondo de la selección |
+| `--rojo-950` | `#1b0303` | fondo del documento, `theme-color`, banda superior del velo |
+| `--rojo-800` | `#8a0b12` | fondo del pie, tinte del velo inferior, favicon, texto de la selección |
+| `--rojo-600` | `#b0262c` | filetes de 1 px del pie |
 
 - Times New Roman (con respaldos), sin fuentes web.
 - Pie: tres renglones, filetes finos, un párrafo y © en Lorem ipsum, más el bloque "BAJO LOS AUSPICIOS DE LA" (mayúsculas espaciadas) con el isologotipo de la Gran Logia Argentina (260 px), que enlaza a https://www.masoneria-argentina.org.ar/ en una pestaña nueva.
@@ -28,10 +26,11 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ├── css/styles.css                   tokens, layout y pie
 ├── assets/img/pueyrredon.jpg        retrato optimizado
 ├── assets/img/pueyrredon-panorama.jpg  panorama del hero (generado, ≤ 700 KB)
-├── assets/img/gran-logia-argentina.png isologotipo de la Gran Logia (PNG transparente en --rosa-100)
+├── assets/img/gran-logia-argentina.png isologotipo de la Gran Logia (PNG transparente en --blanco)
 ├── assets/src/pueyrredon-gemini.jpg extensión lateral hecha con Gemini (fuente)
 ├── assets/src/gran-logia-argentina-original.png  isologotipo original, blanco sobre negro (fuente)
 ├── scripts/build_panorama.py        genera el panorama (Python 3 + Pillow + numpy)
+├── scripts/build_logo.py            genera el isologotipo en --blanco desde el original
 ├── tests/landing.spec.js            tests Playwright
 ├── playwright.config.js             Chromium 1440×900, puerto 4173
 ├── odd/tasks/landing-pueyrredon.md  documento de feature (Specs, Tasks, Log)

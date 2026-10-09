@@ -54,19 +54,12 @@ const PANORAMA_PATH = '/assets/img/pueyrredon-panorama.jpg';
 const PANORAMA_MAX_BYTES = 700 * 1000; // S2.b: ≤ 700 KB (lectura estricta, igual que el script)
 
 const TOKENS = {
+  '--blanco': '#f0ebe3',
   '--rojo-950': '#1b0303',
-  '--rojo-900': '#400001',
-  '--rojo-800': '#7c0000',
-  '--rojo-700': '#a60000',
-  '--rojo-600': '#ce0201',
-  '--carmesi-700': '#81001f',
-  '--carmesi-500': '#a41727',
-  '--carmesi-300': '#ca302e',
-  '--oxido-600': '#9b1307',
-  '--rosa-300': '#ff7a7b',
-  '--rosa-100': '#ffbbba',
-  '--tinta': '#1c1c26',
+  '--rojo-800': '#8a0b12',
+  '--rojo-600': '#b0262c',
 };
+const FOOTER_MIN_CONTRAST = 7; // S7.f (L29): texto del pie ≥ 7:1 (AAA)
 
 const TITLE = 'Juan Martín De Pueyrredón';
 const KICKER = 'Respetable Logia';
@@ -511,7 +504,7 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
 });
 
 test.describe('S5 — Paleta de la foto adjunta', () => {
-  test('S5.a — los 12 tokens existen en :root con valores exactos', async ({ page }) => {
+  test('S5.a — los 4 tokens existen en :root con valores exactos', async ({ page }) => {
     const values = await page.evaluate((names) => {
       const cs = getComputedStyle(document.documentElement);
       return Object.fromEntries(names.map((n) => [n, cs.getPropertyValue(n).trim()]));
@@ -636,13 +629,25 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
         /* se informa vía naturalWidth */
       }
       let cornerAlpha = -1;
+      // L29: color de los píxeles opacos (alfa 255) del PNG; deben ser --blanco (240, 235, 227) ±1.
+      let opaquePixels = 0;
+      let offPaletteOpaque = 0;
+      let firstOpaque = null;
       if (el.naturalWidth > 0) {
         const canvas = document.createElement('canvas');
         canvas.width = el.naturalWidth;
         canvas.height = el.naturalHeight;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(el, 0, 0);
-        cornerAlpha = ctx.getImageData(0, 0, 1, 1).data[3];
+        const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        cornerAlpha = data[3];
+        const target = [240, 235, 227];
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i + 3] !== 255) continue;
+          opaquePixels += 1;
+          if (!firstOpaque) firstOpaque = [data[i], data[i + 1], data[i + 2]];
+          if (target.some((v, c) => Math.abs(data[i + c] - v) > 1)) offPaletteOpaque += 1;
+        }
       }
       const p = /** @type {HTMLElement} */ (el.closest('p.pie__auspicio'));
       const textNode = [...p.childNodes].find((n) => n.nodeType === Node.TEXT_NODE && (n.textContent || '').trim());
@@ -659,6 +664,9 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
         alt: el.alt,
         naturalWidth: el.naturalWidth,
         cornerAlpha,
+        opaquePixels,
+        offPaletteOpaque,
+        firstOpaque,
         imgTop: r.top,
         imgLeft: r.left,
         imgRight: r.right,
@@ -677,6 +685,16 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
     expect(m.alt, 'alt del isologotipo').toBe(LOGO_ALT);
     expect(m.naturalWidth, 'el isologotipo no cargó').toBeGreaterThan(0);
     expect(m.cornerAlpha, `alfa del píxel (0,0) = ${m.cornerAlpha}`).toBe(0);
+    // L29: el isologotipo es blanco hueso (--blanco, rgb(240, 235, 227) ±1) en todos sus píxeles opacos.
+    expect(m.opaquePixels, 'el isologotipo no tiene píxeles con alfa 255').toBeGreaterThan(0);
+    expect(m.firstOpaque, 'primer píxel con alfa 255 del isologotipo').toEqual(expect.any(Array));
+    ['R', 'G', 'B'].forEach((channel, c) => {
+      expect(
+        Math.abs(/** @type {number[]} */ (m.firstOpaque)[c] - [240, 235, 227][c]),
+        `canal ${channel} del primer píxel opaco = ${/** @type {number[]} */ (m.firstOpaque)[c]} (esperado ${[240, 235, 227][c]} ±1)`,
+      ).toBeLessThanOrEqual(1);
+    });
+    expect(m.offPaletteOpaque, `${m.offPaletteOpaque} de ${m.opaquePixels} píxeles opacos del isologotipo no son rgb(240, 235, 227) ±1`).toBe(0);
     expect(m.imgTop, `img top ${m.imgTop.toFixed(1)} vs fondo del texto ${m.textBottom.toFixed(1)}: el logo va debajo del texto`).toBeGreaterThanOrEqual(m.textBottom);
     expect(m.width, `ancho del logo: ${m.width.toFixed(1)}px`).toBeGreaterThanOrEqual(LOGO_MIN_WIDTH);
     expect(m.width, `ancho del logo: ${m.width.toFixed(1)}px`).toBeLessThanOrEqual(LOGO_MAX_WIDTH);
@@ -699,7 +717,7 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
     expect.soft(Math.abs(m.width - LOGO_WIDTH), `ancho del logo ${m.width.toFixed(1)}px vs ${LOGO_WIDTH}px (±1)`).toBeLessThanOrEqual(1);
   });
 
-  test('S7.h — el isologotipo está dentro de un único enlace a la Gran Logia (nueva pestaña, noopener, nombre accesible) con foco de teclado visible en --rosa-100', async ({ page }) => {
+  test('S7.h — el isologotipo está dentro de un único enlace a la Gran Logia (nueva pestaña, noopener, nombre accesible) con foco de teclado visible en --blanco', async ({ page }) => {
     const links = page.locator('footer a');
     await expect(links, 'el footer debe tener exactamente un a').toHaveCount(1);
     await expect(links.locator('img.pie__logo'), 'el a debe envolver al isologotipo').toHaveCount(1);
@@ -723,7 +741,7 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
     expect(outline.visible, 'el enlace debe coincidir con :focus-visible').toBe(true);
     expect(outline.style, `outline-style: ${outline.style}`).not.toBe('none');
     expect(parseFloat(outline.width), `outline-width: ${outline.width}`).toBeGreaterThan(0);
-    expect(outline.color, 'outline-color').toBe('rgb(255, 187, 186)');
+    expect(outline.color, 'outline-color').toBe('rgb(240, 235, 227)');
   });
 
   test('S7.e — formato: alineado a la izquierda, filete de 1 px en los bloques 2–4 (no en el 1), colores de la paleta', async ({ page }) => {
@@ -763,7 +781,7 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
     });
   });
 
-  test('S7.f — fondo del pie rojo (--rojo-700), filetes --carmesi-300 y contraste ≥ 4.5:1', async ({ page }) => {
+  test('S7.f — fondo del pie lacre (--rojo-800), filetes --rojo-600 y contraste ≥ 7:1', async ({ page }) => {
     const info = await page.evaluate(() => {
       const footer = document.querySelector('footer');
       return {
@@ -774,16 +792,16 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
         }),
       };
     });
-    expect(info.footerBackground, 'fondo del footer').toBe('rgb(166, 0, 0)');
+    expect(info.footerBackground, 'fondo del footer').toBe('rgb(138, 11, 18)');
     expect(info.blocks).toHaveLength(4);
     info.blocks.slice(1).forEach((b, i) => {
-      expect(b.borderTopColor, `bloque ${i + 2}: filete`).toBe('rgb(202, 48, 46)');
+      expect(b.borderTopColor, `bloque ${i + 2}: filete`).toBe('rgb(176, 38, 44)');
     });
     const toRgb = (css) => rgbKey(css).split(',').map(Number);
     const background = toRgb(info.footerBackground);
     info.blocks.forEach((b, i) => {
       const ratio = contrastRatio(toRgb(b.color), background);
-      expect(ratio, `bloque ${i + 1}: contraste ${b.color} sobre ${info.footerBackground} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+      expect(ratio, `bloque ${i + 1}: contraste ${b.color} sobre ${info.footerBackground} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(FOOTER_MIN_CONTRAST);
     });
   });
 });
@@ -828,7 +846,7 @@ test.describe('S8 — Calidad base', () => {
       expect(boxes, 'falta hgroup.titulo con p.titulo__antetitulo (L24)').not.toBeNull();
       // Fondo sin texto: se ocultan el h1 y el antetítulo.
       await page.addStyleTag({ content: 'h1, .titulo__antetitulo { visibility: hidden !important; }' });
-      const textColor = [0xff, 0xbb, 0xba]; // --rosa-100
+      const textColor = [0xf0, 0xeb, 0xe3]; // --blanco
       for (const [name, b] of Object.entries(/** @type {NonNullable<typeof boxes>} */ (boxes))) {
         const x = Math.floor(b.left);
         const y = Math.floor(b.top);
@@ -837,7 +855,7 @@ test.describe('S8 — Calidad base', () => {
         const ratio = contrastRatio(textColor, avg);
         expect.soft(
           ratio,
-          `${name}: contraste ${ratio.toFixed(2)}:1 de #ffbbba sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
+          `${name}: contraste ${ratio.toFixed(2)}:1 de #f0ebe3 sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
         ).toBeGreaterThanOrEqual(4.5);
       }
     });
@@ -908,7 +926,7 @@ test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
     expect(Math.max(...lefts) - Math.min(...lefts), `bordes izquierdos no alineados (±1 px): ${detail}`).toBeLessThanOrEqual(1);
   });
 
-  test('S9.b — ::selection usa --rosa-100 de fondo y --rojo-700 de texto', async ({ page }) => {
+  test('S9.b — ::selection usa --blanco de fondo y --rojo-800 de texto', async ({ page }) => {
     const selections = await page.evaluate(() =>
       ['body', 'h1', 'footer p'].map((sel) => {
         const cs = getComputedStyle(document.querySelector(sel), '::selection');
@@ -916,8 +934,8 @@ test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
       }),
     );
     for (const s of selections) {
-      expect(rgbKey(s.background), `${s.sel}::selection background: ${s.background}`).toBe(hexToRgbKey(TOKENS['--rosa-100']));
-      expect(rgbKey(s.color), `${s.sel}::selection color: ${s.color}`).toBe(hexToRgbKey(TOKENS['--rojo-700']));
+      expect(rgbKey(s.background), `${s.sel}::selection background: ${s.background}`).toBe(hexToRgbKey(TOKENS['--blanco']));
+      expect(rgbKey(s.color), `${s.sel}::selection color: ${s.color}`).toBe(hexToRgbKey(TOKENS['--rojo-800']));
     }
   });
 
@@ -928,7 +946,7 @@ test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
     await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'dark');
   });
 
-  test('S9.d — link rel="icon" apunta a assets/favicon.svg, que responde 200 image/svg+xml', async ({ page, request }) => {
+  test('S9.d — link rel="icon" apunta a assets/favicon.svg, que responde 200 image/svg+xml, con fondo --rojo-800 y «P» --blanco', async ({ page, request }) => {
     const link = page.locator('link[rel="icon"]');
     await expect(link, 'falta <link rel="icon">').toHaveCount(1);
     const href = await link.getAttribute('href');
@@ -938,7 +956,11 @@ test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
     const res = await request.get('/assets/favicon.svg');
     expect(res.status(), 'GET /assets/favicon.svg').toBe(200);
     expect(res.headers()['content-type']).toContain('image/svg+xml');
-    expect(await res.text(), 'el favicon no es un SVG').toContain('<svg');
+    const svg = await res.text();
+    expect(svg, 'el favicon no es un SVG').toContain('<svg');
+    // L29: fondo --rojo-800 y letra --blanco.
+    expect(svg, 'fondo del favicon (--rojo-800)').toContain(TOKENS['--rojo-800']);
+    expect(svg, 'letra del favicon (--blanco)').toContain(TOKENS['--blanco']);
   });
 
   test('S9.d — ninguna petición al cargar la página (contexto limpio) termina en 404', async ({ browser, baseURL }) => {

@@ -8,7 +8,7 @@ Pasos
   1. Carga el original como RGB e imprime la luminancia (Rec. 601, 0-255) de las 4 esquinas.
      Deben quedar en ALPHA_LOW o por debajo (el fondo es negro casi puro).
   2. Alfa a partir de la luminancia con rampa suave: 0 en L <= 40, 255 en L >= 215.
-  3. RGB fijo en el token --rosa-100 (#ffbbba); solo se conserva el alfa del paso 2.
+  3. RGB fijo en el token --blanco (#f0ebe3, blanco hueso); solo se conserva el alfa del paso 2.
   4. Recorta a la caja de alfa > 0 con un margen transparente de 4 px.
   5. Guarda RGBA optimizado y sin metadatos en un temporal, lo verifica y luego lo reemplaza.
   6. Verifica: el pixel superior izquierdo tiene alfa 0 y hay al menos un pixel con alfa 255.
@@ -26,7 +26,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ORIGINAL = os.path.join(ROOT, "assets", "src", "gran-logia-argentina-original.png")
 OUTPUT = os.path.join(ROOT, "assets", "img", "gran-logia-argentina.png")
 
-ROSA_100 = (255, 187, 186)  # --rosa-100: #ffbbba
+BLANCO = (240, 235, 227)  # --blanco: #f0ebe3
 ALPHA_LOW, ALPHA_HIGH = 40, 215  # L <= 40 -> alfa 0; L >= 215 -> alfa 255
 MARGIN = 4  # px transparentes alrededor de la caja de alfa > 0
 
@@ -66,10 +66,10 @@ def main():
     if background > ALPHA_LOW:
         fail(f"una esquina tiene luminancia {background:.1f} > {ALPHA_LOW}; el fondo no queda transparente")
 
-    # 2-3. Alfa desde luminancia; RGB fijo en --rosa-100
+    # 2-3. Alfa desde luminancia; RGB fijo en --blanco
     alpha = alpha_from_luminance(lum)
     rgba = np.empty((h, w, 4), dtype=np.uint8)
-    rgba[..., :3] = ROSA_100
+    rgba[..., :3] = BLANCO
     rgba[..., 3] = alpha
     image = Image.fromarray(rgba)
 
