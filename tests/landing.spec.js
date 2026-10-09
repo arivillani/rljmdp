@@ -41,6 +41,49 @@ function rgbKey(css) {
 
 const TOKEN_KEYS = new Set(Object.values(TOKENS).map(hexToRgbKey));
 
+/** Luminancia relativa WCAG de un color sRGB [r, g, b] (0–255). */
+function relativeLuminance([r, g, b]) {
+  const lin = (v) => {
+    const c = v / 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+/** Contraste WCAG entre dos colores sRGB [r, g, b]. */
+function contrastRatio(a, b) {
+  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
+ * Color sRGB promedio de una captura PNG (decodificada en el navegador con canvas).
+ * @param {import('@playwright/test').Page} page
+ * @param {Buffer} png
+ * @returns {Promise<[number, number, number]>}
+ */
+function averageColor(page, png) {
+  return page.evaluate(async (base64) => {
+    const img = new Image();
+    img.src = `data:image/png;base64,${base64}`;
+    await img.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const sum = [0, 0, 0];
+    const pixels = data.length / 4;
+    for (let i = 0; i < data.length; i += 4) {
+      sum[0] += data[i];
+      sum[1] += data[i + 1];
+      sum[2] += data[i + 2];
+    }
+    return /** @type {[number, number, number]} */ (sum.map((v) => v / pixels));
+  }, png.toString('base64'));
+}
+
 /**
  * Guarda de "la landing se sirve": evita que los criterios negativos (sin menú,
  * sin script, sin errores…) pasen en vacío contra un listado de directorio o un 404.
@@ -283,4 +326,38 @@ test.describe('S8 — Calidad base', () => {
     await context.close();
     expect(errors).toEqual([]);
   });
+
+  for (const [label, viewport] of VIEWPORTS) {
+    test(`S8.d — contraste ≥ 4.5:1 de h1 y header a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const targets = [
+        ['h1', page.locator('h1')],
+        ['header span:nth-child(1)', page.locator('header span').nth(0)],
+        ['header span:nth-child(2)', page.locator('header span').nth(1)],
+      ];
+      // Cajas medidas con el texto visible (visibility no altera el layout).
+      const boxes = [];
+      for (const [name, locator] of targets) {
+        const box = await locator.evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+        });
+        const x = Math.floor(box.left);
+        const y = Math.floor(box.top);
+        boxes.push([name, { x, y, width: Math.ceil(box.right) - x, height: Math.ceil(box.bottom) - y }]);
+      }
+      // Fondo sin texto: se oculta el h1 y los spans del header.
+      await page.addStyleTag({ content: 'h1, header span { visibility: hidden !important; }' });
+      const textColor = [0xff, 0xbb, 0xba]; // --rosa-100
+      for (const [name, clip] of boxes) {
+        const png = await page.screenshot({ clip });
+        const avg = await averageColor(page, png);
+        const ratio = contrastRatio(textColor, avg);
+        expect.soft(
+          ratio,
+          `${name}: contraste ${ratio.toFixed(2)}:1 de #ffbbba sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+  }
 });

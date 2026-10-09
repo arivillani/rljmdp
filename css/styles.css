@@ -36,6 +36,7 @@ body {
   font-size: 11px;
   letter-spacing: 0.28em;
   text-transform: uppercase;
+  text-shadow: 0 0 10px rgb(27 3 3 / 0.6);
 }
 
 /* Hero a sangre completa: alto exacto del viewport; el retrato es la única capa de fondo. */
@@ -46,15 +47,19 @@ body {
   background: url("../assets/img/pueyrredon.jpg") center 35% / cover no-repeat;
 }
 
-/* Velo en degradé de la paleta para legibilidad del título (S2). */
+/* Velo en degradé de la paleta: banda superior para el header y banda oscura tras el título (S2, S8.d). */
 .hero::before {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgb(27 3 3 / 0.45) 0%,
+    rgb(27 3 3 / 0.52) 0%,
+    rgb(27 3 3 / 0.38) 10%,
     rgb(27 3 3 / 0.15) 40%,
+    rgb(27 3 3 / 0.22) 52%,
+    rgb(27 3 3 / 0.46) 64%,
+    rgb(64 0 1 / 0.58) 82%,
     rgb(129 0 31 / 0.6) 100%
   );
 }
@@ -83,7 +88,7 @@ body {
   width: 48px;
   height: 1px;
   margin: 0.35em auto 0;
-  background: var(--rojo-600);
+  background: var(--rosa-300);
 }
 
 footer {
