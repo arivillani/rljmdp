@@ -136,7 +136,7 @@ Criterios:
 | T2b | S8.d | sonnet — apply (TDD) | Reabierta por R1: test de contraste en RED → ajustar velo/header en GREEN | [x] | `3d7215d` |
 | T2c | S1, S2, S4, S5, S6, S8.d | sonnet — apply (TDD) | Reabierta por L9, L10 y L11: título pequeño arriba en mayúsculas, sin fecha ni ciudad, cabeza sin cortar | [x] | `fd3b70a` |
 | T2d | S7 | sonnet — apply (TDD) | Reabierta por L12: pie con el formato de la referencia, en la paleta, solo Lorem ipsum | [x] | `35a9d05` |
-| T4 | — | haiku — archive | `README.md` + cierre del Log | [ ] | — |
+| T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
 ## Log
@@ -175,3 +175,4 @@ Criterios:
 
   (opus) La captura muestra el pie de la referencia: fondo blanco, tres renglones grandes alineados a la izquierda, filetes finos de ancho completo, dos párrafos chicos de datos legales y una línea de ©. Se reescribe S7: misma estructura en la paleta (fondo `--rosa-100`, texto `--rojo-900` y `--rojo-800`, filetes `--rosa-300`), con todo el texto en Lorem ipsum, sin enlaces ni datos reales, para respetar el pedido original ("solo un Lorem ipsum"). Nueva tarea T2d.
 - **L13** (sonnet T2c/T2d + opus R1): T2c — RED 11 fallos (S1.b, S2.a, S2.c, S2.d ×5, S4.c ×2, S7.a); la parte L11 también en RED (S4.c a 1440/390/360) → GREEN. T2d — RED S7.b y S7.e → GREEN. Suite final **35/35**. Cabeza (px de pantalla, x / y): 1440×900 517–827 / 95–449; 1920×950 746–1073 / 100–474; 1366×650 537–760 / 69–324; 390×844 47–338 / 89–421; 360×740 50–305 / 78–369. `h1` a ≥ 20 px por encima de la cabeza; contraste del `h1` 6.15–6.35. Desvíos: `translateX(-44%)` bajo 600 px para centrar la cabeza (no la imagen); selector `.pie .pie__copy` por especificidad. R1 sobre `3d7215d..35a9d05`: riesgo **pasivo** (HTML/CSS estático + tests), relectura estructural y revisión visual de capturas a 1920×950, 390×844 y pie completo, sin hallazgos → **reconocido**; el límite revisado avanza a `35a9d05`.
+- **L14** (haiku, T4): README.md creado; documento de feature cerrado. Pendiente: espejo Engram (no disponible en el entorno).
