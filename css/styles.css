@@ -1,0 +1,291 @@
+/*! © 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados. */
+:root {
+  /* Paleta roja (L29): blanco hueso para todo el texto y el isologotipo; rojo lacre, más hondo que el #a60000 anterior. */
+  --blanco: #f0ebe3; /* blanco hueso: apagado, sin tinte rosado (a* ≈ 0) */
+  --rojo-950: #1b0303; /* fondo del documento, theme-color, banda superior del velo y sombra del título */
+  --rojo-800: #8a0b12; /* lacre: fondo del pie, tinte del velo inferior, texto de la selección, favicon */
+  --rojo-600: #b0262c; /* filetes del pie: visibles pero quietos sobre --rojo-800 (1,48:1) */
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: var(--rojo-950);
+  font-family: "Times New Roman", Times, "Liberation Serif", Tinos, serif;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--blanco);
+  color: var(--rojo-800);
+}
+
+/* Intro (L31, S10): pantalla de entrada a sangre completa en --rojo-800, con el emblema de escuadra y compás (svg en
+   línea, dibujo propio) girando sobre su eje vertical, con perspectiva proporcional al emblema (2,2 × su ancho, la misma
+   relación que 600 px con 280 px). El emblema sube 2vh: centro óptico, algo por encima del geométrico.
+   Tiempos áureos (L37): T = 3 s, φ = 1,618; cada duración es T/φⁿ y los cortes se anidan como secciones áureas.
+     giro      0     → 1,854  T/φ   2 vueltas en un gesto: arranca quieto, pico al 31 %, se asienta de frente
+     pausa     1,854 → 2,021  T/φ⁶  de frente, quieto
+     emblema   2,021 → 2,459  T/φ⁴  se apaga; en su punto áureo (2,292 = T − T/φ³) empieza a irse el fondo
+     fondo     2,292 → 3      T/φ³  el retrato aparece despacio; el emblema ya no está al 1/φ³ del revelado (sin
+                                    fantasma sobre la cara)
+   Curvas: giro cubic-bezier(1/φ², 0, 1/φ³, 1); los dos desvanecidos, la misma S áurea cubic-bezier(1/φ², 0, 1/φ, 1),
+   que entra y sale suave (sin corte al terminar la pausa ni salto al quedar oculta). Retrato a la vista a los 3 s (S10.c).
+   Sin pointer-events: none: el centro de la pantalla debe ser la intro mientras se ve (S10.a; elementFromPoint ignora
+   los elementos con pointer-events: none). Deja de recibir clics al terminar porque el último fotograma de intro-salida
+   pone visibility: hidden, y lo oculto no recibe eventos (con fill-mode forwards, S10.c). */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  --emblema: clamp(84px, 16vmin, 144px);
+  background: var(--rojo-800);
+  perspective: calc(var(--emblema) * 2.2);
+  animation: intro-salida 0.708s cubic-bezier(0.382, 0, 0.618, 1) 2.292s forwards;
+}
+
+.intro__emblema {
+  width: var(--emblema);
+  height: auto;
+  translate: 0 -2vh;
+  fill: var(--blanco);
+  animation:
+    intro-giro 1.854s cubic-bezier(0.382, 0, 0.236, 1),
+    intro-salida 0.438s cubic-bezier(0.382, 0, 0.618, 1) 2.021s forwards;
+}
+
+@keyframes intro-giro {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(720deg);
+  }
+}
+
+@keyframes intro-salida {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro {
+    display: none;
+  }
+}
+
+/* Hero a sangre completa: alto exacto del viewport (border-box: el padding-top de abajo no lo agranda, S1.a). Capas, de
+   atrás hacia adelante: img (panorama) → ::after (velo) → hgroup.titulo.
+   overflow: clip y no hidden (L34, S4.g): clip recorta igual pero no crea un contenedor de scroll, así que el título
+   sticky se ancla al viewport y no al hero.
+   Medidas del título (L9, L24, L27): se declaran aquí y no en .titulo porque las usan dos cajas, el padding-top del hero y
+   el top sticky del título, y las dos tienen que valer lo mismo (S4.g: el título sigue en su sitio al scrollear). La
+   imagen y el velo son absolutos (inset: 0) y ignoran el padding.
+     tamaño     h1 = φ × antetítulo
+     separación (antetítulo → h1) = tamaño del antetítulo / φ
+     tracking   antetítulo = φ × h1 (en px)
+   Cada renglón del título mide su altura de mayúsculas (line-height = --mayus): las cajas coinciden con la tinta, así que
+   la separación áurea que se mide es la que se ve.
+   El tamaño del h1 sigue también al alto del viewport (3vh, con tope de 24 px) para que, en pantallas bajas, el bloque
+   quepa entre el borde del hero y la cabeza (S2.d).
+   Colocación áurea (S4.f): en la franja libre entre el borde del hero y el pelo, margen superior : aire hasta la
+   cabeza = 1 : φ; el bloque sigue a la cabeza (top entre 12 y 48 px). */
+.hero {
+  --phi: 1.6180339887;
+  --mayus: 0.66; /* altura de mayúsculas de Times New Roman / Liberation Serif, en em */
+  --t-nombre: clamp(16px, min(4.2vw, 3vh), 24px);
+  --t-ante: calc(var(--t-nombre) / var(--phi));
+  --tr-nombre: calc(var(--t-nombre) * 0.14); /* = 0.14em del h1 */
+  /* Borde superior de la cabeza (caja de S2: y 150 de 1424 px en el panorama de 2869×1424) con object-fit: cover y
+     object-position 47% 15% del .hero__retrato: 150/1424 = 10,534 % del alto si la imagen escala por alto (hasta
+     2,015:1); 15 % del alto − 2,217 % del ancho si escala por ancho. DEPENDE de esos tres datos (object-position,
+     caja de la cabeza y geometría del panorama): si cambia alguno, hay que recalcular --cabeza (S4.f lo verifica). */
+  --cabeza: min(10.534svh, 15svh - 2.217vw);
+  --alto-bloque: calc(var(--t-ante) * var(--mayus) + var(--t-ante) / var(--phi) + var(--t-nombre) * var(--mayus));
+  --titulo-top: clamp(12px, (var(--cabeza) - var(--alto-bloque)) / (1 + var(--phi)), 48px);
+  position: relative;
+  box-sizing: border-box;
+  height: 100vh;
+  height: 100svh;
+  padding-top: var(--titulo-top);
+  overflow: clip;
+  isolation: isolate;
+  background: var(--rojo-950);
+}
+
+/* Panorama (assets/img/pueyrredon-panorama.jpg, 2869×1424) a sangre completa (S2).
+   Hasta ~2:1 se ve el alto completo y solo se recortan nubes a los lados; en pantallas más anchas se recorta
+   por abajo (y = 15 %), nunca la cabeza. x = 47 % deja la cabeza (centro en el 47,4 % del ancho) en el centro
+   de pantallas angostas. */
+.hero__retrato {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 47% 15%;
+}
+
+/* Velo de la paleta (L22, "sombra + corte"): banda superior para el título y, abajo, el rojo del pie (--rojo-800)
+   *multiplicado* con el cuadro (no superpuesto con alfa, que daba un lila): la base se hunde en una sombra lacre casi
+   negra, del mismo tono que el pie, y pasa a él con un corte limpio. El rostro (14–68 %) queda sin velo. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  background: linear-gradient(
+    to bottom,
+    rgb(27 3 3 / 0.55) 0,
+    rgb(27 3 3 / 0) 14%,
+    rgb(138 11 18 / 0) 68%,
+    rgb(138 11 18 / 0.7) 100%
+  );
+}
+
+/* Bloque de título (L9, L11, L24): pequeño, arriba y centrado, como un logotipo. Mayúsculas solo por CSS: el texto del
+   DOM no cambia. "Respetable Logia" (p) va sobre el nombre (h1); las medidas áureas y la colocación están en .hero.
+   Sticky (L34, S4.g): en el flujo, centrado con margin auto y fijo a --titulo-top del viewport mientras el hero está a la
+   vista; se va con el borde inferior del hero (su bloque contenedor), así que nunca llega al pie. Como el padding-top del
+   hero vale lo mismo, en scroll 0 queda donde estaba cuando era absoluto. */
+.titulo {
+  position: sticky;
+  top: var(--titulo-top);
+  z-index: 2;
+  width: fit-content;
+  /* Aire para los descendentes (L38, S4.h): los renglones miden la altura de mayúsculas, pero en serifas como Noto Serif
+     (Android) la J de JUAN baja ≈ 0,21 em. Sticky respeta el margin-bottom, así que el bloque se detiene 0,25 em del
+     nombre antes del borde inferior del hero y ninguna letra queda recortada por su overflow: clip. */
+  margin: 0 auto calc(var(--t-nombre) * 0.25);
+  color: var(--blanco);
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 0 12px rgb(27 3 3 / 0.7);
+}
+
+/* Sombra suave que acompaña al título (L34, S4.g): al scrollear, el título pasa sobre la cara y el pecho claros del
+   retrato y, sin ella, el contraste cae a ≈ 3,2–3,8:1. Un degradé radial de la misma sombra borravino (--rojo-950) viaja con
+   el bloque (el .titulo sticky es su bloque contenedor), plano hasta el 40 % y luego se desvanece sin borde, y oscurece lo
+   justo detrás de los dos renglones (≥ 5,2:1 en el peor nivel). Sobre la banda oscura (scroll 0) apenas se nota. */
+.titulo::before {
+  content: "";
+  position: absolute;
+  inset: -2em -3em;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgb(27 3 3 / 0.4) 40%, rgb(27 3 3 / 0));
+}
+
+.titulo__antetitulo {
+  margin: 0 0 calc(var(--t-ante) / var(--phi));
+  /* El tracking deja un espacio tras la última letra: el padding-left igual compensa y centra la tinta (S9.e). */
+  padding-left: calc(var(--tr-nombre) * var(--phi));
+  font-size: var(--t-ante);
+  letter-spacing: calc(var(--tr-nombre) * var(--phi));
+  line-height: var(--mayus);
+}
+
+.hero h1 {
+  margin: 0;
+  padding-left: var(--tr-nombre);
+  font-size: var(--t-nombre);
+  font-weight: 400;
+  letter-spacing: var(--tr-nombre);
+  line-height: var(--mayus);
+}
+
+/* Pie con la estructura de la referencia (L12): bloques de ancho completo separados por filetes finos,
+   alineados a la izquierda, todo en Lorem ipsum y con los colores de la paleta. */
+.pie {
+  --pie-margen: clamp(24px, 4.5vw, 64px);
+  margin: 0;
+  background: var(--rojo-800);
+}
+
+.pie__bloque {
+  margin: 0;
+  padding: 32px var(--pie-margen);
+  text-align: left;
+}
+
+.pie__bloque + .pie__bloque {
+  border-top: 1px solid var(--rojo-600);
+}
+
+.pie__secciones {
+  display: grid;
+  gap: 32px;
+  padding-block: 56px;
+  color: var(--blanco);
+  font-size: clamp(18px, 1.4vw, 20px);
+  line-height: 1.3;
+  list-style: none;
+}
+
+.pie p {
+  /* Medida de 60ch (≤ 64ch, S9): con Times a 14 px son ≈ 70 caracteres por renglón, bajo el tope de 75 (64ch daba 78).
+     La caja (y su filete) sigue a ancho completo. */
+  padding-inline-end: max(var(--pie-margen), calc(100% - var(--pie-margen) - 60ch));
+  color: var(--blanco);
+  font-size: 14px;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.pie .pie__copy {
+  padding-block: 24px 48px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+/* Auspicio (L24): "Bajo los auspicios de la" y, debajo, el isologotipo de la Gran Logia como enlace (L25). El logo es un
+   PNG transparente en --blanco. El enlace es de bloque (y ajustado al logo) para que quede siempre debajo del texto.
+   La leyenda va en mayúsculas espaciadas, como el antetítulo del hero, y continúa en las mayúsculas del logotipo. */
+.pie .pie__auspicio {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.pie__enlace {
+  display: block;
+  width: fit-content;
+  margin-top: 16px;
+  border-radius: 2px;
+  transition: opacity 0.2s ease;
+}
+
+.pie__enlace:hover {
+  opacity: 0.82;
+}
+
+.pie__enlace:focus-visible {
+  outline: 1px solid var(--blanco);
+  outline-offset: 6px;
+}
+
+/* Ancho fijo de 260 px ≈ la medida de los párrafos (60ch de 14 px = 420 px) / φ; nunca más que el ancho disponible. */
+.pie__logo {
+  display: block;
+  width: min(260px, 100vw - 2 * var(--pie-margen));
+  height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pie__enlace {
+    transition: none;
+  }
+}
