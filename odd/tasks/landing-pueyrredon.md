@@ -99,6 +99,7 @@ Criterios:
 - S8.a — `<meta name="viewport" content="width=device-width, initial-scale=1">` presente.
 - S8.b — Sin JavaScript en la página (ningún `script`).
 - S8.c — Sin errores de consola al cargar.
+- S8.d — Legibilidad (añadido en R1, ver L7): con el texto oculto (`visibility: hidden`), el color promedio del fondo detrás de la caja del `h1` y de cada `span` del header da un contraste WCAG ≥ 4.5:1 contra `--rosa-100`, a 1440×900 y a 390×844. Los ojos, nariz y boca del retrato siguen visibles y sin texto encima.
 
 ## Tasks
 
@@ -107,7 +108,8 @@ Criterios:
 | T0 | S1–S8 | opus — propose/design/spec/tasks | Este documento + `AGENTS.md` + agentes ODD en `.claude/agents/` | [x] | `e55be60` |
 | T1 | S2 | haiku — asset | Copiar y optimizar el retrato a `assets/img/pueyrredon.jpg` | [x] | `5e0d4c3` |
 | T2 | S1–S8 | sonnet — apply (TDD) | Tests Playwright en RED observado → `index.html` + `css/styles.css` en GREEN → refactor | [x] | `c96433d` |
-| T3 | S1–S8 | sonnet — verify | Veredicto por spec (solo lectura) + capturas 1440×900 y 390×844 | [ ] | — |
+| T3 | S1–S8 | sonnet — verify | Veredicto por spec (solo lectura) + capturas 1440×900 y 390×844 | [x] | — (solo lectura, L6) |
+| T2b | S8.d | sonnet — apply (TDD) | Reabierta por R1: test de contraste en RED → ajustar velo/header en GREEN | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [ ] | — |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [ ] | — |
 
@@ -126,3 +128,5 @@ Criterios:
 - **L3** (haiku, T1): `assets/img/pueyrredon.jpg` 1181×1424, 296 103 bytes, JPEG progresivo q82 sin metadatos — S2.b listo para test. Commit `5e0d4c3`.
 - **L4** (opus, diseño): con `cover` a 1440×900 el rostro ocupa ~15–70 % del alto; un `h1` en el centro exacto taparía boca y mentón. Se interpreta "centrado" como centrado horizontal estricto (S4.b) y el título se apoya sobre el uniforme oscuro, al 68 % del alto (S4.c), lo que además mejora el contraste. Foco del fondo movido a `center 35%`. Revertible con una línea de CSS si se quiere centro exacto.
 - **L5** (sonnet, T2): 25 tests (uno por criterio; S1.a, S4.b y S4.c en 1440×900 y 390×844). RED observado 25/25 fallando — el primer intento dio 7 verdes vacuos contra el listado de directorios de `http-server`, así que se añadió la guarda `expectLandingServed` (`main > section.hero` debe existir). GREEN 25/25 (~4 s). Desvío: el velo del hero pasó de capa de `background` a `.hero::before`, porque con dos capas el `background-size` computado es `auto, cover` y S2.c exige `cover`. `h1` medido al 0,680 del alto del hero en ambos viewports. Commit `c96433d`.
+- **L6** (sonnet, T3): `npm test` 25/25 PASS; ningún test vacuo ni más débil que su criterio. Visual: a 390×844 el título queda sobre el uniforme y el rostro libre; a 1440×900 la línea 1 del título cae sobre mentón, cuello y corbatín claro. Contraste `#ffbbba` sobre fondo promedio: h1 a 1440 = 4.24 (línea 1: 3.86), header "BUENOS AIRES" a 1440 = 4.36; resto ≥ 6.4. Pie 10.73. Capturas en el scratchpad de la sesión.
+- **L7** (opus, R1 — RDD): candidato `e55be60..c96433d`. Riesgo **pasivo** (HTML/CSS estático, sin JS, dependencias solo de desarrollo y fijadas) → relectura estructural, sin hallazgos de código. Corrección acotada (única permitida) a partir de L6: se añade S8.d (legibilidad) y se reabre el trabajo como T2b; L4 queda corregido: a 1440 el título no estaba del todo sobre el uniforme.
