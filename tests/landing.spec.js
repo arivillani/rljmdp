@@ -33,12 +33,8 @@ const PIE_MIN_GUTTER = 24;
 const BASE_STRIP = 22;
 const BASE_MAX_LUMINANCE = 0.012;
 
-// S4.c: logotipo de una sola línea, también a 360 px.
-const LOGO_VIEWPORTS = [
-  ['1440×900', DESKTOP],
-  ['390×844', MOBILE],
-  ['360×740', { width: 360, height: 740 }],
-];
+// S4.c (L43): hasta este ancho el número de logia va en su propio renglón; desde 580 px, nombre y número en uno.
+const NUMBER_OWN_LINE_MAX_WIDTH = 579;
 
 // S4.e (L24): proporción áurea del bloque de título, en estos tres viewports.
 const PHI = (1 + Math.sqrt(5)) / 2;
@@ -64,10 +60,13 @@ const TOKENS = {
 };
 const FOOTER_MIN_CONTRAST = 7; // S7.f (L29): texto del pie ≥ 7:1 (AAA)
 
-const COPYRIGHT_TEXT = '© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.';
-const TITLE = 'Juan Martín De Pueyrredón';
+// L43: el número de logia es parte del nombre. Ordinal masculino (º, U+00BA; no el ° de grado, U+00B0) y espacio duro.
+const NAME = 'Juan Martín De Pueyrredón';
+const LODGE_NUMBER = 'N\u00ba\u00a0251';
+const TITLE = `${NAME} ${LODGE_NUMBER}`; // S4.a (L43)
 const KICKER = 'Respetable Logia';
-const DOCUMENT_TITLE = `${KICKER} ${TITLE}`; // S4.d (L24)
+const DOCUMENT_TITLE = `${KICKER} ${TITLE}`; // S4.d (L24, L43)
+const COPYRIGHT_TEXT = `© 2026 ${DOCUMENT_TITLE}. Todos los derechos reservados.`; // S7.i, S12.a (L42, L43)
 const KICKER_SELECTOR = 'hgroup.titulo p.titulo__antetitulo';
 
 // S7.g y S7.h (L24, L25): auspicio con el isologotipo enlazado.
@@ -273,7 +272,12 @@ async function expectTitleInkInsideHero(page, viewport) {
     await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
     const m = await page.evaluate(() => {
       const heroBottom = document.querySelector('.hero').getBoundingClientRect().bottom;
-      const lines = [...document.querySelectorAll('hgroup.titulo > *')].map((el) => {
+      // Cada pieza con su propio renglón (L43): el antetítulo y, dentro del h1, el nombre y el número.
+      const pieces = [...document.querySelectorAll('hgroup.titulo > *')].flatMap((el) => {
+        const parts = el.querySelectorAll(':scope > span');
+        return parts.length ? [...parts] : [el];
+      });
+      const lines = pieces.map((el) => {
         const cs = getComputedStyle(el);
         const probe = document.createElement('span');
         probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
@@ -283,7 +287,7 @@ async function expectTitleInkInsideHero(page, viewport) {
         const ctx = document.createElement('canvas').getContext('2d');
         ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
         const descent = ctx.measureText((el.textContent || '').toUpperCase()).actualBoundingBoxDescent;
-        return { tag: el.tagName.toLowerCase(), inkBottom: baseline + descent };
+        return { tag: el.className || el.tagName.toLowerCase(), inkBottom: baseline + descent };
       });
       return { heroBottom, lines };
     });
@@ -464,15 +468,18 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
     });
   }
 
-  for (const [label, viewport] of LOGO_VIEWPORTS) {
-    test(`S4.c — bloque de título tipo logotipo: MAYÚSCULAS, hgroup a 12–48 px del borde superior del hero, h1 de 16–26 px, cada línea en un renglón con ≥ 16 px de margen lateral y antetítulo centrado a ${label}`, async ({ page }) => {
+  for (const [label, viewport] of HERO_VIEWPORTS) {
+    const ownLine = viewport.width <= NUMBER_OWN_LINE_MAX_WIDTH; // L43
+    test(`S4.c — bloque de título tipo logotipo: MAYÚSCULAS, hgroup a 12–48 px del borde superior del hero, h1 de 16–26 px, ${ownLine ? 'el número en un segundo renglón centrado' : 'nombre y número en un renglón'}, todo con ≥ 16 px de margen lateral y antetítulo centrado a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
       const m = await page.evaluate((kickerSelector) => {
         const hero = document.querySelector('.hero').getBoundingClientRect();
         const block = document.querySelector('hgroup.titulo');
         const kicker = document.querySelector(kickerSelector);
         const h1 = document.querySelector('h1');
-        if (!block || !kicker) return null;
+        const name = h1 && h1.querySelector(':scope > span.titulo__nombre');
+        const number = h1 && h1.querySelector(':scope > span.titulo__numero');
+        if (!block || !kicker || !name || !number) return null;
         const clientWidth = document.documentElement.clientWidth;
         const line = (el) => {
           const r = el.getBoundingClientRect();
@@ -482,6 +489,8 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
           return {
             left: r.left,
             right: clientWidth - r.right,
+            top: r.top,
+            bottom: r.bottom,
             centerX: r.left + r.width / 2,
             height: r.height,
             fontSize,
@@ -494,19 +503,38 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
           viewportCenterX: clientWidth / 2,
           h1: line(h1),
           kicker: line(kicker),
+          name: line(name),
+          number: line(number),
         };
       }, KICKER_SELECTOR);
-      expect(m, 'falta hgroup.titulo con p.titulo__antetitulo (L24)').not.toBeNull();
-      const { blockTop, viewportCenterX, h1, kicker } = /** @type {NonNullable<typeof m>} */ (m);
+      expect(m, 'falta hgroup.titulo con p.titulo__antetitulo y h1 > span.titulo__nombre + span.titulo__numero (L24, L43)').not.toBeNull();
+      const { blockTop, viewportCenterX, h1, kicker, name: nombre, number: numero } = /** @type {NonNullable<typeof m>} */ (m);
       expect(blockTop, `borde superior del hgroup: ${blockTop}px`).toBeGreaterThanOrEqual(12);
       expect(blockTop, `borde superior del hgroup: ${blockTop}px`).toBeLessThanOrEqual(48);
       expect(h1.fontSize, `font-size del h1: ${h1.fontSize}px`).toBeGreaterThanOrEqual(16);
       expect(h1.fontSize, `font-size del h1: ${h1.fontSize}px`).toBeLessThanOrEqual(26);
       for (const [name, l] of /** @type {const} */ ([['h1', h1], ['antetítulo', kicker]])) {
         expect(l.textTransform, `text-transform del ${name}`).toBe('uppercase');
-        expect(l.height, `${name}: alto ${l.height}px vs line-height ${l.lineHeight}px: más de una línea`).toBeLessThan(1.6 * l.lineHeight);
         expect(l.left, `margen izquierdo del ${name}: ${l.left}px`).toBeGreaterThanOrEqual(16);
         expect(l.right, `margen derecho del ${name}: ${l.right}px`).toBeGreaterThanOrEqual(16);
+      }
+      expect(kicker.height, `antetítulo: alto ${kicker.height}px vs line-height ${kicker.lineHeight}px: más de un renglón`).toBeLessThan(1.6 * kicker.lineHeight);
+      // L43: el nombre y el número nunca se parten; cada uno ocupa un solo renglón, con ≥ 16 px de margen.
+      for (const [part, l] of /** @type {const} */ ([['nombre', nombre], ['número', numero]])) {
+        expect(l.height, `${part}: alto ${l.height}px vs line-height ${l.lineHeight}px: más de un renglón`).toBeLessThan(1.6 * l.lineHeight);
+        expect(l.left, `margen izquierdo del ${part}: ${l.left}px`).toBeGreaterThanOrEqual(16);
+        expect(l.right, `margen derecho del ${part}: ${l.right}px`).toBeGreaterThanOrEqual(16);
+      }
+      if (ownLine) {
+        expect(numero.top, `el número (arriba ${numero.top}px) debe ir debajo del nombre (abajo ${nombre.bottom}px)`).toBeGreaterThanOrEqual(nombre.bottom);
+        expect(
+          Math.abs(numero.centerX - viewportCenterX),
+          `centro del número ${numero.centerX} vs centro del viewport ${viewportCenterX}`,
+        ).toBeLessThanOrEqual(2);
+      } else {
+        expect(h1.height, `h1: alto ${h1.height}px vs line-height ${h1.lineHeight}px: nombre y número deben ir en un renglón`).toBeLessThan(1.6 * h1.lineHeight);
+        expect(Math.abs(numero.top - nombre.top), `número arriba ${numero.top}px vs nombre ${nombre.top}px: mismo renglón`).toBeLessThanOrEqual(1);
+        expect(numero.left, 'el número va a la derecha del nombre').toBeGreaterThanOrEqual(2 * viewportCenterX - nombre.right);
       }
       expect(
         Math.abs(kicker.centerX - viewportCenterX),
@@ -564,6 +592,25 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
           h1LineHeight: getComputedStyle(h1).lineHeight,
           kickerTracking: getComputedStyle(kicker).letterSpacing,
           h1Tracking: getComputedStyle(h1).letterSpacing,
+          // L43: el número de logia dentro del h1 (span.titulo__numero), tras el nombre (span.titulo__nombre).
+          number: (() => {
+            const name = h1.querySelector(':scope > span.titulo__nombre');
+            const num = h1.querySelector(':scope > span.titulo__numero');
+            const n = num && num.querySelector(':scope > span.titulo__n');
+            if (!name || !num || !n || n.textContent !== 'N') return null;
+            const a = name.getBoundingClientRect();
+            const b = num.getBoundingClientRect();
+            return {
+              text: num.textContent,
+              nameText: name.textContent,
+              nameTop: a.top,
+              nameBottom: a.bottom,
+              top: b.top,
+              fontSize: parseFloat(getComputedStyle(num).fontSize),
+              tracking: getComputedStyle(num).letterSpacing,
+              nTracking: getComputedStyle(n).letterSpacing,
+            };
+          })(),
         };
       });
       expect(m, 'falta hgroup.titulo > p.titulo__antetitulo + h1 (L24)').not.toBeNull();
@@ -605,6 +652,29 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
         Math.abs(trackingRatio - PHI) / PHI,
         `tracking: antetítulo ${r.kickerTracking} / h1 ${r.h1Tracking} = ${trackingRatio.toFixed(4)} (φ = ${PHI.toFixed(4)}, ±1 %)`,
       ).toBeLessThanOrEqual(0.01);
+
+      // L43: el número es parte del nombre: mismo tamaño y tracking; «Nº» con la N a tracking del nombre ÷ φ².
+      expect(r.number, 'falta h1 > span.titulo__nombre + span.titulo__numero con span.titulo__n («N») (L43)').not.toBeNull();
+      const num = /** @type {NonNullable<typeof r.number>} */ (r.number);
+      expect.soft(num.nameText, 'texto del nombre').toBe(NAME);
+      expect.soft(num.text, 'texto del número').toBe(LODGE_NUMBER);
+      expect.soft(Math.abs(num.fontSize - r.h1FontSize), `tamaño del número ${num.fontSize}px vs nombre ${r.h1FontSize}px`).toBeLessThanOrEqual(0.05);
+      expect.soft(Math.abs(parseFloat(num.tracking) - h1Px), `tracking del número ${num.tracking} vs nombre ${r.h1Tracking}`).toBeLessThanOrEqual(0.05);
+      const nRatio = h1Px / parseFloat(num.nTracking);
+      expect.soft(
+        Math.abs(nRatio - PHI * PHI) / (PHI * PHI),
+        `tracking de «Nº»: nombre ${r.h1Tracking} / N ${num.nTracking} = ${nRatio.toFixed(4)} (φ² = ${(PHI * PHI).toFixed(4)}, ±1 %)`,
+      ).toBeLessThanOrEqual(0.01);
+      if (viewport.width <= NUMBER_OWN_LINE_MAX_WIDTH) {
+        // En su propio renglón, a la misma separación áurea que hay entre el antetítulo y el nombre.
+        const numberGap = num.top - num.nameBottom;
+        expect.soft(
+          Math.abs(numberGap - wanted),
+          `separación nombre → número: ${numberGap.toFixed(2)}px vs antetítulo/φ = ${wanted.toFixed(2)}px (±1 px)`,
+        ).toBeLessThanOrEqual(1);
+      } else {
+        expect.soft(Math.abs(num.top - num.nameTop), `número arriba ${num.top}px vs nombre ${num.nameTop}px: mismo renglón`).toBeLessThanOrEqual(1);
+      }
     });
   }
 
@@ -813,7 +883,8 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
   });
 
   test('S7.i — el pie muestra los derechos reservados (L42), igual que LICENSE y el meta copyright', async ({ page }) => {
-    const copy = ((await page.locator('footer > p.pie__copy').textContent()) || '').replace(/\s+/g, ' ').trim();
+    // Solo se colapsan los espacios de HTML: \s también tomaría el espacio duro de «Nº 251» (L43), que debe estar.
+    const copy = ((await page.locator('footer > p.pie__copy').textContent()) || '').replace(/[ \t\n\r\f]+/g, ' ').trim();
     expect(copy).toBe(COPYRIGHT_TEXT);
     const meta = await page.locator('meta[name="copyright"]').getAttribute('content');
     expect(meta, 'el meta copyright y el pie dicen lo mismo').toBe(COPYRIGHT_TEXT);
@@ -1099,7 +1170,8 @@ test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
             }
             line.chars.push(text[i]);
           }
-          return { text: text.replace(/\s+/g, ' ').trim(), lines: lines.map((l) => l.chars.join('').trim()) };
+          // Espacios de HTML, no \s: el espacio duro de «Nº 251» (L43) no se colapsa y sigue dentro de su renglón.
+          return { text: text.replace(/[ \t\n\r\f]+/g, ' ').trim(), lines: lines.map((l) => l.chars.join('').trim()) };
         }),
       );
       expect(paragraphs.length, 'párrafos en el pie').toBe(3);
@@ -1408,7 +1480,7 @@ test.describe('S10 — Intro animada (L31)', () => {
 
 
 // S12 (L40): protección del estilo. Derechos reservados, publicado minificado y guarda de atajos.
-const COPYRIGHT = '© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.';
+const COPYRIGHT = COPYRIGHT_TEXT;
 const ROOT = path.join(__dirname, '..');
 const SITE_DIR = path.join(ROOT, '_site');
 // S12.c: atajos de "ver código" y herramientas de desarrollo (Windows/Linux con Control, Mac con ⌘⌥).
