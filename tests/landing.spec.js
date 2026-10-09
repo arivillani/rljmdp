@@ -1175,9 +1175,10 @@ test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
 // S10 (L31): intro animada. Colores y tiempos de la spec.
 const INTRO_BG = 'rgb(138, 11, 18)'; // --rojo-800
 const INTRO_INK = 'rgb(240, 235, 227)'; // --blanco
-const INTRO_TURN_MS = 1100; // una vuelta
-const INTRO_TURN_TOLERANCE_MS = 50;
-const INTRO_TURNS = 2;
+const INTRO_SPIN_MS = 1800; // un solo gesto de 2 vueltas
+const INTRO_SPIN_TOLERANCE_MS = 50;
+const INTRO_ITERATIONS = 1;
+const INTRO_SPIN_DEG = 720; // 2 vueltas
 const INTRO_GONE_AT_MS = 3200; // S10.c: medido desde el inicio de la navegación
 
 /** ¿El transform de un keyframe gira en Y? `rotateY(...)` o una matrix3d que no sea 2D. */
@@ -1227,7 +1228,7 @@ test.describe('S10 — Intro animada (L31)', () => {
       });
     }
 
-    test('S10.b — un único svg en línea con rellenos y trazos en #f0ebe3, girando en Y: 2 vueltas de 1,1 s', async ({ page }) => {
+    test('S10.b — un único svg en línea con rellenos y trazos en #f0ebe3, girando en Y: 2 vueltas en un solo giro de 1,8 s', async ({ page }) => {
       const m = await page.evaluate(() => {
         const intro = document.querySelector('.intro');
         if (!intro) return null;
@@ -1269,9 +1270,10 @@ test.describe('S10 — Intro animada (L31)', () => {
       const spins = b.animations.filter((a) => a.transforms.some(isYRotation));
       expect(spins.length, `animación con rotateY entre: ${JSON.stringify(b.animations)}`).toBeGreaterThan(0);
       for (const a of spins) {
-        expect.soft(a.iterations, `iteraciones de la animación de ${a.target}`).toBe(INTRO_TURNS);
+        expect.soft(a.iterations, `iteraciones de la animación de ${a.target}`).toBe(INTRO_ITERATIONS);
+        expect.soft(a.transforms.at(-1), `último keyframe de ${a.target}`).toBe(`rotateY(${INTRO_SPIN_DEG}deg)`);
         expect.soft(
-          Math.abs(Number(a.duration) - INTRO_TURN_MS) <= INTRO_TURN_TOLERANCE_MS,
+          Math.abs(Number(a.duration) - INTRO_SPIN_MS) <= INTRO_SPIN_TOLERANCE_MS,
           `duración ${a.duration} ms de la animación de ${a.target}`,
         ).toBe(true);
       }

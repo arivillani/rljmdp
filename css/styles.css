@@ -26,8 +26,11 @@ body {
 }
 
 /* Intro (L31, S10): pantalla de entrada a sangre completa en --rojo-800, con el emblema de escuadra y compás (svg en
-   línea, dibujo propio) girando sobre su eje vertical: 2 vueltas de 1,1 s con perspectiva (el .intro es el contenedor de
-   la perspectiva). A los 2,2 s se desvanece en 0,6 s y deja el retrato a la vista (S10.c, ≈ 2,8 s en total).
+   línea, dibujo propio) girando sobre su eje vertical: 2 vueltas en un solo gesto de 1,8 s que arranca rápido y se
+   asienta de frente (cubic-bezier(0.3, 0, 0.2, 1)), con perspectiva proporcional al emblema (2,2 × su ancho, la misma
+   relación que 600 px con 280 px). Ya quieto de frente, el emblema se apaga primero (0,3 s desde 1,9 s, así no queda
+   su fantasma sobre la cara del retrato) y el fondo se desvanece en 0,6 s desde 2 s: retrato a la vista a los 2,6 s
+   (S10.c). El emblema sube 2vh: centro óptico, algo por encima del geométrico.
    Sin pointer-events: none: el centro de la pantalla debe ser la intro mientras se ve (S10.a; elementFromPoint ignora
    los elementos con pointer-events: none). Deja de recibir clics al terminar porque el último fotograma de intro-salida
    pone visibility: hidden, y lo oculto no recibe eventos (con fill-mode forwards, S10.c). */
@@ -37,23 +40,18 @@ body {
   z-index: 10;
   display: grid;
   place-items: center;
+  --emblema: clamp(84px, 16vmin, 144px);
   background: var(--rojo-800);
-  perspective: 600px;
-  animation: intro-salida 0.6s ease 2.2s forwards;
+  perspective: calc(var(--emblema) * 2.2);
+  animation: intro-salida 0.6s ease 2s forwards;
 }
 
 .intro__emblema {
-  width: clamp(140px, 34vmin, 280px);
+  width: var(--emblema);
   height: auto;
+  translate: 0 -2vh;
   fill: var(--blanco);
-  stroke: var(--blanco);
-  animation: intro-giro 1.1s cubic-bezier(0.45, 0, 0.55, 1) 2;
-}
-
-/* Las facetas (fill-opacity) y el anillo no llevan contorno; solo las marcas (line) usan el stroke heredado. La máscara
-   (mask) conserva su propio trazo negro de 6: es el hueco que el compás abre en la escuadra. */
-.intro__emblema :is(.escuadra, .compas) :is(polygon, path, circle) {
-  stroke: none;
+  animation: intro-giro 1.8s cubic-bezier(0.3, 0, 0.2, 1), intro-salida 0.3s ease-in 1.9s forwards;
 }
 
 @keyframes intro-giro {
@@ -61,7 +59,7 @@ body {
     transform: rotateY(0deg);
   }
   to {
-    transform: rotateY(360deg);
+    transform: rotateY(720deg);
   }
 }
 
