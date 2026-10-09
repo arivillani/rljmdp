@@ -43,7 +43,7 @@ body {
 }
 
 .intro__emblema {
-  width: clamp(120px, 30vmin, 180px);
+  width: clamp(140px, 34vmin, 280px);
   height: auto;
   fill: var(--blanco);
   stroke: var(--blanco);

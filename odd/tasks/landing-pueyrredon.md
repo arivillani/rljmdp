@@ -200,7 +200,7 @@ Criterios:
 | T2j | S4.f, S4.e, S7.g | sonnet — apply (TDD) | Aplicar la revisión de estilo L27 (opción B) | [x] | `975113e` |
 | S3-style | S5 | opus — style (`odd-style`) | Paleta roja con blanco hueso (L29), prototipo en una copia | [x] | — (L29) |
 | T2k | S5, S7, S8.d, S9.b | sonnet — apply (TDD) | Aplicar la paleta L29: CSS, tests, logo blanco, favicon, README | [x] | `f97d7cc` |
-| T2l | S10, S7.a | sonnet — apply (TDD) | Intro animada: escuadra y compás girando, blanco sobre rojo | [ ] | — |
+| T2l | S10, S7.a | sonnet — apply (TDD) | Intro animada: escuadra y compás girando, blanco sobre rojo | [x] | `1945f51` |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -301,3 +301,4 @@ Criterios:
   > Publica la página así lo veo, dale calidad al compas y la escuadra
 
   (opus) Emblema rediseñado en un `viewBox` de 200 (diseño de opus, probado de frente y de perfil a 55° y 80°) y entregado a T2l. Publicación: la página muestra el isologotipo real de la Gran Logia Argentina y el nombre de una logia real, así que no se publica en un enlace por iniciativa propia. Se entrega como archivo HTML autocontenido para verla, y el usuario decide si quiere un enlace.
+- **L33** (sonnet T2l + opus R1): RED 6 fallos (S7.a, S10.a ×2, S10.b, S10.c, S10.d) → GREEN **70/70**, estable en 3 corridas; dos mutaciones de control fallan el test correcto. Desvíos aceptados: `reducedMotion` va en `use.contextOptions`, porque en 1.56.1 la opción de nivel superior se ignora sin aviso; el selector `stroke: none` deja intactos los trazos de la máscara; `.intro` mantiene `pointer-events` por defecto, así que tapa los clics ~2,8 s y después queda `visibility: hidden`. Cuadros revisados (0,1 / 0,36 / 0,6 / 1,2 / 2,5 / 3,2 s): giro en Y visible y desvanecido limpio. R1 (opus): riesgo **pasivo**. Ajuste de tamaño del emblema a `clamp(140px, 34vmin, 280px)`, porque en escritorio quedaba chico (~130 px); 70/70.
