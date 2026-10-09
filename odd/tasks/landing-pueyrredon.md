@@ -183,6 +183,17 @@ Criterios:
 - S10.c — A los 3,2 s de arrancar la intro (0,2 s después de su final, L37), `.intro` tiene `opacity` 0 y `visibility: hidden`, y el elemento en el centro de la pantalla ya no está dentro de `.intro`.
 - S10.d — Con `reducedMotion: 'reduce'`, el `display` computado de `.intro` es `none` desde el inicio.
 
+### S11 — Publicación en GitHub Pages (L39)
+> "Excelente, me gustaría subirla a un pages de Github y que si alguien quiere ver el código le derive un about blank"
+
+- Workflow `.github/workflows/pages.yml`: corre `npm test` en cada pull request y en cada push a `main`; con los tests en verde y solo en `main`, publica en GitHub Pages un sitio armado únicamente con los archivos públicos (`index.html`, `css/styles.css`, `assets/favicon.svg`, `assets/img/pueyrredon-panorama.jpg`, `assets/img/gran-logia-argentina.png`, `.nojekyll`). Tests, scripts, fuentes de los assets y documentos de trabajo no se publican.
+- Paso manual del usuario, por única vez: Settings → Pages → Source: **GitHub Actions**. Pages gratuito requiere repositorio público.
+- La parte "about blank" queda pendiente de una decisión del usuario (L39).
+
+Criterios:
+- S11.a — El YAML del workflow es válido y tiene un job `test` (sin condiciones) y un job `deploy` que depende de `test` y solo corre en `main` fuera de pull requests.
+- S11.b — La carpeta `_site` que arma el workflow sirve la página completa: todas las imágenes cargan, se aplica el CSS y ningún pedido devuelve 4xx. Verificado localmente con un servidor estático.
+
 ## Tasks
 
 | ID | Specs | Ruta (modelo) | Trabajo | Estado | Commit |
@@ -213,6 +224,7 @@ Criterios:
 | T2n | S10 | aplicar diffs de `odd-style` | Intro: tamaño, muescas caladas, movimiento | [x] | `c9ff0df` |
 | T2o | S10 | opus — style (`odd-style`) + apply | Intro áurea de 3 s (L37) | [x] | ver L37 |
 | T2p | S4.h | opus — fix (TDD) | La J de JUAN no se recorta al irse con la imagen (L38) | [x] | ver L38 |
+| T3b | S11 | opus — CI/CD | Workflow de tests + GitHub Pages (solo archivos públicos) | [x] | ver L39 |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -334,3 +346,7 @@ Criterios:
   > En el título de la página
 
   (opus) Causa: los renglones miden la altura de mayúsculas (S4.e), pero en Android la pila cae en Noto Serif, cuya J desciende ≈ 0,21 em bajo la línea base. Cuando el sticky lleva el bloque hasta el borde inferior del hero, `overflow: clip` corta la cola. En el contenedor no se veía porque la J de Liberation Serif no desciende: con la pila real el test nuevo pasó en vacío, así que se agregó la variante con DejaVu Serif (J ≈ 0,21 em). RED: 3 fallos (1440, 390 y 844×390), con la tinta 3,2–4,2 px por debajo del borde. Arreglo: `margin-bottom: calc(var(--t-nombre) * 0.25)` en `.titulo`; el test del borde inferior de S4.g ahora suma ese margen. GREEN **81/81**. R1: riesgo **pasivo**.
+- **L39** (usuario, literal):
+  > Excelente, me gustaría subirla a un pages de Github y que si alguien quiere ver el código le derive un about blank
+
+  (opus) Pages: workflow con tests como compuerta y despliegue de un `_site` mínimo (S11). S11.a se verificó leyendo el YAML; S11.b, armando `_site` y cargándolo con Chromium, sin errores 4xx y con imágenes y estilos aplicados. "About blank": se cuestiona la premisa (una sola vez, según el protocolo). El navegador siempre descarga el HTML y el CSS, `view-source:` no se puede interceptar, y el repo es público si se usa Pages gratuito. Además, la técnica obliga a agregar JavaScript (contra S8.b) y castiga clics legítimos, como el derecho sobre el logo para abrirlo en otra pestaña. Queda pendiente de la decisión del usuario.
