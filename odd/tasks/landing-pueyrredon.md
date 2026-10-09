@@ -24,16 +24,22 @@ Criterios:
 - S1.b — No hay elemento `header`, y el texto visible de la página no contiene `Buenos Aires`, `1777` ni `1850` (tampoco la `meta description`).
 - S1.c — Sin scroll horizontal a 390 px (`scrollWidth <= clientWidth`).
 
-### S2 — Imagen de fondo
+### S2 — Imagen de fondo, con la cabeza entera
 > "la imagen de fondo que te adjunto."
+>
+> "Que la cabeza no aparezca cortada" (L10)
 
 - Asset: `assets/img/pueyrredon.jpg` (retrato adjunto, 1181×1424, JPEG optimizado, ≤ 400 KB).
-- Se usa como `background-image` CSS de `.hero`, con `background-size: cover` y foco en el rostro (`background-position: center 35%`), bajo un velo en degradé de la paleta (S5) para legibilidad del título.
+- El retrato es vertical (≈ 0,83) y el hero suele ser apaisado: con `cover` la cabeza se recorta (L10). Por eso el hero lleva dos capas del mismo retrato:
+  - **Fondo a sangre completa:** `.hero::before` con el retrato en `background-size: cover`, desenfocado y oscurecido (`filter: blur(…) brightness(…)`), que llena el viewport en cualquier proporción.
+  - **Retrato nítido:** `<img class="hero__retrato">` dentro del hero, alto 100 % del hero y ancho proporcional, centrado; los bordes laterales se funden con el fondo mediante `mask-image`. En pantallas angostas (más altas que el retrato) se desborda a los lados, recortado por `overflow: hidden`, y la cabeza queda dentro.
+- Caja de la cabeza en el original (px de 1181×1424, con pelo, patillas y mentón): **x 270–760, y 150–710**.
 
 Criterios:
-- S2.a — `getComputedStyle(.hero).backgroundImage` contiene `pueyrredon.jpg`.
+- S2.a — Existe un único `img.hero__retrato` dentro de `.hero`, cuyo `src` termina en `assets/img/pueyrredon.jpg`, con `alt` no vacío, y la imagen cargó (`naturalWidth` es 1181).
 - S2.b — `GET /assets/img/pueyrredon.jpg` responde 200 con `content-type` `image/jpeg`.
-- S2.c — `background-size` es `cover`.
+- S2.c — En `getComputedStyle(.hero, '::before')`, `backgroundImage` contiene `pueyrredon.jpg`, `backgroundSize` es `cover` y `filter` contiene `blur`.
+- S2.d — Cabeza sin cortar: la caja de la cabeza proyectada sobre la caja renderizada de `.hero__retrato` queda entera dentro del viewport con ≥ 8 px de margen y no se superpone con la caja del `h1`, a 1440×900, 1920×950, 1366×650, 390×844 y 360×740.
 
 ### S3 — Sin menú lateral
 > "sin menú en el lateral"
@@ -112,7 +118,7 @@ Criterios:
 | T2 | S1–S8 | sonnet — apply (TDD) | Tests Playwright en RED observado → `index.html` + `css/styles.css` en GREEN → refactor | [x] | `c96433d` |
 | T3 | S1–S8 | sonnet — verify | Veredicto por spec (solo lectura) + capturas 1440×900 y 390×844 | [x] | — (solo lectura, L6) |
 | T2b | S8.d | sonnet — apply (TDD) | Reabierta por R1: test de contraste en RED → ajustar velo/header en GREEN | [x] | `3d7215d` |
-| T2c | S1, S4, S5, S6, S8.d | sonnet — apply (TDD) | Reabierta por L9: título pequeño arriba, sin fecha ni ciudad | [ ] | — |
+| T2c | S1, S2, S4, S5, S6, S8.d | sonnet — apply (TDD) | Reabierta por L9 y L10: título pequeño arriba, sin fecha ni ciudad, cabeza sin cortar | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [ ] | — |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8 |
 
@@ -139,3 +145,7 @@ Criterios:
   > Saca la fecha y la ciudad
 
   (opus) Se reescriben S1 (sin header ni microtexto), S4 (título pequeño arriba, sigue centrado), S5.b, S6.a y S8.d (sin `header`); se reabre como T2c. El título pasa a la posición del logotipo de Tamburins, así que L4 (título sobre el uniforme) y la banda oscura del velo detrás del título quedan obsoletos. Se conserva la grafía exacta del título (sin `text-transform`).
+- **L10** (usuario, cambio de requisito, literal):
+  > Que la cabeza no aparezca cortada
+
+  (opus) Con `cover` y foco al 35 %, a 1440×900 el pelo ya quedaba cortado arriba. Además, en viewports de escritorio reales (≈ 2:1 por la barra del navegador), `cover` solo deja ver ~560 px del alto original, y la cabeza mide ~560, así que ningún `background-position` la salva. Se reescribe S2: retrato nítido entero a alto completo + el mismo retrato desenfocado a sangre completa detrás (el hero sigue cubriendo toda la pantalla). Caja de la cabeza medida sobre el original con grilla: x 270–760, y 150–710. Se suma a T2c.
