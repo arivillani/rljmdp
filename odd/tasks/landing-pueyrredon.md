@@ -124,7 +124,7 @@ bloques de ancho completo separados por filetes finos, todo alineado a la izquie
 1. `ul.pie__secciones` con tres renglones cortos (≈ 18–20 px), con mucho aire vertical: `Lorem ipsum`, `Dolor sit amet`, `Consectetur adipiscing`.
 2. `p` chico (≈ 13–14 px, interlineado ≈ 1,7) de Lorem ipsum (≈ 35 palabras).
 3. `p.pie__auspicio` (L24): el texto `Bajo los auspicios de la` en mayúsculas espaciadas (L27: 12 px, `letter-spacing` 0,2 em, rima con el antetítulo) y, debajo, el isologotipo de la Gran Logia Argentina (260 px de ancho, ≈ medida de los párrafos ÷ φ) como `img` en línea (`alt="Gran Logia Argentina de Libres y Aceptados Masones"`), de modo que la oración se lee completa con lector de pantalla. El logo es un PNG con transparencia en `--blanco` (L29) (`assets/img/gran-logia-argentina.png`), generado desde el original blanco sobre negro (`assets/src/gran-logia-argentina-original.png`).
-4. `p.pie__copy` chico: `© Lorem ipsum`.
+4. `p.pie__copy` chico: `© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.` (L42)
 
 Colores (L29): fondo `--rojo-800` (`#8a0b12`); todo el texto `--blanco` (contraste 8,28:1); filetes 1 px `--rojo-600`.
 Sin botones; el único contenido real es el bloque de auspicio (L24), y el único enlace es el isologotipo hacia `https://www.masoneria-argentina.org.ar/` (L25).
@@ -132,7 +132,8 @@ Sin botones; el único contenido real es el bloque de auspicio (L24), y el únic
 Criterios:
 - S7.a — Los hijos de `body` son solo `div.intro` (S10, decorativo), `main`, `footer` y, al final, el `script` de la guarda (S12.c); `main` contiene únicamente la sección `.hero`.
 - S7.b — Estructura: el `footer` tiene exactamente 4 hijos directos con clase `pie__bloque`, en este orden: un `ul.pie__secciones` con exactamente 3 `li`; un `p`; un `p.pie__auspicio`; un `p.pie__copy` cuyo texto empieza por `©`.
-- S7.c — Lorem ipsum salvo el auspicio: el primer `p` empieza por `Lorem ipsum`; el texto de los bloques 1, 2 y 4 sin el `©` contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
+- S7.c — Lorem ipsum en los bloques 1 y 2: el primer `p` empieza por `Lorem ipsum`; su texto contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
+- S7.i — Derechos reservados visibles (L42): el texto de `p.pie__copy` es exactamente `© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.`, igual que el `<meta name="copyright">` y el `LICENSE` (S12.a).
 - S7.h — Enlace (L25): el isologotipo está envuelto en un único `a` con `href` exactamente `https://www.masoneria-argentina.org.ar/`, `target="_blank"` y `rel` con `noopener`; su nombre accesible es `Gran Logia Argentina de Libres y Aceptados Masones (se abre en una pestaña nueva)`; con foco de teclado muestra un contorno visible en `--blanco`. La carga de la página sigue sin pedir nada fuera del propio origen (S6.b).
 - S7.g — Auspicio (L24): el texto de `p.pie__auspicio` (trim) es exactamente `Bajo los auspicios de la`; contiene un único `img` con `src` terminado en `assets/img/gran-logia-argentina.png`, `alt` `Gran Logia Argentina de Libres y Aceptados Masones`, que cargó (`naturalWidth` > 0), con píxel de esquina transparente (alfa 0) y renderizado debajo del texto, con ancho entre 200 y 320 px a 1440×900 y ≤ el ancho disponible a 360 px.
 - S7.d — El `footer` no contiene `button`, `form`, `svg` ni `h1`–`h6`; su único `img` es el isologotipo de S7.g y su único `a` es el enlace de S7.h.
@@ -239,6 +240,7 @@ Criterios:
 | T2p | S4.h | opus — fix (TDD) | La J de JUAN no se recorta al irse con la imagen (L38) | [x] | ver L38 |
 | T3b | S11 | opus — CI/CD | Workflow de tests + GitHub Pages (solo archivos públicos) | [x] | ver L39 |
 | T2q | S12, S8.b, S11 | sonnet — apply (TDD) | LICENSE, build minificado + suite contra el build, guarda de atajos | [x] | `1f438fd` |
+| T2r | S7.c, S7.i | opus — apply (TDD) | Derechos reservados visibles en el pie (L42) | [x] | ver L42 |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -370,3 +372,8 @@ Criterios:
 
   (opus) La preocupación real es la copia del estilo. Se explicó que ninguna técnica la impide y se ofrecieron medidas que suman: el usuario eligió las tres de S12 y descartó el repo privado. S8.b se reescribe para admitir un único script en línea. Nueva tarea T2q (sonnet).
 - **L41** (sonnet T2q + opus R1): RED 12 fallos (S8.b, S12.a ×3, S12.b y las 7 teclas de S12.c). Los 5 casos negativos de S12.c no pueden fallar antes de que exista la guarda; se probaron con una mutación (una guarda que bloquea todo) y fallaron los 5. GREEN **194/194**, 97 por proyecto (`fuente` y `sitio-publicado`), estable en 3 corridas. Minificadores fijados: `html-minifier-terser@7.2.0` y `lightningcss@1.33.0` sin targets (se descartó `csso@5.0.5` porque emitía `translate:0-2vh`, que es inválido). Publicado: HTML de 4907 a 4293 B y CSS de 11 542 a 3724 B, con el aviso `/*!` conservado y capturas idénticas píxel a píxel con la fuente en 6 viewports. Las 7 teclas de la guarda funcionan en Chromium, tanto en la fuente como en el build. Ajustes: S7.a admite el `script` final; S8.a compara sin espacios; S8.b exige que el script sea el último hijo de `body`. README: se corrige el párrafo de la intro, que había quedado desactualizado. R1 sobre `1d207a2..1f438fd`: riesgo **medio**, porque hay dependencias nuevas de build y JavaScript en la página. Lente único, Reliability: dependencias fijadas, `npm ci` limpio y la suite completa corre contra lo que se publica. Sin hallazgos → **reconocido**.
+- **L42** (usuario, literal, después de publicar en Pages, PR #1 fusionado):
+  > No veo los derechos reservados en el front en el pie de pagina
+  > Commitea asi los veo en la pagina
+
+  (opus) La línea del pie seguía como `© Lorem ipsum` (L12). Pasa a mostrar el mismo aviso que `LICENSE` y el meta. S7.c ya no cubre el bloque 4 (S7.i). Como el PR #1 está fusionado, la rama se reinicia desde `main` y el cambio va en un PR nuevo. RED: S7.i falla en los dos proyectos («© Lorem ipsum») → GREEN tras cambiar el `p.pie__copy`.

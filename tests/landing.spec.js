@@ -64,6 +64,7 @@ const TOKENS = {
 };
 const FOOTER_MIN_CONTRAST = 7; // S7.f (L29): texto del pie ≥ 7:1 (AAA)
 
+const COPYRIGHT_TEXT = '© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.';
 const TITLE = 'Juan Martín De Pueyrredón';
 const KICKER = 'Respetable Logia';
 const DOCUMENT_TITLE = `${KICKER} ${TITLE}`; // S4.d (L24)
@@ -800,17 +801,22 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
     expect(blocks[3].text.startsWith('©')).toBe(true);
   });
 
-  test('S7.c — Lorem ipsum salvo el auspicio: primer p empieza por "Lorem ipsum"; bloques 1, 2 y 4 sin ©, solo letras, espacios, comas y puntos (≤ 120 palabras)', async ({ page }) => {
+  test('S7.c — Lorem ipsum en los bloques 1 y 2: primer p empieza por "Lorem ipsum"; solo letras, espacios, comas y puntos (≤ 120 palabras)', async ({ page }) => {
     const firstParagraph = ((await page.locator('footer p').first().textContent()) || '').trim();
     expect(firstParagraph.startsWith('Lorem ipsum'), `primer p: ${firstParagraph.slice(0, 30)}`).toBe(true);
-    // Los bloques 1, 2 y 4 son los que no son el auspicio (que lleva texto real y un logo, S7.g).
-    const lorem = page.locator('footer > .pie__bloque:not(.pie__auspicio)');
-    await expect(lorem, 'bloques 1, 2 y 4 (todos menos p.pie__auspicio)').toHaveCount(3);
-    const text = (await lorem.evaluateAll((els) => els.map((el) => /** @type {HTMLElement} */ (el).innerText).join('\n')))
-      .replace('©', '')
-      .trim();
-    expect(text, 'el texto de los bloques 1, 2 y 4 tiene caracteres que no son letras, espacios, comas ni puntos').toMatch(/^[A-Za-zÀ-ÿ\s,.]+$/);
+    // Los bloques 1 y 2 son relleno; el 3 es el auspicio (S7.g) y el 4 los derechos reservados (S7.i, L42).
+    const lorem = page.locator('footer > .pie__bloque:not(.pie__auspicio):not(.pie__copy)');
+    await expect(lorem, 'bloques 1 y 2 (todos menos el auspicio y el copyright)').toHaveCount(2);
+    const text = (await lorem.evaluateAll((els) => els.map((el) => /** @type {HTMLElement} */ (el).innerText).join('\n'))).trim();
+    expect(text, 'el texto de los bloques 1 y 2 tiene caracteres que no son letras, espacios, comas ni puntos').toMatch(/^[A-Za-zÀ-ÿ\s,.]+$/);
     expect(text.split(/\s+/).length).toBeLessThanOrEqual(120);
+  });
+
+  test('S7.i — el pie muestra los derechos reservados (L42), igual que LICENSE y el meta copyright', async ({ page }) => {
+    const copy = ((await page.locator('footer > p.pie__copy').textContent()) || '').replace(/\s+/g, ' ').trim();
+    expect(copy).toBe(COPYRIGHT_TEXT);
+    const meta = await page.locator('meta[name="copyright"]').getAttribute('content');
+    expect(meta, 'el meta copyright y el pie dicen lo mismo').toBe(COPYRIGHT_TEXT);
   });
 
   test('S7.d — footer sin button, form, svg ni h1–h6; su único img es el isologotipo (S7.g) y su único a es el enlace (S7.h)', async ({ page }) => {
