@@ -205,9 +205,9 @@ Criterios:
 | S3-style | S5 | opus — style (`odd-style`) | Paleta roja con blanco hueso (L29), prototipo en una copia | [x] | — (L29) |
 | T2k | S5, S7, S8.d, S9.b | sonnet — apply (TDD) | Aplicar la paleta L29: CSS, tests, logo blanco, favicon, README | [x] | `f97d7cc` |
 | T2l | S10, S7.a | sonnet — apply (TDD) | Intro animada: escuadra y compás girando, blanco sobre rojo | [x] | `1945f51` |
-| T2m | S4.g | sonnet — apply (TDD) | Título fijo arriba mientras se ve la imagen (sticky) | [ ] | — |
+| T2m | S4.g | sonnet — apply (TDD) | Título fijo arriba mientras se ve la imagen (sticky) | [x] | `d290405` |
 | S4-style | S10 | opus — style (`odd-style`) | Tamaño, centrado óptico y movimiento de la intro (L35) | [x] | — (L35) |
-| T2n | S10 | aplicar diffs de `odd-style` | Intro: tamaño, muescas caladas, movimiento | [ ] | — |
+| T2n | S10 | aplicar diffs de `odd-style` | Intro: tamaño, muescas caladas, movimiento | [x] | `c9ff0df` |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -318,3 +318,4 @@ Criterios:
   > Más chico en el centro el  emblema del inicio, pásalo por el agente de identidad visual para que vea si queda bien
 
   (opus) `odd-style` (opus) probó tres tamaños en una copia aparte, con la suite en 70/70. Elige `clamp(84px, 16vmin, 144px)`: 144 px a 1440×900, 104 px a 1366×650 y 84 px a 390×844. Con 120/72 px se pierde y el anillo se empasta; con 162/96 px vuelve a parecer un cartel. Cambios: subida óptica de 2 vh; perspectiva = 2,2 × tamaño, la misma relación de 600/280; las marcas de medida pasan a la máscara (14 muescas). Movimiento decidido por el agente, a pedido del usuario (L34): 2 vueltas en un gesto de 1,8 s, porque las 2 iteraciones ease-in-out de 1,1 s tartamudeaban; pausa de frente; el emblema se apaga antes que el fondo para no dejar un fantasma sobre la cara. Total 2,6 s (antes 2,8). Se reescribe S10.b; la tarea T2n aplica los diffs en `scratchpad/i4/` después de T2m.
+- **L36** (sonnet T2m, opus T2n + R1): T2m — RED 6 fallos en S4.g (1440 y 390; el título se iba a −202 px) → GREEN **76/76**, estable en 3 corridas; mutación de control: `hidden` en lugar de `clip` rompe los 6. El título pasa sobre la cara: contraste sin sombra 3,15–3,84 a 25/50 %, así que lleva una sombra radial (`inset: -2em -3em`, alfa .4 con meseta al 40 %) → peor caso 5,23:1. El test del borde inferior estira el pie (`min-height: 200vh`), porque con la página real el hero nunca llega a salir del todo. T2n — diffs de `odd-style` aplicados sin conflictos sobre T2m (sin RED nuevo: el agente lo observó en su copia con la mutación `INTRO_ITERATIONS = 2`) → **76/76**. Commits `d290405` y `c9ff0df`. R1: riesgo **pasivo**; capturas de scroll a 390 revisadas.
