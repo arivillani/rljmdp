@@ -169,13 +169,14 @@ Criterios:
 
 - Pantalla de entrada a sangre completa (`div.intro`, primer hijo de `body`, fija) con fondo `--rojo-800` y, en el centro, un emblema de escuadra y compás sin la G, en `--blanco`.
 - El emblema es un dibujo propio (`svg` en línea), no una copia del GIF de referencia. Versión de calidad (L32): facetas en dos opacidades del mismo blanco, para dar volumen; bisagra con anillo; piernas del compás biseladas, más anchas arriba y en punta abajo; escuadra con marcas de medida; y un corte fino (máscara) donde el compás pasa sobre la escuadra.
-- Gira sobre su eje vertical (`rotateY`, con perspectiva), como el GIF: 2 vueltas de 1,1 s. Después la pantalla se desvanece en 0,6 s y deja ver el retrato (≈ 2,8 s en total).
+- Gira sobre su eje vertical (`rotateY`, con perspectiva proporcional al tamaño), como el GIF. Movimiento definido por `odd-style` (L35): 2 vueltas en un solo gesto de 1,8 s que arranca quieto, acelera y se asienta de frente (`cubic-bezier(0.3, 0, 0.2, 1)`); una pausa breve de frente; el emblema se apaga en 0,3 s desde 1,9 s y el fondo se desvanece en 0,6 s desde 2 s. Total ≈ 2,6 s.
+- Tamaño (L35): `clamp(84px, 16vmin, 144px)`, en el registro de marca del título chico. Centrado horizontal exacto y subida óptica de 2 vh. Marcas de medida de la escuadra caladas en la máscara, porque en blanco sobre blanco no se veían.
 - Solo CSS, sin JavaScript (S8.b) y sin pedidos externos (S6.b).
 - Decorativa: `aria-hidden="true"`; al terminar no tapa ni recibe clics. Con `prefers-reduced-motion: reduce` no se muestra.
 
 Criterios:
 - S10.a — Al cargar (sin reducción de movimiento), a 1440×900 y 390×844: `div.intro` es el primer hijo de `body`, tiene `position: fixed` y cubre todo el viewport, su fondo es rgb(138, 11, 18) y tiene `aria-hidden="true"`; el elemento en el centro de la pantalla está dentro de `.intro`.
-- S10.b — `.intro` contiene un único `svg` en línea. Todas sus formas visibles, fuera de `<defs>`/`<mask>`, rellenan o trazan en `#f0ebe3`; las facetas usan `fill-opacity`, no otro color. Su elemento animado tiene una animación cuyos keyframes giran en Y (`rotateY`), con 2 iteraciones de 1,1 s (±0,05 s).
+- S10.b — `.intro` contiene un único `svg` en línea. Todas sus formas visibles, fuera de `<defs>`/`<mask>`, rellenan o trazan en `#f0ebe3`; las facetas usan `fill-opacity`, no otro color. Su elemento animado tiene una animación de giro de 1 iteración de 1,8 s (±0,05 s), cuyos keyframes van de `rotateY(0deg)` a `rotateY(720deg)` (2 vueltas en un gesto, L35).
 - S10.c — A los 3,2 s, `.intro` tiene `opacity` 0 y `visibility: hidden`, y el elemento en el centro de la pantalla ya no está dentro de `.intro`.
 - S10.d — Con `reducedMotion: 'reduce'`, el `display` computado de `.intro` es `none` desde el inicio.
 
@@ -205,6 +206,8 @@ Criterios:
 | T2k | S5, S7, S8.d, S9.b | sonnet — apply (TDD) | Aplicar la paleta L29: CSS, tests, logo blanco, favicon, README | [x] | `f97d7cc` |
 | T2l | S10, S7.a | sonnet — apply (TDD) | Intro animada: escuadra y compás girando, blanco sobre rojo | [x] | `1945f51` |
 | T2m | S4.g | sonnet — apply (TDD) | Título fijo arriba mientras se ve la imagen (sticky) | [ ] | — |
+| S4-style | S10 | opus — style (`odd-style`) | Tamaño, centrado óptico y movimiento de la intro (L35) | [x] | — (L35) |
+| T2n | S10 | aplicar diffs de `odd-style` | Intro: tamaño, muescas caladas, movimiento | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -311,3 +314,7 @@ Criterios:
   > El título "respetable logia Juan Martin de Pueyrredón" tiene que recorrer la imagen cuando scrolleo para abajo tanto ennpc como en celular, solo en la imagen, observa el título en la página de tamburnis.
 
   (opus) La primera línea va a la revisión de la intro (`odd-style`), que ahora además decide vueltas, velocidad, pausa y desvanecido; S10.b se reescribe con sus valores. La segunda línea da S4.g: título sticky dentro del hero, en la misma posición del viewport mientras se ve la imagen, y se va con ella sin pisar el pie. `overflow: clip` en el hero, porque `hidden` crea un contenedor de scroll que anula el sticky. Contraste medido en varios niveles de scroll, porque el título pasa sobre la cara. Nueva tarea T2m.
+- **L35** (usuario, literal):
+  > Más chico en el centro el  emblema del inicio, pásalo por el agente de identidad visual para que vea si queda bien
+
+  (opus) `odd-style` (opus) probó tres tamaños en una copia aparte, con la suite en 70/70. Elige `clamp(84px, 16vmin, 144px)`: 144 px a 1440×900, 104 px a 1366×650 y 84 px a 390×844. Con 120/72 px se pierde y el anillo se empasta; con 162/96 px vuelve a parecer un cartel. Cambios: subida óptica de 2 vh; perspectiva = 2,2 × tamaño, la misma relación de 600/280; las marcas de medida pasan a la máscara (14 muescas). Movimiento decidido por el agente, a pedido del usuario (L34): 2 vueltas en un gesto de 1,8 s, porque las 2 iteraciones ease-in-out de 1,1 s tartamudeaban; pausa de frente; el emblema se apaga antes que el fondo para no dejar un fantasma sobre la cara. Total 2,6 s (antes 2,8). Se reescribe S10.b; la tarea T2n aplica los diffs en `scratchpad/i4/` después de T2m.
