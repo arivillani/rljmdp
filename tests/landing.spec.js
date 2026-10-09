@@ -1175,11 +1175,12 @@ test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
 // S10 (L31): intro animada. Colores y tiempos de la spec.
 const INTRO_BG = 'rgb(138, 11, 18)'; // --rojo-800
 const INTRO_INK = 'rgb(240, 235, 227)'; // --blanco
-const INTRO_SPIN_MS = 1800; // un solo gesto de 2 vueltas
-const INTRO_SPIN_TOLERANCE_MS = 50;
+const INTRO_TOTAL_MS = 3000; // L37: todo revelado a los 3 s
+const INTRO_SPIN_MS = INTRO_TOTAL_MS / PHI; // ≈ 1854 ms: un solo gesto de 2 vueltas, el tramo mayor de T
+const INTRO_TIME_TOLERANCE_MS = 10;
 const INTRO_ITERATIONS = 1;
 const INTRO_SPIN_DEG = 720; // 2 vueltas
-const INTRO_GONE_AT_MS = 3200; // S10.c: medido desde el inicio de la navegación
+const INTRO_GONE_AT_MS = 3200; // S10.c: 0,2 s después del final, medido desde que arranca la intro (L37)
 
 /** ¿El transform de un keyframe gira en Y? `rotateY(...)` o una matrix3d que no sea 2D. */
 function isYRotation(transform) {
@@ -1228,7 +1229,7 @@ test.describe('S10 — Intro animada (L31)', () => {
       });
     }
 
-    test('S10.b — un único svg en línea con rellenos y trazos en #f0ebe3, girando en Y: 2 vueltas en un solo giro de 1,8 s', async ({ page }) => {
+    test('S10.b — un único svg en línea con rellenos y trazos en #f0ebe3, girando en Y: 2 vueltas en un giro de 3/φ s; duraciones 3/φⁿ, fin a los 3 s', async ({ page }) => {
       const m = await page.evaluate(() => {
         const intro = document.querySelector('.intro');
         if (!intro) return null;
@@ -1247,6 +1248,7 @@ test.describe('S10 — Intro animada (L31)', () => {
               transforms: effect.getKeyframes().map((k) => /** @type {any} */ (k).transform),
               iterations: timing.iterations,
               duration: timing.duration,
+              delay: timing.delay,
             };
           }),
         );
@@ -1273,16 +1275,32 @@ test.describe('S10 — Intro animada (L31)', () => {
         expect.soft(a.iterations, `iteraciones de la animación de ${a.target}`).toBe(INTRO_ITERATIONS);
         expect.soft(a.transforms.at(-1), `último keyframe de ${a.target}`).toBe(`rotateY(${INTRO_SPIN_DEG}deg)`);
         expect.soft(
-          Math.abs(Number(a.duration) - INTRO_SPIN_MS) <= INTRO_SPIN_TOLERANCE_MS,
+          Math.abs(Number(a.duration) - INTRO_SPIN_MS) <= INTRO_TIME_TOLERANCE_MS,
           `duración ${a.duration} ms de la animación de ${a.target}`,
         ).toBe(true);
       }
+      // L37: cada duración es 3 s / φⁿ (n ≥ 1) y la última animación termina a los 3 s.
+      for (const a of b.animations) {
+        const n = Math.max(1, Math.round(Math.log(INTRO_TOTAL_MS / Number(a.duration)) / Math.log(PHI)));
+        expect.soft(
+          Math.abs(Number(a.duration) - INTRO_TOTAL_MS / PHI ** n) <= INTRO_TIME_TOLERANCE_MS,
+          `duración ${a.duration} ms de ${a.target}: no es 3000/φ^n`,
+        ).toBe(true);
+      }
+      const end = Math.max(...b.animations.map((a) => Number(a.delay) + Number(a.duration) * Number(a.iterations)));
+      expect.soft(Math.abs(end - INTRO_TOTAL_MS) <= INTRO_TIME_TOLERANCE_MS, `la intro termina a los ${end} ms`).toBe(true);
     });
 
-    test('S10.c — a los 3,2 s .intro tiene opacity 0 y visibility hidden, y el centro ya no es .intro', async ({ page }) => {
-      // performance.now() cuenta desde el inicio de la navegación (timeOrigin).
-      const elapsed = await page.evaluate(() => performance.now());
-      await page.waitForTimeout(Math.max(0, INTRO_GONE_AT_MS - elapsed));
+    test('S10.c — a los 3,2 s de arrancar la intro, .intro tiene opacity 0 y visibility hidden, y el centro ya no es .intro', async ({ page }) => {
+      // L37: la intro termina a los 3 s, así que se mide desde que arranca y no desde la navegación (bajo carga arranca
+      // 0,1–0,4 s después). startTime y performance.now() comparten el origen (timeOrigin). Sin animaciones: desde 0.
+      const { start, elapsed } = await page.evaluate(async () => {
+        const anims = document.querySelector('.intro')?.getAnimations({ subtree: true }) ?? [];
+        await Promise.all(anims.map((a) => a.ready));
+        const starts = anims.map((a) => Number(a.startTime)).filter(Number.isFinite);
+        return { start: starts.length ? Math.min(...starts) : 0, elapsed: performance.now() };
+      });
+      await page.waitForTimeout(Math.max(0, start + INTRO_GONE_AT_MS - elapsed));
       const m = await page.evaluate(() => {
         const intro = document.querySelector('.intro');
         if (!intro) return null;
@@ -1298,7 +1316,7 @@ test.describe('S10 — Intro animada (L31)', () => {
       });
       expect(m, 'falta div.intro (S10)').not.toBeNull();
       const c = /** @type {NonNullable<typeof m>} */ (m);
-      expect(c.now, 'la medición debe ser posterior a los 3,2 s').toBeGreaterThanOrEqual(INTRO_GONE_AT_MS);
+      expect(c.now - start, 'la medición debe ser posterior a los 3,2 s de la intro').toBeGreaterThanOrEqual(INTRO_GONE_AT_MS);
       expect.soft(c.opacity, 'opacity de .intro').toBe('0');
       expect.soft(c.visibility, 'visibility de .intro').toBe('hidden');
       expect.soft(c.centerInsideIntro, `elemento en el centro: ${c.centerTag}`).toBe(false);

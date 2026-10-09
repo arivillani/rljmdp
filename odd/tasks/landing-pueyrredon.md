@@ -166,18 +166,20 @@ Criterios:
 > "Cuando inicie la página que aparezca este gif https://share.google/MZreJenolwImfEO0n pero en blanco y el fondo en rojo. Cómo en el inicio de esta página https://nexus-solutions.co/ Qué aparece este gif de la imagen"
 >
 > "Es el compas de arriba y la escuadra girando" · "No lo puedo bajar, es el que está sin la G"
+>
+> "Pásalo por el agente de identidad visual, que la imagen aparezca un poco más lento, hasta llegar a los 3 segundos que todo tenga el número aureo" · "El resto está todo bien, que mantenga número aureo y elegancia" (L37)
 
 - Pantalla de entrada a sangre completa (`div.intro`, primer hijo de `body`, fija) con fondo `--rojo-800` y, en el centro, un emblema de escuadra y compás sin la G, en `--blanco`.
 - El emblema es un dibujo propio (`svg` en línea), no una copia del GIF de referencia. Versión de calidad (L32): facetas en dos opacidades del mismo blanco, para dar volumen; bisagra con anillo; piernas del compás biseladas, más anchas arriba y en punta abajo; escuadra con marcas de medida; y un corte fino (máscara) donde el compás pasa sobre la escuadra.
-- Gira sobre su eje vertical (`rotateY`, con perspectiva proporcional al tamaño), como el GIF. Movimiento definido por `odd-style` (L35): 2 vueltas en un solo gesto de 1,8 s que arranca quieto, acelera y se asienta de frente (`cubic-bezier(0.3, 0, 0.2, 1)`); una pausa breve de frente; el emblema se apaga en 0,3 s desde 1,9 s y el fondo se desvanece en 0,6 s desde 2 s. Total ≈ 2,6 s.
+- Gira sobre su eje vertical (`rotateY`, con perspectiva proporcional al tamaño), como el GIF. Tiempos áureos (L37): todo se revela a los T = 3 s y cada tramo dura T/φⁿ (φ = 1,618), anidados como secciones áureas. Giro de 2 vueltas en un gesto de T/φ = 1,854 s (`cubic-bezier(0.382, 0, 0.236, 1)`: arranca quieto, acelera y se asienta de frente). Pausa de frente de T/φ⁶ = 0,167 s. El emblema se apaga en T/φ⁴ = 0,438 s desde 2,021 s. En su punto áureo (2,292 s = T − T/φ³) el fondo empieza a desvanecerse en T/φ³ = 0,708 s, hasta los 3 s. Los dos desvanecidos usan la misma curva `cubic-bezier(0.382, 0, 0.618, 1)`. El emblema ya no está cuando el fondo lleva 1/φ³ de su recorrido, así que no queda fantasma sobre la cara.
 - Tamaño (L35): `clamp(84px, 16vmin, 144px)`, en el registro de marca del título chico. Centrado horizontal exacto y subida óptica de 2 vh. Marcas de medida de la escuadra caladas en la máscara, porque en blanco sobre blanco no se veían.
 - Solo CSS, sin JavaScript (S8.b) y sin pedidos externos (S6.b).
 - Decorativa: `aria-hidden="true"`; al terminar no tapa ni recibe clics. Con `prefers-reduced-motion: reduce` no se muestra.
 
 Criterios:
 - S10.a — Al cargar (sin reducción de movimiento), a 1440×900 y 390×844: `div.intro` es el primer hijo de `body`, tiene `position: fixed` y cubre todo el viewport, su fondo es rgb(138, 11, 18) y tiene `aria-hidden="true"`; el elemento en el centro de la pantalla está dentro de `.intro`.
-- S10.b — `.intro` contiene un único `svg` en línea. Todas sus formas visibles, fuera de `<defs>`/`<mask>`, rellenan o trazan en `#f0ebe3`; las facetas usan `fill-opacity`, no otro color. Su elemento animado tiene una animación de giro de 1 iteración de 1,8 s (±0,05 s), cuyos keyframes van de `rotateY(0deg)` a `rotateY(720deg)` (2 vueltas en un gesto, L35).
-- S10.c — A los 3,2 s, `.intro` tiene `opacity` 0 y `visibility: hidden`, y el elemento en el centro de la pantalla ya no está dentro de `.intro`.
+- S10.b — `.intro` contiene un único `svg` en línea. Todas sus formas visibles, fuera de `<defs>`/`<mask>`, rellenan o trazan en `#f0ebe3`; las facetas usan `fill-opacity`, no otro color. Su elemento animado tiene una animación de giro de 1 iteración de T/φ ≈ 1,854 s (±0,01 s), cuyos keyframes van de `rotateY(0deg)` a `rotateY(720deg)` (2 vueltas en un gesto, L35). Cada animación de la intro dura 3 s/φⁿ (n ≥ 1, ±0,01 s) y la última termina a los 3 s (±0,01 s) (L37).
+- S10.c — A los 3,2 s de arrancar la intro (0,2 s después de su final, L37), `.intro` tiene `opacity` 0 y `visibility: hidden`, y el elemento en el centro de la pantalla ya no está dentro de `.intro`.
 - S10.d — Con `reducedMotion: 'reduce'`, el `display` computado de `.intro` es `none` desde el inicio.
 
 ## Tasks
@@ -208,6 +210,7 @@ Criterios:
 | T2m | S4.g | sonnet — apply (TDD) | Título fijo arriba mientras se ve la imagen (sticky) | [x] | `d290405` |
 | S4-style | S10 | opus — style (`odd-style`) | Tamaño, centrado óptico y movimiento de la intro (L35) | [x] | — (L35) |
 | T2n | S10 | aplicar diffs de `odd-style` | Intro: tamaño, muescas caladas, movimiento | [x] | `c9ff0df` |
+| T2o | S10 | opus — style (`odd-style`) + apply | Intro áurea de 3 s (L37) | [x] | ver L37 |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -319,3 +322,8 @@ Criterios:
 
   (opus) `odd-style` (opus) probó tres tamaños en una copia aparte, con la suite en 70/70. Elige `clamp(84px, 16vmin, 144px)`: 144 px a 1440×900, 104 px a 1366×650 y 84 px a 390×844. Con 120/72 px se pierde y el anillo se empasta; con 162/96 px vuelve a parecer un cartel. Cambios: subida óptica de 2 vh; perspectiva = 2,2 × tamaño, la misma relación de 600/280; las marcas de medida pasan a la máscara (14 muescas). Movimiento decidido por el agente, a pedido del usuario (L34): 2 vueltas en un gesto de 1,8 s, porque las 2 iteraciones ease-in-out de 1,1 s tartamudeaban; pausa de frente; el emblema se apaga antes que el fondo para no dejar un fantasma sobre la cara. Total 2,6 s (antes 2,8). Se reescribe S10.b; la tarea T2n aplica los diffs en `scratchpad/i4/` después de T2m.
 - **L36** (sonnet T2m, opus T2n + R1): T2m — RED 6 fallos en S4.g (1440 y 390; el título se iba a −202 px) → GREEN **76/76**, estable en 3 corridas; mutación de control: `hidden` en lugar de `clip` rompe los 6. El título pasa sobre la cara: contraste sin sombra 3,15–3,84 a 25/50 %, así que lleva una sombra radial (`inset: -2em -3em`, alfa .4 con meseta al 40 %) → peor caso 5,23:1. El test del borde inferior estira el pie (`min-height: 200vh`), porque con la página real el hero nunca llega a salir del todo. T2n — diffs de `odd-style` aplicados sin conflictos sobre T2m (sin RED nuevo: el agente lo observó en su copia con la mutación `INTRO_ITERATIONS = 2`) → **76/76**. Commits `d290405` y `c9ff0df`. R1: riesgo **pasivo**; capturas de scroll a 390 revisadas.
+- **L37** (usuario, literal):
+  > Pásalo por el agente de identidad visual, que la imagen aparezca un poco más lento, hasta llegar a los 3 segundos que todo tenga el número aureo
+  > El resto está todo bien, que mantenga número aureo y elegancia
+
+  (opus) `odd-style` (opus, ahora como agente nativo) prototipó la línea de tiempo áurea en una copia aparte, con la suite en 76/76 en 3 corridas. T = 3 s. El giro dura T/φ y el resto T/φ²; el resto se reparte en un preludio de T/φ⁴ (pausa de T/φ⁶ y apagado del emblema de T/φ⁵) y el desvanecido del fondo de T/φ³. Curvas con puntos de control en 1/φ, 1/φ² y 1/φ³. El retrato queda a medias a los 2,646 s, antes a los 2,18 s. Tests: S10.b exige duraciones 3 s/φⁿ y el final a los 3 s; S10.c mide desde que arranca la intro, porque con el final a los 3 s medir desde la navegación dejaba un margen de casi cero. RED observado acá: S10.b falla con el CSS anterior → GREEN 76/76 con el CSS nuevo. R1: riesgo **pasivo**.

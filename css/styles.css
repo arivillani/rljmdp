@@ -26,11 +26,16 @@ body {
 }
 
 /* Intro (L31, S10): pantalla de entrada a sangre completa en --rojo-800, con el emblema de escuadra y compás (svg en
-   línea, dibujo propio) girando sobre su eje vertical: 2 vueltas en un solo gesto de 1,8 s que arranca rápido y se
-   asienta de frente (cubic-bezier(0.3, 0, 0.2, 1)), con perspectiva proporcional al emblema (2,2 × su ancho, la misma
-   relación que 600 px con 280 px). Ya quieto de frente, el emblema se apaga primero (0,3 s desde 1,9 s, así no queda
-   su fantasma sobre la cara del retrato) y el fondo se desvanece en 0,6 s desde 2 s: retrato a la vista a los 2,6 s
-   (S10.c). El emblema sube 2vh: centro óptico, algo por encima del geométrico.
+   línea, dibujo propio) girando sobre su eje vertical, con perspectiva proporcional al emblema (2,2 × su ancho, la misma
+   relación que 600 px con 280 px). El emblema sube 2vh: centro óptico, algo por encima del geométrico.
+   Tiempos áureos (L37): T = 3 s, φ = 1,618; cada duración es T/φⁿ y los cortes se anidan como secciones áureas.
+     giro      0     → 1,854  T/φ   2 vueltas en un gesto: arranca quieto, pico al 31 %, se asienta de frente
+     pausa     1,854 → 2,021  T/φ⁶  de frente, quieto
+     emblema   2,021 → 2,459  T/φ⁴  se apaga; en su punto áureo (2,292 = T − T/φ³) empieza a irse el fondo
+     fondo     2,292 → 3      T/φ³  el retrato aparece despacio; el emblema ya no está al 1/φ³ del revelado (sin
+                                    fantasma sobre la cara)
+   Curvas: giro cubic-bezier(1/φ², 0, 1/φ³, 1); los dos desvanecidos, la misma S áurea cubic-bezier(1/φ², 0, 1/φ, 1),
+   que entra y sale suave (sin corte al terminar la pausa ni salto al quedar oculta). Retrato a la vista a los 3 s (S10.c).
    Sin pointer-events: none: el centro de la pantalla debe ser la intro mientras se ve (S10.a; elementFromPoint ignora
    los elementos con pointer-events: none). Deja de recibir clics al terminar porque el último fotograma de intro-salida
    pone visibility: hidden, y lo oculto no recibe eventos (con fill-mode forwards, S10.c). */
@@ -43,7 +48,7 @@ body {
   --emblema: clamp(84px, 16vmin, 144px);
   background: var(--rojo-800);
   perspective: calc(var(--emblema) * 2.2);
-  animation: intro-salida 0.6s ease 2s forwards;
+  animation: intro-salida 0.708s cubic-bezier(0.382, 0, 0.618, 1) 2.292s forwards;
 }
 
 .intro__emblema {
@@ -51,7 +56,9 @@ body {
   height: auto;
   translate: 0 -2vh;
   fill: var(--blanco);
-  animation: intro-giro 1.8s cubic-bezier(0.3, 0, 0.2, 1), intro-salida 0.3s ease-in 1.9s forwards;
+  animation:
+    intro-giro 1.854s cubic-bezier(0.382, 0, 0.236, 1),
+    intro-salida 0.438s cubic-bezier(0.382, 0, 0.618, 1) 2.021s forwards;
 }
 
 @keyframes intro-giro {
