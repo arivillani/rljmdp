@@ -9,11 +9,12 @@ const VIEWPORTS = [
   ['1440×900', DESKTOP],
   ['390×844', MOBILE],
 ];
-// S2.d: viewports reales de escritorio (con barra del navegador) y de móvil.
-const HEAD_VIEWPORTS = [
+// S2.c y S2.d: viewports reales de escritorio (con barra del navegador, también ultraancho) y de móvil.
+const HERO_VIEWPORTS = [
   ['1440×900', DESKTOP],
   ['1920×950', { width: 1920, height: 950 }],
   ['1366×650', { width: 1366, height: 650 }],
+  ['2560×1080', { width: 2560, height: 1080 }],
   ['390×844', MOBILE],
   ['360×740', { width: 360, height: 740 }],
 ];
@@ -25,10 +26,12 @@ const LOGO_VIEWPORTS = [
   ['360×740', { width: 360, height: 740 }],
 ];
 
-// Retrato original (px) y caja de la cabeza con pelo, patillas y mentón (S2).
-const PORTRAIT = { width: 1181, height: 1424 };
-const HEAD_BOX = { x1: 270, x2: 760, y1: 150, y2: 710 };
+// Caja de la cabeza con pelo, patillas y mentón (S2), en px del panorama: la del original
+// (x 270–760, y 150–710) más el desplazamiento del pegado (845, 0) que imprime scripts/build_panorama.py.
+const HEAD_BOX = { x1: 1115, x2: 1605, y1: 150, y2: 710 };
 const HEAD_MARGIN = 8;
+const PANORAMA_PATH = '/assets/img/pueyrredon-panorama.jpg';
+const PANORAMA_MAX_BYTES = 700 * 1000; // S2.b: ≤ 700 KB (lectura estricta, igual que el script)
 
 const TOKENS = {
   '--rojo-950': '#1b0303',
@@ -150,7 +153,7 @@ test.describe('S1 — Formato Tamburins', () => {
 });
 
 test.describe('S2 — Imagen de fondo, con la cabeza entera', () => {
-  test('S2.a — único img.hero__retrato en .hero, src pueyrredon.jpg, alt no vacío y cargada (naturalWidth 1181)', async ({ page }) => {
+  test('S2.a — único img.hero__retrato en .hero, src del panorama, alt no vacío, cargada (naturalWidth ≥ 2400, proporción 1,9–2,1)', async ({ page }) => {
     await expect(page.locator('img.hero__retrato')).toHaveCount(1);
     await expect(page.locator('.hero > img.hero__retrato')).toHaveCount(1);
     const info = await page.locator('img.hero__retrato').evaluate(async (img) => {
@@ -160,53 +163,104 @@ test.describe('S2 — Imagen de fondo, con la cabeza entera', () => {
       } catch (e) {
         /* se informa vía naturalWidth */
       }
-      return { src: el.src, alt: el.alt, naturalWidth: el.naturalWidth };
+      return { src: el.src, alt: el.alt, naturalWidth: el.naturalWidth, naturalHeight: el.naturalHeight };
     });
-    expect(info.src.endsWith('assets/img/pueyrredon.jpg'), `src: ${info.src}`).toBe(true);
+    expect(info.src.endsWith('assets/img/pueyrredon-panorama.jpg'), `src: ${info.src}`).toBe(true);
     expect(info.alt.trim().length, 'alt vacío').toBeGreaterThan(0);
-    expect(info.naturalWidth).toBe(PORTRAIT.width);
+    expect(info.naturalWidth, 'naturalWidth').toBeGreaterThanOrEqual(2400);
+    const ratio = info.naturalWidth / info.naturalHeight;
+    expect(ratio, `proporción ${info.naturalWidth}×${info.naturalHeight} = ${ratio.toFixed(3)}`).toBeGreaterThanOrEqual(1.9);
+    expect(ratio, `proporción ${info.naturalWidth}×${info.naturalHeight} = ${ratio.toFixed(3)}`).toBeLessThanOrEqual(2.1);
   });
 
-  test('S2.b — GET /assets/img/pueyrredon.jpg responde 200 image/jpeg', async ({ request }) => {
-    const res = await request.get('/assets/img/pueyrredon.jpg');
+  test('S2.b — GET /assets/img/pueyrredon-panorama.jpg responde 200 image/jpeg y pesa ≤ 700 KB', async ({ request }) => {
+    const res = await request.get(PANORAMA_PATH);
     expect(res.status()).toBe(200);
     expect(res.headers()['content-type']).toContain('image/jpeg');
+    const bytes = (await res.body()).length;
+    expect(bytes, `peso ${bytes} bytes`).toBeGreaterThan(0);
+    expect(bytes, `peso ${bytes} bytes`).toBeLessThanOrEqual(PANORAMA_MAX_BYTES);
   });
 
-  test('S2.c — .hero::before: background-image pueyrredon.jpg, background-size cover y filter con blur', async ({ page }) => {
-    const info = await page.locator('.hero').evaluate((el) => {
-      const cs = getComputedStyle(el, '::before');
-      return { backgroundImage: cs.backgroundImage, backgroundSize: cs.backgroundSize, filter: cs.filter };
+  for (const [label, viewport] of HERO_VIEWPORTS) {
+    test(`S2.c — sangre completa sin desenfoque: object-fit cover, img = hero (±1 px) y sin blur en .hero ni sus pseudo-elementos a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const m = await page.evaluate(() => {
+        const hero = document.querySelector('.hero');
+        const img = document.querySelector('img.hero__retrato');
+        const h = hero.getBoundingClientRect();
+        const r = img.getBoundingClientRect();
+        return {
+          objectFit: getComputedStyle(img).objectFit,
+          hero: { left: h.left, top: h.top, width: h.width, height: h.height },
+          img: { left: r.left, top: r.top, width: r.width, height: r.height },
+          filters: {
+            '.hero': getComputedStyle(hero).filter,
+            '.hero::before': getComputedStyle(hero, '::before').filter,
+            '.hero::after': getComputedStyle(hero, '::after').filter,
+          },
+        };
+      });
+      expect(m.objectFit, 'object-fit del img').toBe('cover');
+      for (const key of ['left', 'top', 'width', 'height']) {
+        expect(
+          Math.abs(m.img[key] - m.hero[key]),
+          `${key}: img ${m.img[key]} vs hero ${m.hero[key]}`,
+        ).toBeLessThanOrEqual(1);
+      }
+      for (const [what, filter] of Object.entries(m.filters)) {
+        expect(filter, `filter de ${what}`).not.toContain('blur');
+      }
     });
-    expect(info.backgroundImage).toContain('pueyrredon.jpg');
-    expect(info.backgroundSize).toBe('cover');
-    expect(info.filter).toContain('blur');
-  });
+  }
 
-  for (const [label, viewport] of HEAD_VIEWPORTS) {
+  for (const [label, viewport] of HERO_VIEWPORTS) {
     test(`S2.d — cabeza entera con ≥ 8 px de margen y sin tocar el h1 a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      const m = await page.evaluate(({ portrait, head }) => {
+      // Geometría de object-fit: cover + object-position (en %) aplicada a la caja de la cabeza.
+      const m = await page.evaluate(async ({ headBox }) => {
         const hero = document.querySelector('.hero').getBoundingClientRect();
-        const r = document.querySelector('img.hero__retrato').getBoundingClientRect();
+        const img = /** @type {HTMLImageElement} */ (document.querySelector('img.hero__retrato'));
+        try {
+          await img.decode();
+        } catch (e) {
+          /* se informa vía naturalWidth */
+        }
+        const r = img.getBoundingClientRect();
         const h1 = document.querySelector('h1').getBoundingClientRect();
-        const scale = r.width / portrait.width;
+        const iw = img.naturalWidth;
+        const ih = img.naturalHeight;
+        const position = getComputedStyle(img).objectPosition;
+        const objectFit = getComputedStyle(img).objectFit;
+        const [px, py] = position.split(/\s+/).map((v) => (v.endsWith('%') ? parseFloat(v) / 100 : NaN));
+        const scale = Math.max(r.width / iw, r.height / ih);
+        const dx = (r.width - iw * scale) * px;
+        const dy = (r.height - ih * scale) * py;
         return {
+          position,
+          objectFit,
+          src: img.src,
+          naturalWidth: iw,
           scale,
           clientWidth: document.documentElement.clientWidth,
           heroHeight: hero.height,
           head: {
-            left: r.left + head.x1 * scale,
-            right: r.left + head.x2 * scale,
-            top: r.top - hero.top + head.y1 * scale,
-            bottom: r.top - hero.top + head.y2 * scale,
+            left: r.left + dx + headBox.x1 * scale,
+            right: r.left + dx + headBox.x2 * scale,
+            top: r.top - hero.top + dy + headBox.y1 * scale,
+            bottom: r.top - hero.top + dy + headBox.y2 * scale,
           },
           h1: { left: h1.left, right: h1.right, top: h1.top - hero.top, bottom: h1.bottom - hero.top },
         };
-      }, { portrait: PORTRAIT, head: HEAD_BOX });
+      }, { headBox: HEAD_BOX });
+      // Guarda: la proyección solo significa algo con el panorama (la caja está en sus px) y con object-fit: cover.
+      expect(m.src.endsWith('assets/img/pueyrredon-panorama.jpg'), `src: ${m.src}`).toBe(true);
+      expect(m.objectFit, 'object-fit del img').toBe('cover');
+      expect(m.naturalWidth, 'la imagen no cargó').toBeGreaterThan(0);
+      expect(Number.isFinite(m.scale), `object-position "${m.position}" no está en %`).toBe(true);
       const { head, h1 } = m;
       const box = `cabeza x ${head.left.toFixed(1)}–${head.right.toFixed(1)}, y ${head.top.toFixed(1)}–${head.bottom.toFixed(1)} ` +
-        `(viewport ${m.clientWidth}×${m.heroHeight}, escala ${m.scale.toFixed(3)})`;
+        `(viewport ${m.clientWidth}×${m.heroHeight}, escala ${m.scale.toFixed(3)}, object-position ${m.position})`;
       expect.soft(head.left, `margen izquierdo: ${box}`).toBeGreaterThanOrEqual(HEAD_MARGIN);
       expect.soft(head.top, `margen superior: ${box}`).toBeGreaterThanOrEqual(HEAD_MARGIN);
       expect.soft(head.right, `margen derecho: ${box}`).toBeLessThanOrEqual(m.clientWidth - HEAD_MARGIN);

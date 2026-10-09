@@ -24,7 +24,7 @@ body {
 }
 
 /* Hero a sangre completa: alto exacto del viewport. Capas, de atrás hacia adelante:
-   ::before (retrato desenfocado a sangre) → img (retrato nítido entero) → ::after (velo) → h1. */
+   img (panorama) → ::after (velo) → h1. */
 .hero {
   position: relative;
   height: 100vh;
@@ -34,38 +34,17 @@ body {
   background: var(--rojo-950);
 }
 
-/* Fondo: el mismo retrato, desenfocado y oscurecido, llena el viewport en cualquier proporción (S2.c).
-   El inset negativo evita el borde claro del desenfoque. */
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: -60px;
-  z-index: -1;
-  background: url("../assets/img/pueyrredon.jpg") center 30% / cover no-repeat;
-  filter: blur(36px) brightness(0.45) saturate(1.1);
-}
-
-/* Retrato nítido a alto completo: la cabeza nunca queda cortada (S2.d).
-   Los bordes laterales se funden con el fondo desenfocado. */
+/* Panorama (assets/img/pueyrredon-panorama.jpg, 2869×1424) a sangre completa (S2).
+   Hasta ~2:1 se ve el alto completo y solo se recortan nubes a los lados; en pantallas más anchas se recorta
+   por abajo (y = 15 %), nunca la cabeza. x = 47 % deja la cabeza (centro en el 47,4 % del ancho) en el centro
+   de pantallas angostas. */
 .hero__retrato {
   position: absolute;
-  top: 0;
-  left: 50%;
-  z-index: 0;
-  display: block;
+  inset: 0;
+  width: 100%;
   height: 100%;
-  width: auto;
-  max-width: none;
-  transform: translateX(-50%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%);
-}
-
-/* En pantallas angostas el retrato desborda a los lados: se ancla en la cabeza (no en el centro de la imagen). */
-@media (max-width: 600px) {
-  .hero__retrato {
-    transform: translateX(-44%);
-  }
+  object-fit: cover;
+  object-position: 47% 15%;
 }
 
 /* Velo de la paleta: banda superior para el título y cierre carmesí abajo; el rostro queda sin velo. */
