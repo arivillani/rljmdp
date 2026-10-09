@@ -182,6 +182,71 @@ function averageColor(page, png) {
 }
 
 /**
+ * Scrollea la página a `y` px y espera dos cuadros para que el layout (sticky) se asiente.
+ * @param {import('@playwright/test').Page} page
+ * @param {number} y
+ */
+async function scrollPageTo(page, y) {
+  await page.evaluate(
+    (top) =>
+      new Promise((resolve) => {
+        window.scrollTo(0, top);
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }),
+    y,
+  );
+}
+
+/**
+ * Contraste (método de S8.d) de --blanco contra el color promedio del fondo detrás del h1 y del antetítulo, en sus
+ * posiciones actuales del viewport: con el texto oculto (visibility no altera el layout) captura la caja de cada uno.
+ * `ratio` es null si la caja no cabe en el viewport (no se puede capturar). Devuelve null si falta el bloque (L24).
+ * @param {import('@playwright/test').Page} page
+ */
+async function measureTitleContrast(page) {
+  const boxes = await page.evaluate((kickerSelector) => {
+    const kicker = document.querySelector(kickerSelector);
+    if (!kicker) return null;
+    const box = (el) => {
+      const r = el.getBoundingClientRect();
+      return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    };
+    return {
+      viewport: { width: document.documentElement.clientWidth, height: window.innerHeight },
+      named: { h1: box(document.querySelector('h1')), antetítulo: box(kicker) },
+    };
+  }, KICKER_SELECTOR);
+  if (!boxes) return null;
+  // El retrato usa decoding="async": se espera su decodificación y un cuadro, o la primera captura podría salir sin imagen.
+  await page.evaluate(async () => {
+    try {
+      await /** @type {HTMLImageElement} */ (document.querySelector('img.hero__retrato')).decode();
+    } catch (e) {
+      /* si no cargó, el contraste lo delata */
+    }
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
+  // Fondo sin texto: se ocultan el h1 y el antetítulo (la sombra suave del bloque, si existe, queda a la vista).
+  await page.addStyleTag({ content: 'h1, .titulo__antetitulo { visibility: hidden !important; }' });
+  const textColor = [0xf0, 0xeb, 0xe3]; // --blanco
+  const results = [];
+  for (const [name, b] of Object.entries(boxes.named)) {
+    const x = Math.floor(b.left);
+    const y = Math.floor(b.top);
+    const width = Math.ceil(b.right) - x;
+    const height = Math.ceil(b.bottom) - y;
+    const inside = x >= 0 && y >= 0 && x + width <= boxes.viewport.width && y + height <= boxes.viewport.height;
+    if (!inside) {
+      results.push({ name, box: b, avg: null, ratio: null });
+      continue;
+    }
+    const avg = await averageColor(page, await page.screenshot({ clip: { x, y, width, height } }));
+    results.push({ name, box: b, avg, ratio: contrastRatio(textColor, avg) });
+  }
+  return results;
+}
+
+/**
  * Guarda de "la landing se sirve": evita que los criterios negativos (sin menú,
  * sin script, sin errores…) pasen en vacío contra un listado de directorio o un 404.
  * @param {import('@playwright/test').Page} page
@@ -499,6 +564,102 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
         Math.abs(trackingRatio - PHI) / PHI,
         `tracking: antetítulo ${r.kickerTracking} / h1 ${r.h1Tracking} = ${trackingRatio.toFixed(4)} (φ = ${PHI.toFixed(4)}, ±1 %)`,
       ).toBeLessThanOrEqual(0.01);
+    });
+  }
+
+  // S4.g (L34): el título acompaña la imagen mientras se scrollea (sticky dentro del hero) y se va con su borde inferior.
+  const SCROLL_LEVELS = [0.25, 0.5, 0.75]; // fracción del alto del hero
+  const TITLE_TOP_TOLERANCE = 1; // px
+  const titleTop = (/** @type {import('@playwright/test').Page} */ page) =>
+    page.locator('hgroup.titulo').evaluate((el) => el.getBoundingClientRect().top);
+
+  for (const [label, viewport] of VIEWPORTS) {
+    test(`S4.g — el hgroup.titulo conserva su top (±${TITLE_TOP_TOLERANCE} px) con el hero scrolleado 25, 50 y 75 % a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const heroHeight = await page.locator('.hero').evaluate((el) => el.getBoundingClientRect().height);
+      const top0 = await titleTop(page);
+      for (const level of SCROLL_LEVELS) {
+        await scrollPageTo(page, heroHeight * level);
+        const top = await titleTop(page);
+        expect.soft(
+          Math.abs(top - top0),
+          `con el hero scrolleado ${level * 100} %: top ${top.toFixed(2)}px vs ${top0.toFixed(2)}px en scroll 0 (±${TITLE_TOP_TOLERANCE} px)`,
+        ).toBeLessThanOrEqual(TITLE_TOP_TOLERANCE);
+      }
+    });
+
+    test(`S4.g — el hgroup.titulo se va con el borde inferior del hero y nunca pisa el footer a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const heroHeight = await page.locator('.hero').evaluate((el) => el.getBoundingClientRect().height);
+      const top0 = await titleTop(page);
+      const measure = () =>
+        page.evaluate(() => {
+          const rect = (el) => {
+            const r = el.getBoundingClientRect();
+            return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+          };
+          return {
+            hero: rect(document.querySelector('.hero')),
+            title: rect(document.querySelector('hgroup.titulo')),
+            footer: rect(document.querySelector('footer')),
+          };
+        });
+      /** @param {Awaited<ReturnType<typeof measure>>} m @param {string} when */
+      const expectClearOfFooter = (m, when) => {
+        const { hero, title, footer } = m;
+        expect.soft(
+          title.bottom,
+          `${when}: borde inferior del hgroup ${title.bottom.toFixed(2)}px vs borde inferior del hero ${hero.bottom.toFixed(2)}px (≤ +0,5)`,
+        ).toBeLessThanOrEqual(hero.bottom + 0.5);
+        const overlaps =
+          title.left < footer.right && title.right > footer.left && title.top < footer.bottom && title.bottom > footer.top;
+        expect.soft(overlaps, `${when}: el hgroup no debe intersectar el footer (arriba ${footer.top.toFixed(2)}px)`).toBe(false);
+      };
+
+      // Al final del documento tal cual está.
+      await scrollPageTo(page, 1e6);
+      expectClearOfFooter(await measure(), 'al final de la página');
+
+      // El documento natural puede no alcanzar para sacar el hero de pantalla: se alarga el footer para recorrer el final del hero.
+      await page.addStyleTag({ content: '.pie { min-height: 200vh; }' });
+      for (const heroBottomAt of [0.4, 0.02]) {
+        // fracción del alto del viewport donde queda el borde inferior del hero
+        await scrollPageTo(page, heroHeight - heroBottomAt * viewport.height);
+        const m = await measure();
+        const when = `con el borde inferior del hero al ${heroBottomAt * 100} % del viewport`;
+        expect(Math.abs(m.hero.bottom - heroBottomAt * viewport.height), `${when}: el scroll no llegó (hero abajo ${m.hero.bottom.toFixed(2)}px)`).toBeLessThanOrEqual(1);
+        expectClearOfFooter(m, when);
+        if (m.hero.bottom >= top0 + (m.title.bottom - m.title.top) + 1) {
+          // todavía a la vista: el título sigue en su top
+          expect.soft(Math.abs(m.title.top - top0), `${when}: top ${m.title.top.toFixed(2)}px vs ${top0.toFixed(2)}px`).toBeLessThanOrEqual(TITLE_TOP_TOLERANCE);
+        } else {
+          // ya no cabe: viaja pegado al borde inferior del hero
+          expect.soft(
+            Math.abs(m.title.bottom - m.hero.bottom),
+            `${when}: el hgroup debe irse con el borde inferior del hero (abajo ${m.title.bottom.toFixed(2)}px vs ${m.hero.bottom.toFixed(2)}px)`,
+          ).toBeLessThanOrEqual(0.5);
+        }
+      }
+    });
+
+    test(`S4.g — contraste ≥ 4.5:1 del h1 y del antetítulo con el hero scrolleado 0, 25, 50 y 75 % a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const heroHeight = await page.locator('.hero').evaluate((el) => el.getBoundingClientRect().height);
+      for (const level of [0, ...SCROLL_LEVELS]) {
+        await scrollPageTo(page, heroHeight * level);
+        const results = await measureTitleContrast(page);
+        expect(results, 'falta hgroup.titulo con p.titulo__antetitulo (L24)').not.toBeNull();
+        for (const { name, box, ratio, avg } of /** @type {NonNullable<typeof results>} */ (results)) {
+          const when = `scroll ${level * 100} %`;
+          expect.soft(ratio, `${when}, ${name}: la caja (arriba ${box.top.toFixed(1)}px) no cabe en el viewport`).not.toBeNull();
+          if (ratio === null || avg === null) continue;
+          test.info().annotations.push({ type: `contraste ${name}`, description: `${label}, ${when}: ${ratio.toFixed(2)}:1 sobre rgb(${avg.map(Math.round).join(', ')})` });
+          expect.soft(
+            ratio,
+            `${when}, ${name}: contraste ${ratio.toFixed(2)}:1 de #f0ebe3 sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+      }
     });
   }
 });
@@ -834,29 +995,13 @@ test.describe('S8 — Calidad base', () => {
   for (const [label, viewport] of VIEWPORTS) {
     test(`S8.d — contraste ≥ 4.5:1 del h1 y del antetítulo a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      // Cajas medidas con el texto visible (visibility no altera el layout).
-      const boxes = await page.evaluate((kickerSelector) => {
-        const kicker = document.querySelector(kickerSelector);
-        if (!kicker) return null;
-        const box = (el) => {
-          const r = el.getBoundingClientRect();
-          return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
-        };
-        return { h1: box(document.querySelector('h1')), antetítulo: box(kicker) };
-      }, KICKER_SELECTOR);
-      expect(boxes, 'falta hgroup.titulo con p.titulo__antetitulo (L24)').not.toBeNull();
-      // Fondo sin texto: se ocultan el h1 y el antetítulo.
-      await page.addStyleTag({ content: 'h1, .titulo__antetitulo { visibility: hidden !important; }' });
-      const textColor = [0xf0, 0xeb, 0xe3]; // --blanco
-      for (const [name, b] of Object.entries(/** @type {NonNullable<typeof boxes>} */ (boxes))) {
-        const x = Math.floor(b.left);
-        const y = Math.floor(b.top);
-        const clip = { x, y, width: Math.ceil(b.right) - x, height: Math.ceil(b.bottom) - y };
-        const avg = await averageColor(page, await page.screenshot({ clip }));
-        const ratio = contrastRatio(textColor, avg);
+      const results = await measureTitleContrast(page);
+      expect(results, 'falta hgroup.titulo con p.titulo__antetitulo (L24)').not.toBeNull();
+      for (const { name, ratio, avg } of /** @type {NonNullable<typeof results>} */ (results)) {
+        expect(ratio, `${name}: la caja no cabe en el viewport`).not.toBeNull();
         expect.soft(
           ratio,
-          `${name}: contraste ${ratio.toFixed(2)}:1 de #f0ebe3 sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
+          `${name}: contraste ${ratio?.toFixed(2)}:1 de #f0ebe3 sobre fondo promedio rgb(${avg?.map(Math.round).join(', ')})`,
         ).toBeGreaterThanOrEqual(4.5);
       }
     });

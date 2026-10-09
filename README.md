@@ -6,6 +6,7 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 
 - Panorama a sangre completa (`object-fit: cover`): el retrato original pegado píxel a píxel entre dos costados de nubes; sin fondo desenfocado y con la cabeza entera en los viewports probados (S2.d).
 - Título pequeño arriba, centrado, en mayúsculas: "Respetable Logia" sobre el nombre, en proporción áurea (tamaño ×φ, separación ÷φ, tracking ×φ), con renglones a la altura de mayúsculas y el bloque colocado entre el borde del hero y la cabeza en 1 : φ; sin menú.
+- Título que acompaña la imagen (S4.g): el bloque es `position: sticky` dentro del hero (que usa `overflow: clip`, porque `hidden` anularía el sticky); al scrollear conserva su distancia áurea al borde superior del viewport mientras se ve el retrato y se va con el borde inferior del hero, sin pisar el pie. Una sombra radial suave (`.titulo::before`) viaja con él: contraste ≥ 4,5:1 con el hero scrolleado 0, 25, 50 y 75 %.
 - Paleta roja con blanco hueso: 4 tokens declarados en `:root`. Todo el texto y el isologotipo van en un blanco apagado, sin tinte rosado, y el pie en un rojo lacre profundo (contraste del texto del pie 8,28:1).
 
 | Token | Hex | Uso |
@@ -44,13 +45,13 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ```bash
 npm install   # dependencias de desarrollo (Playwright, http-server)
 npm start     # sirve el sitio en http://127.0.0.1:4173
-npm test      # tests Playwright (Chromium): 70 en total
+npm test      # tests Playwright (Chromium): 76 en total
 python3 -I scripts/build_panorama.py   # regenera assets/img/pueyrredon-panorama.jpg y verifica S2.e y S2.f (requiere Pillow y numpy)
 ```
 
 - Requiere Node 18 o superior.
 - En una máquina nueva, instalar Chromium para Playwright con `npx playwright install chromium`.
-- Los 70 tests cubren los criterios S1.a–S10.d salvo S2.f, que verifica `scripts/build_panorama.py` al generar el panorama; varios se repiten por viewport (S1.a, S2.c, S2.d, S4.b, S4.c, S4.e, S4.f, S7.g, S8.d, S9.a, S9.e, S9.f, S10.a).
+- Los 76 tests cubren los criterios S1.a–S10.d salvo S2.f, que verifica `scripts/build_panorama.py` al generar el panorama; varios se repiten por viewport (S1.a, S2.c, S2.d, S4.b, S4.c, S4.e, S4.f, S4.g, S7.g, S8.d, S9.a, S9.e, S9.f, S10.a).
 - La suite corre por defecto con `reducedMotion: 'reduce'` (vía `contextOptions` en `playwright.config.js`), que oculta la intro (S10.d); los tests de S10.a–S10.c piden `no-preference` y S10.b y S10.c miden la animación en tiempo real (hasta ≈ 3,2 s).
 
 ## Cómo se desarrolló

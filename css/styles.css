@@ -78,13 +78,41 @@ body {
   }
 }
 
-/* Hero a sangre completa: alto exacto del viewport. Capas, de atrás hacia adelante:
-   img (panorama) → ::after (velo) → h1. */
+/* Hero a sangre completa: alto exacto del viewport (border-box: el padding-top de abajo no lo agranda, S1.a). Capas, de
+   atrás hacia adelante: img (panorama) → ::after (velo) → hgroup.titulo.
+   overflow: clip y no hidden (L34, S4.g): clip recorta igual pero no crea un contenedor de scroll, así que el título
+   sticky se ancla al viewport y no al hero.
+   Medidas del título (L9, L24, L27): se declaran aquí y no en .titulo porque las usan dos cajas, el padding-top del hero y
+   el top sticky del título, y las dos tienen que valer lo mismo (S4.g: el título sigue en su sitio al scrollear). La
+   imagen y el velo son absolutos (inset: 0) y ignoran el padding.
+     tamaño     h1 = φ × antetítulo
+     separación (antetítulo → h1) = tamaño del antetítulo / φ
+     tracking   antetítulo = φ × h1 (en px)
+   Cada renglón del título mide su altura de mayúsculas (line-height = --mayus): las cajas coinciden con la tinta, así que
+   la separación áurea que se mide es la que se ve.
+   El tamaño del h1 sigue también al alto del viewport (3vh, con tope de 24 px) para que, en pantallas bajas, el bloque
+   quepa entre el borde del hero y la cabeza (S2.d).
+   Colocación áurea (S4.f): en la franja libre entre el borde del hero y el pelo, margen superior : aire hasta la
+   cabeza = 1 : φ; el bloque sigue a la cabeza (top entre 12 y 48 px). */
 .hero {
+  --phi: 1.6180339887;
+  --mayus: 0.66; /* altura de mayúsculas de Times New Roman / Liberation Serif, en em */
+  --t-nombre: clamp(16px, min(4.2vw, 3vh), 24px);
+  --t-ante: calc(var(--t-nombre) / var(--phi));
+  --tr-nombre: calc(var(--t-nombre) * 0.14); /* = 0.14em del h1 */
+  /* Borde superior de la cabeza (caja de S2: y 150 de 1424 px en el panorama de 2869×1424) con object-fit: cover y
+     object-position 47% 15% del .hero__retrato: 150/1424 = 10,534 % del alto si la imagen escala por alto (hasta
+     2,015:1); 15 % del alto − 2,217 % del ancho si escala por ancho. DEPENDE de esos tres datos (object-position,
+     caja de la cabeza y geometría del panorama): si cambia alguno, hay que recalcular --cabeza (S4.f lo verifica). */
+  --cabeza: min(10.534svh, 15svh - 2.217vw);
+  --alto-bloque: calc(var(--t-ante) * var(--mayus) + var(--t-ante) / var(--phi) + var(--t-nombre) * var(--mayus));
+  --titulo-top: clamp(12px, (var(--cabeza) - var(--alto-bloque)) / (1 + var(--phi)), 48px);
   position: relative;
+  box-sizing: border-box;
   height: 100vh;
   height: 100svh;
-  overflow: hidden;
+  padding-top: var(--titulo-top);
+  overflow: clip;
   isolation: isolate;
   background: var(--rojo-950);
 }
@@ -122,39 +150,34 @@ body {
 }
 
 /* Bloque de título (L9, L11, L24): pequeño, arriba y centrado, como un logotipo. Mayúsculas solo por CSS: el texto del
-   DOM no cambia. "Respetable Logia" (p) va sobre el nombre (h1) y todo el bloque sigue la proporción áurea φ:
-     tamaño     h1 = φ × antetítulo
-     separación (antetítulo → h1) = tamaño del antetítulo / φ
-     tracking   antetítulo = φ × h1 (en px)
-   Cada renglón mide exactamente su altura de mayúsculas (line-height = --mayus): las cajas coinciden con la tinta, así
-   que la separación áurea que se mide es la que se ve.
-   El tamaño del h1 sigue también al alto del viewport (3vh, con tope de 24 px) para que, en pantallas bajas, el bloque
-   quepa entre el borde del hero y la cabeza (S2.d).
-   Colocación áurea (S4.f): en la franja libre entre el borde del hero y el pelo, margen superior : aire hasta la
-   cabeza = 1 : φ; el bloque sigue a la cabeza (top entre 12 y 48 px). */
+   DOM no cambia. "Respetable Logia" (p) va sobre el nombre (h1); las medidas áureas y la colocación están en .hero.
+   Sticky (L34, S4.g): en el flujo, centrado con margin auto y fijo a --titulo-top del viewport mientras el hero está a la
+   vista; se va con el borde inferior del hero (su bloque contenedor), así que nunca llega al pie. Como el padding-top del
+   hero vale lo mismo, en scroll 0 queda donde estaba cuando era absoluto. */
 .titulo {
-  --phi: 1.6180339887;
-  --mayus: 0.66; /* altura de mayúsculas de Times New Roman / Liberation Serif, en em */
-  --t-nombre: clamp(16px, min(4.2vw, 3vh), 24px);
-  --t-ante: calc(var(--t-nombre) / var(--phi));
-  --tr-nombre: calc(var(--t-nombre) * 0.14); /* = 0.14em del h1 */
-  /* Borde superior de la cabeza (caja de S2: y 150 de 1424 px en el panorama de 2869×1424) con object-fit: cover y
-     object-position 47% 15% del .hero__retrato: 150/1424 = 10,534 % del alto si la imagen escala por alto (hasta
-     2,015:1); 15 % del alto − 2,217 % del ancho si escala por ancho. DEPENDE de esos tres datos (object-position,
-     caja de la cabeza y geometría del panorama): si cambia alguno, hay que recalcular --cabeza (S4.f lo verifica). */
-  --cabeza: min(10.534svh, 15svh - 2.217vw);
-  --alto-bloque: calc(var(--t-ante) * var(--mayus) + var(--t-ante) / var(--phi) + var(--t-nombre) * var(--mayus));
-  position: absolute;
-  top: clamp(12px, (var(--cabeza) - var(--alto-bloque)) / (1 + var(--phi)), 48px);
-  left: 50%;
+  position: sticky;
+  top: var(--titulo-top);
   z-index: 2;
-  transform: translateX(-50%);
-  margin: 0;
+  width: fit-content;
+  margin: 0 auto;
   color: var(--blanco);
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
   text-shadow: 0 0 12px rgb(27 3 3 / 0.7);
+}
+
+/* Sombra suave que acompaña al título (L34, S4.g): al scrollear, el título pasa sobre la cara y el pecho claros del
+   retrato y, sin ella, el contraste cae a ≈ 3,2–3,8:1. Un degradé radial de la misma sombra borravino (--rojo-950) viaja con
+   el bloque (el .titulo sticky es su bloque contenedor), plano hasta el 40 % y luego se desvanece sin borde, y oscurece lo
+   justo detrás de los dos renglones (≥ 5,2:1 en el peor nivel). Sobre la banda oscura (scroll 0) apenas se nota. */
+.titulo::before {
+  content: "";
+  position: absolute;
+  inset: -2em -3em;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgb(27 3 3 / 0.4) 40%, rgb(27 3 3 / 0));
 }
 
 .titulo__antetitulo {
