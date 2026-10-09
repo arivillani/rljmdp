@@ -142,8 +142,8 @@ Criterios:
 | T2c | S1, S2, S4, S5, S6, S8.d | sonnet — apply (TDD) | Reabierta por L9, L10 y L11: título pequeño arriba en mayúsculas, sin fecha ni ciudad, cabeza sin cortar | [x] | `fd3b70a` |
 | T2d | S7 | sonnet — apply (TDD) | Reabierta por L12: pie con el formato de la referencia, en la paleta, solo Lorem ipsum | [x] | `35a9d05` |
 | T2e | S7 | sonnet — apply (TDD) | Reabierta por L15: fondo del pie más rojo | [x] | `43f74a2` |
-| T1b | S2 | sonnet — asset | `scripts/build_panorama.py` → `assets/img/pueyrredon-panorama.jpg` (S2.b, S2.e) | [ ] | — |
-| T2f | S2 | sonnet — apply (TDD) | Hero con el panorama a sangre completa (S2.a, S2.c, S2.d) | [ ] | — |
+| T1b | S2 | sonnet — asset | `scripts/build_panorama.py` → `assets/img/pueyrredon-panorama.jpg` (S2.b, S2.e) | [x] | `bc8c98e` |
+| T2f | S2 | sonnet — apply (TDD) | Hero con el panorama a sangre completa (S2.a, S2.c, S2.d) | [x] | `969a32b` |
 | S1 | S1–S8 | opus — style (`odd-style`) | Revisión de estilo e identidad visual (L17), solo lectura | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
@@ -198,3 +198,8 @@ Criterios:
   > Ahí va la foto de gemini
 
   (opus) Recibida: 1456×720 (2,02:1), un solo par de firmas en su lugar (la original), sin texto añadido. Está a la mitad de resolución del original (la cabeza quedaría con ~50 % del detalle), así que no se usa tal cual: se arma un panorama de ~2880×1424 con los costados de Gemini ampliados y el original pegado en el centro píxel a píxel. Así la figura no depende de lo que Gemini haya redibujado. Se reescribe S2 y se crean T1b (asset) y T2f (integración). La revisión de estilo (S1-style) va después, sobre la versión con el panorama.
+- **L19** (usuario, literal, sobre los colores del pie):
+  > Está bien el coloro
+
+  (opus) Queda: fondo `#a60000` y letra `#ffbbba` (misma columna de la lámina), filetes `#ca302e`. Sin cambios.
+- **L20** (sonnet T1b/T2f + opus R1): registro del original en la imagen de Gemini con s = 0.5075, (429, 0), residuo 12.76/255; Gemini ampliado ×1.9704 → 2869×1419 + 5 px reflejados abajo → **2869×1424**; ajuste de color (ganancia/sesgo) R 1.039/−2.3, G 1.059/−4.4, B 1.070/−4.2; original pegado en x = 845 con fundido smoothstep de 48 px. **S2.e: 1.80/255** sobre el JPEG guardado. Panorama: 566 879 bytes, q82, determinista. Gemini escaló el original de forma levemente anisótropa (≈ 1,5 % más en vertical); el desfase local en las uniones es de 3–5 px y queda oculto por el fundido. T2f — RED 13 fallos (S2.a, S2.c ×6, S2.d ×6; S2.d con guarda para que no pase en vacío) → GREEN **42/42**. `object-position: 47% 15%`. Cabeza dentro del viewport en los 6 tamaños (margen mínimo 44.9 px a 390), `h1` ≥ 19 px por encima. R1 sobre `f8296f5..969a32b`: riesgo **pasivo** (asset + script offline + CSS/HTML estático); revisión visual de uniones, rostro y capturas a 1920×950 y 390×844, sin hallazgos → **reconocido**.
