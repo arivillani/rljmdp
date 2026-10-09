@@ -73,30 +73,26 @@ Criterios:
 - S4.f — Colocación áurea (L27, opción B, sin mover la imagen): en la franja libre entre el borde superior del hero y el borde superior de la cabeza (caja de S2.d), `margen superior del hgroup : aire entre el hgroup y la cabeza` = 1 : φ (±2 %), en los 6 viewports de S2.d. Cada renglón del bloque mide su altura de mayúsculas (`line-height` ≈ 0,66 em), así la separación áurea de S4.e es la que se ve entre la tinta de los dos renglones.
 - S4.e — Proporción áurea (L24), a 1440×900, 1366×650 y 390×844: `font-size(h1) / font-size(antetítulo)` = φ (±0,5 %); la separación vertical entre las cajas = `font-size(antetítulo) / φ` (±1 px); `letter-spacing(antetítulo) / letter-spacing(h1)` = φ (±1 %); el antetítulo está arriba del `h1`, dentro del mismo `hgroup.titulo`, y su texto es exactamente `Respetable Logia`.
 
-### S5 — Paleta de la foto adjunta
+### S5 — Paleta roja con blanco hueso
 > "que tenga la paleta de colores de la foto adjunta"
+>
+> "Pedile al agente de estilo que cambie la paleta por otra de rojo pero que el rosado de las letras sea blanco y el rojo se mantenga similar o más oscuro, que quede estéticamente adecuado" (L29)
+>
+> "Que no sea un blanco chillón que sea un blanco apagado, elegante" (L29)
 
-Tokens muestreados de la imagen "RED COLOR PALETTE" (declarados en `:root`, valores exactos):
+Paleta propuesta por `odd-style` (L29). Reemplaza los 12 tonos muestreados de la lámina original (L2); se conservan los rojos y el texto pasa a blanco hueso. Los tokens se declaran en `:root` con estos valores exactos:
 
-| Token | Hex |
-|---|---|
-| `--rojo-950` | `#1b0303` |
-| `--rojo-900` | `#400001` |
-| `--rojo-800` | `#7c0000` |
-| `--rojo-700` | `#a60000` |
-| `--rojo-600` | `#ce0201` |
-| `--carmesi-700` | `#81001f` |
-| `--carmesi-500` | `#a41727` |
-| `--carmesi-300` | `#ca302e` |
-| `--oxido-600` | `#9b1307` |
-| `--rosa-300` | `#ff7a7b` |
-| `--rosa-100` | `#ffbbba` |
-| `--tinta` | `#1c1c26` |
+| Token | Hex | Uso | Contraste |
+|---|---|---|---|
+| `--blanco` | `#f0ebe3` | Todo el texto, isologotipo, «P» del favicon, contorno de foco, fondo de la selección | 8,28:1 sobre `--rojo-800` |
+| `--rojo-950` | `#1b0303` | Fondo del documento, `theme-color`, banda superior del velo, sombra del título | 16,68:1 con `--blanco` |
+| `--rojo-800` | `#8a0b12` | Fondo del pie (lacre), tinte del velo inferior, texto de la selección, fondo del favicon | — |
+| `--rojo-600` | `#b0262c` | Filetes de 1 px del pie | 1,48:1 contra el pie (decorativo) |
 
-Uso: fondo del documento `--rojo-950`; título `--rosa-100`; velo del hero en degradé `--rojo-950` → `--carmesi-700` (con alfa); pie con fondo `--rojo-700`, texto `--rosa-100` y filetes `--carmesi-300` (L15).
+Blanco hueso: sin componente rosada y apenas cálido, para acompañar los ocres del cuadro. Se lee como blanco, no como crema, y no encandila como `#ffffff`.
 
 Criterios:
-- S5.a — Los 12 tokens existen en `:root` con esos valores exactos.
+- S5.a — Los 4 tokens existen en `:root` con esos valores exactos.
 - S5.b — Colores computados (sin alfa) de: `body` background, `h1` color, `footer` background y color de `footer p` pertenecen al conjunto de tokens.
 
 ### S6 — Tipografía
@@ -123,28 +119,28 @@ Se replica la *estructura* del pie de la referencia (L12) con texto de relleno: 
 bloques de ancho completo separados por filetes finos, todo alineado a la izquierda:
 1. `ul.pie__secciones` con tres renglones cortos (≈ 18–20 px), con mucho aire vertical: `Lorem ipsum`, `Dolor sit amet`, `Consectetur adipiscing`.
 2. `p` chico (≈ 13–14 px, interlineado ≈ 1,7) de Lorem ipsum (≈ 35 palabras).
-3. `p.pie__auspicio` (L24): el texto `Bajo los auspicios de la` en mayúsculas espaciadas (L27: 12 px, `letter-spacing` 0,2 em, rima con el antetítulo) y, debajo, el isologotipo de la Gran Logia Argentina (260 px de ancho, ≈ medida de los párrafos ÷ φ) como `img` en línea (`alt="Gran Logia Argentina de Libres y Aceptados Masones"`), de modo que la oración se lee completa con lector de pantalla. El logo es un PNG con transparencia en `--rosa-100` (`assets/img/gran-logia-argentina.png`), generado desde el original blanco sobre negro (`assets/src/gran-logia-argentina-original.png`).
+3. `p.pie__auspicio` (L24): el texto `Bajo los auspicios de la` en mayúsculas espaciadas (L27: 12 px, `letter-spacing` 0,2 em, rima con el antetítulo) y, debajo, el isologotipo de la Gran Logia Argentina (260 px de ancho, ≈ medida de los párrafos ÷ φ) como `img` en línea (`alt="Gran Logia Argentina de Libres y Aceptados Masones"`), de modo que la oración se lee completa con lector de pantalla. El logo es un PNG con transparencia en `--blanco` (L29) (`assets/img/gran-logia-argentina.png`), generado desde el original blanco sobre negro (`assets/src/gran-logia-argentina-original.png`).
 4. `p.pie__copy` chico: `© Lorem ipsum`.
 
-Colores (L15): fondo `--rojo-700` (`#a60000`); todo el texto `--rosa-100` (contraste 4.99:1); filetes 1 px `--carmesi-300`.
+Colores (L29): fondo `--rojo-800` (`#8a0b12`); todo el texto `--blanco` (contraste 8,28:1); filetes 1 px `--rojo-600`.
 Sin botones; el único contenido real es el bloque de auspicio (L24), y el único enlace es el isologotipo hacia `https://www.masoneria-argentina.org.ar/` (L25).
 
 Criterios:
 - S7.a — Los hijos de `body` son solo `main` y `footer`; `main` contiene únicamente la sección `.hero`.
 - S7.b — Estructura: el `footer` tiene exactamente 4 hijos directos con clase `pie__bloque`, en este orden: un `ul.pie__secciones` con exactamente 3 `li`; un `p`; un `p.pie__auspicio`; un `p.pie__copy` cuyo texto empieza por `©`.
 - S7.c — Lorem ipsum salvo el auspicio: el primer `p` empieza por `Lorem ipsum`; el texto de los bloques 1, 2 y 4 sin el `©` contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
-- S7.h — Enlace (L25): el isologotipo está envuelto en un único `a` con `href` exactamente `https://www.masoneria-argentina.org.ar/`, `target="_blank"` y `rel` con `noopener`; su nombre accesible es `Gran Logia Argentina de Libres y Aceptados Masones (se abre en una pestaña nueva)`; con foco de teclado muestra un contorno visible en `--rosa-100`. La carga de la página sigue sin pedir nada fuera del propio origen (S6.b).
+- S7.h — Enlace (L25): el isologotipo está envuelto en un único `a` con `href` exactamente `https://www.masoneria-argentina.org.ar/`, `target="_blank"` y `rel` con `noopener`; su nombre accesible es `Gran Logia Argentina de Libres y Aceptados Masones (se abre en una pestaña nueva)`; con foco de teclado muestra un contorno visible en `--blanco`. La carga de la página sigue sin pedir nada fuera del propio origen (S6.b).
 - S7.g — Auspicio (L24): el texto de `p.pie__auspicio` (trim) es exactamente `Bajo los auspicios de la`; contiene un único `img` con `src` terminado en `assets/img/gran-logia-argentina.png`, `alt` `Gran Logia Argentina de Libres y Aceptados Masones`, que cargó (`naturalWidth` > 0), con píxel de esquina transparente (alfa 0) y renderizado debajo del texto, con ancho entre 200 y 320 px a 1440×900 y ≤ el ancho disponible a 360 px.
 - S7.d — El `footer` no contiene `button`, `form`, `svg` ni `h1`–`h6`; su único `img` es el isologotipo de S7.g y su único `a` es el enlace de S7.h.
 - S7.e — Formato: `text-align` de los bloques es `left` o `start`; los bloques 2, 3 y 4 tienen `border-top` de 1 px y el bloque 1 no; el color de esos filetes, el fondo del `footer` y el color del texto de cada bloque pertenecen a los tokens de S5.
-- S7.f — Fondo rojo (L15): el `background-color` del `footer` es `--rojo-700` (`#a60000`), los filetes son `--carmesi-300`, y el color de texto de cada bloque da contraste WCAG ≥ 4.5:1 contra ese fondo.
+- S7.f — Fondo rojo (L15, L29): el `background-color` del `footer` es `--rojo-800` (`#8a0b12`), los filetes son `--rojo-600`, y el color de texto de cada bloque da contraste WCAG ≥ 7:1 contra ese fondo.
 
 ### S8 — Calidad base
 Criterios:
 - S8.a — `<meta name="viewport" content="width=device-width, initial-scale=1">` presente.
 - S8.b — Sin JavaScript en la página (ningún `script`).
 - S8.c — Sin errores de consola al cargar.
-- S8.d — Legibilidad (añadido en R1, ver L7; ajustado en L9): con el texto oculto (`visibility: hidden`), el color promedio del fondo detrás de la caja del `h1` y de la del antetítulo (L24) da un contraste WCAG ≥ 4.5:1 contra `--rosa-100`, a 1440×900 y a 390×844. Los ojos, nariz y boca del retrato siguen visibles y sin texto encima.
+- S8.d — Legibilidad (añadido en R1, ver L7; ajustado en L9): con el texto oculto (`visibility: hidden`), el color promedio del fondo detrás de la caja del `h1` y de la del antetítulo (L24) da un contraste WCAG ≥ 4.5:1 contra `--blanco` (L29), a 1440×900 y a 390×844. Los ojos, nariz y boca del retrato siguen visibles y sin texto encima.
 
 ### S9 — Refinamiento visual (revisión de estilo, L21)
 > "Hace que el front lo revise algún agente de estilo e identidad visual así queda lindo y elegante" (L17)
@@ -153,11 +149,11 @@ Propuestas de `odd-style` aceptadas (ver L21). Velo inferior: el usuario eligió
 - Pie: columna de texto de 60ch en los párrafos (L22) (los filetes siguen a ancho completo), `text-wrap: pretty`, margen lateral `clamp(24px, 4.5vw, 64px)` común a todos los bloques y escala de espaciado de 8 px.
 - Título como logotipo: `letter-spacing: .14em` con compensación óptica (`padding-left` igual al tracking). Tamaño desde L24/L27: `clamp(16px, min(4.2vw, 3vh), 24px)`.
 - Suavizado tipográfico, selección de texto con la paleta, `theme-color` y `color-scheme`, favicon SVG propio.
-- Velo inferior (L22): `.hero::after` en `mix-blend-mode: multiply` con degradé `rgb(27 3 3 / .55) 0` → `rgb(27 3 3 / 0) 14%` → `rgb(129 0 31 / 0) 68%` → `rgb(129 0 31 / .7) 100%`. La base del cuadro se hunde en una sombra borravino casi negra y pasa al rojo del pie con un corte limpio, sin el tono lila.
+- Velo inferior (L22): `.hero::after` en `mix-blend-mode: multiply` con degradé `rgb(27 3 3 / .55) 0` → `rgb(27 3 3 / 0) 14%` → `rgb(138 11 18 / 0) 68%` → `rgb(138 11 18 / .7) 100%` (L29: el tinte es el mismo `--rojo-800` del pie). La base del cuadro se hunde en una sombra borravino casi negra y pasa al rojo del pie con un corte limpio, sin el tono lila.
 
 Criterios:
 - S9.a — Ningún renglón de los párrafos del pie supera 75 caracteres, a 1440×900 y a 1920×950; a 390×844 los bloques empiezan a ≥ 24 px del borde izquierdo y todos comparten el mismo borde izquierdo de texto (±1 px).
-- S9.b — `::selection` usa `--rosa-100` de fondo y `--rojo-700` de texto.
+- S9.b — `::selection` usa `--blanco` de fondo y `--rojo-800` de texto.
 - S9.c — `<meta name="theme-color" content="#1b0303">` y `<meta name="color-scheme" content="dark">` presentes.
 - S9.d — `<link rel="icon">` apunta a `assets/favicon.svg`, que responde 200 con `image/svg+xml`; ninguna petición al cargar la página termina en 404.
 - S9.e — El `letter-spacing` computado del `h1` es ≥ 0,12 em y su `padding-left` es igual a su `letter-spacing` (±0,5 px).
@@ -185,6 +181,8 @@ Criterios:
 | S2-style | S4, S7 | opus — style (`odd-style`) | Revisión de estilo del bloque de título y del auspicio (L24) | [x] | — (L27) |
 | T1d | S2.f | sonnet — asset | Corregir la unión derecha del panorama (color local) | [x] | `afdd76f` |
 | T2j | S4.f, S4.e, S7.g | sonnet — apply (TDD) | Aplicar la revisión de estilo L27 (opción B) | [x] | `975113e` |
+| S3-style | S5 | opus — style (`odd-style`) | Paleta roja con blanco hueso (L29), prototipo en una copia | [x] | — (L29) |
+| T2k | S5, S7, S8.d, S9.b | sonnet — apply (TDD) | Aplicar la paleta L29: CSS, tests, logo blanco, favicon, README | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -267,3 +265,8 @@ Criterios:
 
   (opus) Revisión `odd-style` (opus) sobre `9c18400`, prototipada aparte con la suite en 59/59. Recomienda la **opción B** (no extender la imagen): margen superior : aire hasta la cabeza = 1 : φ, con el `top` siguiendo a la cabeza (aire mínimo de 8,8 → 24,1 px a 1366×650). La opción A (+10 %) achicaría el retrato un 9 % en escritorio y en móvil, obligaría a cambiar S2.a, S2.d y S4.c y depende de Gemini → no se pide el prompt. Aceptadas: renglones a la altura de mayúsculas (la separación áurea se ve, no solo se mide), `h1` con tope en 24 px, leyenda del auspicio en mayúsculas espaciadas, logo de 260 px y corrección de la unión derecha del panorama (franja rojiza en las filas de arriba; confirmada a la vista). Nuevas specs S4.f y S2.f; S9 alineado con el código; tareas T1d y T2j.
 - **L28** (sonnet T1d/T2j + opus R1): T1d — métrica de uniones S2.f, con umbral 45: antes, izquierda 55,2 y derecha 78,7 (falla); después, 37,3 y 27,5 (pasa). S2.e 1,80/255, 566 619 bytes, build determinista. Desvío aceptado: la receta propuesta solo bajaba la unión derecha a ~70, porque Gemini pinta su propio valle rojo oscuro junto al borde. Se reemplazó por una reconstrucción por fila del color de baja frecuencia del lado de Gemini (rampa smoothstep de 300 px; actúa solo donde la diferencia supera 16). T2j — RED 11 fallos (S4.f ×6, S4.e ×3, S7.g ×2) → GREEN **65/65**. Razón áurea de colocación entre 1,6196 y 1,6210 en los 6 viewports; renglones a 0,66 em; `h1` de 24 px; contraste mínimo 5,60 (`h1`) y 6,81 (antetítulo). R1 sobre `4c0a07c..975113e`: riesgo **pasivo**; revisión visual a 1440×900 y a 390 (página completa), sin franja en la unión y con el bloque bien ubicado → **reconocido**.
+- **L29** (usuario, literal):
+  > Pedile al agente de estilo que cambie la paleta por otra de rojo pero que el rosado de las letras sea blanco y el rojo se mantenga similar o más oscuro, que quede estéticamente adecuado
+  > Que no sea un blanco chillón que sea un blanco apagado, elegante
+
+  (opus) `odd-style` (opus) lo prototipó en una copia, con la suite en 65/65 tras actualizar los tests que tenían la paleta fijada. Propuesta: `--blanco` `#f0ebe3` (blanco hueso); pie en lacre `--rojo-800` `#8a0b12`, porque con este blanco `#a60000` daba solo 6,75:1; filetes `--rojo-600` `#b0262c`; velo inferior teñido con el rojo del pie. Contraste del texto del pie de 4,99 a 8,28:1; sobre el cuadro, `h1` 8,16 / 8,14 y antetítulo 9,83 / 9,56. Se reescriben S5 (4 tokens), S7 (colores, logo blanco, foco), S7.f (≥ 7:1), S8.d, el velo de S9 y S9.b. Nueva tarea T2k.
