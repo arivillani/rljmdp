@@ -106,7 +106,7 @@ Criterios:
 |---|---|---|---|---|---|
 | T0 | S1–S8 | opus — propose/design/spec/tasks | Este documento + `AGENTS.md` + agentes ODD en `.claude/agents/` | [x] | `e55be60` |
 | T1 | S2 | haiku — asset | Copiar y optimizar el retrato a `assets/img/pueyrredon.jpg` | [x] | `5e0d4c3` |
-| T2 | S1–S8 | sonnet — apply (TDD) | Tests Playwright en RED observado → `index.html` + `css/styles.css` en GREEN → refactor | [ ] | — |
+| T2 | S1–S8 | sonnet — apply (TDD) | Tests Playwright en RED observado → `index.html` + `css/styles.css` en GREEN → refactor | [x] | `c96433d` |
 | T3 | S1–S8 | sonnet — verify | Veredicto por spec (solo lectura) + capturas 1440×900 y 390×844 | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [ ] | — |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [ ] | — |
@@ -125,3 +125,4 @@ Criterios:
 - **L2** (opus, T0): explorado — repo vacío, sin commits. tamburins.com no es accesible desde el entorno (DNS bloqueado por la política de red); S1 se basa en el patrón conocido del sitio (hero a pantalla completa, header transparente, microtipografía) y no copia marca, textos ni código. Paleta muestreada con PIL sobre la imagen adjunta (6 columnas × 5 filas); se eligieron 11 tonos representativos + el fondo `#1c1c26` de la lámina. Ruteo de modelos según gentle-ai v1.23: propose/design → opus; spec/tasks/apply/verify → sonnet; archive → haiku. Aquí opus (orquestador) redactó spec/tasks porque ya tenía todo el contexto explorado.
 - **L3** (haiku, T1): `assets/img/pueyrredon.jpg` 1181×1424, 296 103 bytes, JPEG progresivo q82 sin metadatos — S2.b listo para test. Commit `5e0d4c3`.
 - **L4** (opus, diseño): con `cover` a 1440×900 el rostro ocupa ~15–70 % del alto; un `h1` en el centro exacto taparía boca y mentón. Se interpreta "centrado" como centrado horizontal estricto (S4.b) y el título se apoya sobre el uniforme oscuro, al 68 % del alto (S4.c), lo que además mejora el contraste. Foco del fondo movido a `center 35%`. Revertible con una línea de CSS si se quiere centro exacto.
+- **L5** (sonnet, T2): 25 tests (uno por criterio; S1.a, S4.b y S4.c en 1440×900 y 390×844). RED observado 25/25 fallando — el primer intento dio 7 verdes vacuos contra el listado de directorios de `http-server`, así que se añadió la guarda `expectLandingServed` (`main > section.hero` debe existir). GREEN 25/25 (~4 s). Desvío: el velo del hero pasó de capa de `background` a `.hero::before`, porque con dos capas el `background-size` computado es `auto, cover` y S2.c exige `cover`. `h1` medido al 0,680 del alto del hero en ambos viewports. Commit `c96433d`.
