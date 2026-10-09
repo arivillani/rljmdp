@@ -56,19 +56,22 @@ body {
   object-position: 47% 15%;
 }
 
-/* Velo de la paleta: banda superior para el título y cierre carmesí abajo; el rostro queda sin velo. */
+/* Velo de la paleta (L22, "sombra + corte"): banda superior para el título y, abajo, --carmesi-700 *multiplicado* con
+   el cuadro (no superpuesto con alfa, que daba un lila): la base se hunde en una sombra borravino casi negra y pasa
+   al rojo del pie con un corte limpio. El rostro (14–68 %) queda sin velo. */
 .hero::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  mix-blend-mode: multiply;
   background: linear-gradient(
     to bottom,
     rgb(27 3 3 / 0.55) 0,
     rgb(27 3 3 / 0) 14%,
-    rgb(27 3 3 / 0) 78%,
-    rgb(129 0 31 / 0.45) 100%
+    rgb(129 0 31 / 0) 68%,
+    rgb(129 0 31 / 0.7) 100%
   );
 }
 

@@ -26,6 +26,9 @@ const MEASURE_VIEWPORTS = [
 ];
 const MAX_CHARS_PER_LINE = 75;
 const PIE_MIN_GUTTER = 24;
+// S9.f: franja inferior del hero y luminancia máxima de su color promedio (antes del velo multiply: ≈ 0,025, lila).
+const BASE_STRIP = 22;
+const BASE_MAX_LUMINANCE = 0.012;
 
 // S4.c: logotipo de una sola línea, también a 360 px.
 const LOGO_VIEWPORTS = [
@@ -695,6 +698,37 @@ test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
         Math.abs(paddingPx - spacingPx),
         `padding-left ${m.paddingLeft} vs letter-spacing ${m.letterSpacing}`,
       ).toBeLessThanOrEqual(0.5);
+    });
+  }
+
+  for (const [label, viewport] of VIEWPORTS) {
+    test(`S9.f — sombra + corte: velo multiply y base del hero oscura a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const m = await page.evaluate(async () => {
+        const img = /** @type {HTMLImageElement} */ (document.querySelector('img.hero__retrato'));
+        try {
+          await img.decode();
+        } catch (e) {
+          /* se informa vía naturalWidth */
+        }
+        const hero = document.querySelector('.hero').getBoundingClientRect();
+        return {
+          blend: getComputedStyle(document.querySelector('.hero'), '::after').mixBlendMode,
+          naturalWidth: img.naturalWidth,
+          heroBottom: hero.bottom,
+          clientWidth: document.documentElement.clientWidth,
+        };
+      });
+      expect(m.naturalWidth, 'la imagen no cargó').toBeGreaterThan(0);
+      expect.soft(m.blend, 'mix-blend-mode de .hero::after').toBe('multiply');
+      // Últimos 22 px del hero (el h1 está arriba y no entra en la franja).
+      const clip = { x: 0, y: m.heroBottom - BASE_STRIP, width: m.clientWidth, height: BASE_STRIP };
+      const avg = await averageColor(page, await page.screenshot({ clip }));
+      const luminance = relativeLuminance(avg);
+      expect(
+        luminance,
+        `luminancia ${luminance.toFixed(4)} de la base del hero (promedio rgb(${avg.map(Math.round).join(', ')}))`,
+      ).toBeLessThanOrEqual(BASE_MAX_LUMINANCE);
     });
   }
 });
