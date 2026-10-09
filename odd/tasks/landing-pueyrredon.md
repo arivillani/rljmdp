@@ -28,7 +28,7 @@ Criterios:
 > "la imagen de fondo que te adjunto."
 
 - Asset: `assets/img/pueyrredon.jpg` (retrato adjunto, 1181×1424, JPEG optimizado, ≤ 400 KB).
-- Se usa como `background-image` CSS de `.hero`, con `background-size: cover` y foco en el rostro (`background-position: center 28%`), bajo un velo en degradé de la paleta (S5) para legibilidad del título.
+- Se usa como `background-image` CSS de `.hero`, con `background-size: cover` y foco en el rostro (`background-position: center 35%`), bajo un velo en degradé de la paleta (S5) para legibilidad del título.
 
 Criterios:
 - S2.a — `getComputedStyle(.hero).backgroundImage` contiene `pueyrredon.jpg`.
@@ -48,7 +48,7 @@ Criterios:
 Criterios:
 - S4.a — Existe exactamente un `h1` y su texto (trim) es exactamente `Juan Martín De Pueyrredón`.
 - S4.b — El centro horizontal de la caja del `h1` está a ±2 px del centro del viewport, y `text-align` es `center` (1440×900 y 390×844).
-- S4.c — El centro vertical del `h1` está a ±10 % del centro vertical del hero.
+- S4.c — Verticalmente el `h1` se ubica sobre el uniforme, sin tapar el rostro: su centro vertical está al 68 % (±5 %) del alto del hero (ver L3).
 - S4.d — `<title>` del documento es `Juan Martín De Pueyrredón`; `<html lang="es">`.
 
 ### S5 — Paleta de la foto adjunta
@@ -104,8 +104,8 @@ Criterios:
 
 | ID | Specs | Ruta (modelo) | Trabajo | Estado | Commit |
 |---|---|---|---|---|---|
-| T0 | S1–S8 | opus — propose/design/spec/tasks | Este documento + `AGENTS.md` + agentes ODD en `.claude/agents/` | [x] | ver Log L2 |
-| T1 | S2 | haiku — asset | Copiar y optimizar el retrato a `assets/img/pueyrredon.jpg` | [ ] | — |
+| T0 | S1–S8 | opus — propose/design/spec/tasks | Este documento + `AGENTS.md` + agentes ODD en `.claude/agents/` | [x] | `e55be60` |
+| T1 | S2 | haiku — asset | Copiar y optimizar el retrato a `assets/img/pueyrredon.jpg` | [x] | `5e0d4c3` |
 | T2 | S1–S8 | sonnet — apply (TDD) | Tests Playwright en RED observado → `index.html` + `css/styles.css` en GREEN → refactor | [ ] | — |
 | T3 | S1–S8 | sonnet — verify | Veredicto por spec (solo lectura) + capturas 1440×900 y 390×844 | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [ ] | — |
@@ -123,3 +123,5 @@ Criterios:
   > - letra times new Roman o similar
   > - abajo que no tenga mucha información solo un Lorem ipsum
 - **L2** (opus, T0): explorado — repo vacío, sin commits. tamburins.com no es accesible desde el entorno (DNS bloqueado por la política de red); S1 se basa en el patrón conocido del sitio (hero a pantalla completa, header transparente, microtipografía) y no copia marca, textos ni código. Paleta muestreada con PIL sobre la imagen adjunta (6 columnas × 5 filas); se eligieron 11 tonos representativos + el fondo `#1c1c26` de la lámina. Ruteo de modelos según gentle-ai v1.23: propose/design → opus; spec/tasks/apply/verify → sonnet; archive → haiku. Aquí opus (orquestador) redactó spec/tasks porque ya tenía todo el contexto explorado.
+- **L3** (haiku, T1): `assets/img/pueyrredon.jpg` 1181×1424, 296 103 bytes, JPEG progresivo q82 sin metadatos — S2.b listo para test. Commit `5e0d4c3`.
+- **L4** (opus, diseño): con `cover` a 1440×900 el rostro ocupa ~15–70 % del alto; un `h1` en el centro exacto taparía boca y mentón. Se interpreta "centrado" como centrado horizontal estricto (S4.b) y el título se apoya sobre el uniforme oscuro, al 68 % del alto (S4.c), lo que además mejora el contraste. Foco del fondo movido a `center 35%`. Revertible con una línea de CSS si se quiere centro exacto.
