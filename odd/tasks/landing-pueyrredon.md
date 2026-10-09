@@ -5,7 +5,7 @@ minimalista de tamburins.com (hero a sangre completa + título pequeño arriba, 
 
 - **Flujo:** ODD (gentle-ai) — SDD (este documento) + TDD (Playwright, RED → GREEN → REFACTOR) + RDD (revisión por recibo de cada commit).
 - **Rama:** `claude/tamburins-style-landing-page-vwou1y`
-- **Runner de tests:** `npm test` → `@playwright/test@1.56.1` (Chromium) contra `http-server` en `http://127.0.0.1:4173`.
+- **Runner de tests:** `npm test` → `@playwright/test@1.56.1` (Chromium) contra `http-server` en `http://127.0.0.1:4173`. Desde L31 la suite corre por defecto con `reducedMotion: 'reduce'`, que oculta la intro (S10.d); los tests de S10 usan `no-preference`.
 - **Entrega:** `single-pr` — pronóstico ~450 líneas autoradas, una sola rama; sin slicing.
 - **Engram:** no disponible en este entorno → espejo `odd/landing-pueyrredon/tasks` pendiente; este archivo es la fuente de verdad.
 
@@ -126,7 +126,7 @@ Colores (L29): fondo `--rojo-800` (`#8a0b12`); todo el texto `--blanco` (contras
 Sin botones; el único contenido real es el bloque de auspicio (L24), y el único enlace es el isologotipo hacia `https://www.masoneria-argentina.org.ar/` (L25).
 
 Criterios:
-- S7.a — Los hijos de `body` son solo `main` y `footer`; `main` contiene únicamente la sección `.hero`.
+- S7.a — Los hijos de `body` son solo `div.intro` (S10, decorativo), `main` y `footer`; `main` contiene únicamente la sección `.hero`.
 - S7.b — Estructura: el `footer` tiene exactamente 4 hijos directos con clase `pie__bloque`, en este orden: un `ul.pie__secciones` con exactamente 3 `li`; un `p`; un `p.pie__auspicio`; un `p.pie__copy` cuyo texto empieza por `©`.
 - S7.c — Lorem ipsum salvo el auspicio: el primer `p` empieza por `Lorem ipsum`; el texto de los bloques 1, 2 y 4 sin el `©` contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
 - S7.h — Enlace (L25): el isologotipo está envuelto en un único `a` con `href` exactamente `https://www.masoneria-argentina.org.ar/`, `target="_blank"` y `rel` con `noopener`; su nombre accesible es `Gran Logia Argentina de Libres y Aceptados Masones (se abre en una pestaña nueva)`; con foco de teclado muestra un contorno visible en `--blanco`. La carga de la página sigue sin pedir nada fuera del propio origen (S6.b).
@@ -159,6 +159,23 @@ Criterios:
 - S9.e — El `letter-spacing` computado del `h1` es ≥ 0,12 em y su `padding-left` es igual a su `letter-spacing` (±0,5 px).
 - S9.f — Sombra + corte (L22): el `mix-blend-mode` de `.hero::after` es `multiply`, y el color promedio de los últimos 22 px del hero tiene luminancia relativa ≤ 0,012 a 1440×900 y a 390×844 (antes: ≈ 0,025, lila).
 
+### S10 — Intro animada (L31)
+> "Cuando inicie la página que aparezca este gif https://share.google/MZreJenolwImfEO0n pero en blanco y el fondo en rojo. Cómo en el inicio de esta página https://nexus-solutions.co/ Qué aparece este gif de la imagen"
+>
+> "Es el compas de arriba y la escuadra girando" · "No lo puedo bajar, es el que está sin la G"
+
+- Pantalla de entrada a sangre completa (`div.intro`, primer hijo de `body`, fija) con fondo `--rojo-800` y, en el centro, un emblema de escuadra y compás sin la G, en `--blanco`.
+- El emblema es un dibujo propio (`svg` en línea), no una copia del GIF de referencia.
+- Gira sobre su eje vertical (`rotateY`, con perspectiva), como el GIF: 2 vueltas de 1,1 s. Después la pantalla se desvanece en 0,6 s y deja ver el retrato (≈ 2,8 s en total).
+- Solo CSS, sin JavaScript (S8.b) y sin pedidos externos (S6.b).
+- Decorativa: `aria-hidden="true"`; al terminar no tapa ni recibe clics. Con `prefers-reduced-motion: reduce` no se muestra.
+
+Criterios:
+- S10.a — Al cargar (sin reducción de movimiento), a 1440×900 y 390×844: `div.intro` es el primer hijo de `body`, tiene `position: fixed` y cubre todo el viewport, su fondo es rgb(138, 11, 18) y tiene `aria-hidden="true"`; el elemento en el centro de la pantalla está dentro de `.intro`.
+- S10.b — `.intro` contiene un único `svg` en línea, con todos sus rellenos y trazos visibles en `#f0ebe3`. Su elemento animado tiene una animación cuyos keyframes giran en Y (`rotateY`), con 2 iteraciones de 1,1 s (±0,05 s).
+- S10.c — A los 3,2 s, `.intro` tiene `opacity` 0 y `visibility: hidden`, y el elemento en el centro de la pantalla ya no está dentro de `.intro`.
+- S10.d — Con `reducedMotion: 'reduce'`, el `display` computado de `.intro` es `none` desde el inicio.
+
 ## Tasks
 
 | ID | Specs | Ruta (modelo) | Trabajo | Estado | Commit |
@@ -183,6 +200,7 @@ Criterios:
 | T2j | S4.f, S4.e, S7.g | sonnet — apply (TDD) | Aplicar la revisión de estilo L27 (opción B) | [x] | `975113e` |
 | S3-style | S5 | opus — style (`odd-style`) | Paleta roja con blanco hueso (L29), prototipo en una copia | [x] | — (L29) |
 | T2k | S5, S7, S8.d, S9.b | sonnet — apply (TDD) | Aplicar la paleta L29: CSS, tests, logo blanco, favicon, README | [x] | `f97d7cc` |
+| T2l | S10, S7.a | sonnet — apply (TDD) | Intro animada: escuadra y compás girando, blanco sobre rojo | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -271,3 +289,11 @@ Criterios:
 
   (opus) `odd-style` (opus) lo prototipó en una copia, con la suite en 65/65 tras actualizar los tests que tenían la paleta fijada. Propuesta: `--blanco` `#f0ebe3` (blanco hueso); pie en lacre `--rojo-800` `#8a0b12`, porque con este blanco `#a60000` daba solo 6,75:1; filetes `--rojo-600` `#b0262c`; velo inferior teñido con el rojo del pie. Contraste del texto del pie de 4,99 a 8,28:1; sobre el cuadro, `h1` 8,16 / 8,14 y antetítulo 9,83 / 9,56. Se reescriben S5 (4 tokens), S7 (colores, logo blanco, foco), S7.f (≥ 7:1), S8.d, el velo de S9 y S9.b. Nueva tarea T2k.
 - **L30** (sonnet T2k + opus R1): RED 8 fallos (S5.a, S5.b, S7.e, S7.f, S7.g, S7.h, S9.b, S9.d); S8.d ya pasaba con el rosa → GREEN **65/65**. Contraste: `h1` 8,17 / 8,11, antetítulo 9,84 / 9,55, pie 8,28 (1440 / 390). Logo regenerado con el alfa idéntico bit a bit; solo cambia el RGB a (240, 235, 227); S7.g verifica todos los píxeles opacos. Favicon lacre con «P» blanco hueso. Commit `f97d7cc`. R1 sobre `14e61dc..f97d7cc`: riesgo **pasivo** (CSS, asset y tests); revisión visual a 390 (página completa), sin restos de rosa → **reconocido**.
+- **L31** (usuario, literal; adjunta capturas de nexus-solutions.co y de la búsqueda del GIF):
+  > Listo ya puse main.
+  > Ahora... Cuando inicie la página que aparezcaca este gif https://share.google/MZreJenolwImfEO0n pero en blanco y el fondo en rojo.
+  > Cómo en el inicio de esta página https://nexus-solutions.co/ Qué aparece este gif de la imagen
+  > Es el compas de arriba y la escuadra girando
+  > No lo puedo bajar, es el que está sin la G
+
+  (opus) La política de red bloquea `share.google` y `nexus-solutions.co`; se trabaja con las capturas. El GIF es de un tercero y no se copia: se dibuja un emblema propio de escuadra y compás en SVG, probado en blanco hueso sobre lacre y de perfil a 55° y 80°, y se anima con CSS 3D. Se agrega S10, se ajusta S7.a para incluir `div.intro`, y la suite pasa a correr con `reducedMotion: 'reduce'` por defecto. Nueva tarea T2l.
