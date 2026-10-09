@@ -114,6 +114,8 @@ Criterios:
 > "Elegí un tono más rojo para el fondo de la parte de abajo." (L15)
 >
 > "Y en la sección donde está el "Ut enmi ad minim" pone "Bajo los auspicios de la" Y este isologotipo de la gran logia argentina." (L24)
+>
+> "Que sea un link a la página https://www.masoneria-argentina.org.ar/" (L25)
 
 Se replica la *estructura* del pie de la referencia (L12) con texto de relleno: fondo claro y texto oscuro,
 bloques de ancho completo separados por filetes finos, todo alineado a la izquierda:
@@ -123,14 +125,15 @@ bloques de ancho completo separados por filetes finos, todo alineado a la izquie
 4. `p.pie__copy` chico: `© Lorem ipsum`.
 
 Colores (L15): fondo `--rojo-700` (`#a60000`); todo el texto `--rosa-100` (contraste 4.99:1); filetes 1 px `--carmesi-300`.
-Sin enlaces ni botones; el único contenido real es el bloque de auspicio (L24).
+Sin botones; el único contenido real es el bloque de auspicio (L24), y el único enlace es el isologotipo hacia `https://www.masoneria-argentina.org.ar/` (L25).
 
 Criterios:
 - S7.a — Los hijos de `body` son solo `main` y `footer`; `main` contiene únicamente la sección `.hero`.
 - S7.b — Estructura: el `footer` tiene exactamente 4 hijos directos con clase `pie__bloque`, en este orden: un `ul.pie__secciones` con exactamente 3 `li`; un `p`; un `p.pie__auspicio`; un `p.pie__copy` cuyo texto empieza por `©`.
 - S7.c — Lorem ipsum salvo el auspicio: el primer `p` empieza por `Lorem ipsum`; el texto de los bloques 1, 2 y 4 sin el `©` contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
+- S7.h — Enlace (L25): el isologotipo está envuelto en un único `a` con `href` exactamente `https://www.masoneria-argentina.org.ar/`, `target="_blank"` y `rel` con `noopener`; su nombre accesible es `Gran Logia Argentina de Libres y Aceptados Masones (se abre en una pestaña nueva)`; con foco de teclado muestra un contorno visible en `--rosa-100`. La carga de la página sigue sin pedir nada fuera del propio origen (S6.b).
 - S7.g — Auspicio (L24): el texto de `p.pie__auspicio` (trim) es exactamente `Bajo los auspicios de la`; contiene un único `img` con `src` terminado en `assets/img/gran-logia-argentina.png`, `alt` `Gran Logia Argentina de Libres y Aceptados Masones`, que cargó (`naturalWidth` > 0), con píxel de esquina transparente (alfa 0) y renderizado debajo del texto, con ancho entre 200 y 320 px a 1440×900 y ≤ el ancho disponible a 360 px.
-- S7.d — El `footer` no contiene `a`, `button`, `form`, `svg` ni `h1`–`h6`; su único `img` es el isologotipo de S7.g.
+- S7.d — El `footer` no contiene `button`, `form`, `svg` ni `h1`–`h6`; su único `img` es el isologotipo de S7.g y su único `a` es el enlace de S7.h.
 - S7.e — Formato: `text-align` de los bloques es `left` o `start`; los bloques 2, 3 y 4 tienen `border-top` de 1 px y el bloque 1 no; el color de esos filetes, el fondo del `footer` y el color del texto de cada bloque pertenecen a los tokens de S5.
 - S7.f — Fondo rojo (L15): el `background-color` del `footer` es `--rojo-700` (`#a60000`), los filetes son `--carmesi-300`, y el color de texto de cada bloque da contraste WCAG ≥ 4.5:1 contra ese fondo.
 
@@ -175,8 +178,8 @@ Criterios:
 | S1 | S1–S8 | opus — style (`odd-style`) | Revisión de estilo e identidad visual (L17), solo lectura | [x] | — (L21) |
 | T2g | S9 | sonnet — apply (TDD) | Aplicar las propuestas de estilo aceptadas, menos el velo | [x] | `3c478c7` |
 | T2h | S9.f | sonnet — apply (TDD) | Velo inferior "Sombra + corte" (L22) | [x] | `fb04701` |
-| T1c | S7.g | haiku — asset | Isologotipo a PNG transparente en `--rosa-100`, recortado | [ ] | — |
-| T2i | S2.d, S4, S7, S8.d | sonnet — apply (TDD) | Antetítulo áureo + bloque de auspicio con el isologotipo | [ ] | — |
+| T1c | S7.g | haiku — asset | Isologotipo a PNG transparente en `--rosa-100`, recortado | [x] | `a69e1a3` |
+| T2i | S2.d, S4, S7, S8.d | sonnet — apply (TDD) | Antetítulo áureo + bloque de auspicio con el isologotipo enlazado (L25) | [ ] | — |
 | S2-style | S4, S7 | opus — style (`odd-style`) | Revisión de estilo del bloque de título y del auspicio (L24) | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
@@ -248,3 +251,7 @@ Criterios:
   > Y este isologotipo de la gran logia argentina. Después pásalo por el agente de imagen a ver el estilo que le da
 
   (opus) Se reescriben S4 (bloque `hgroup` + S4.e con tres relaciones áureas: tamaño ×φ, separación ÷φ y tracking ×φ), S4.d (título del documento con el nombre de la logia), S2.d (la cabeza empieza debajo de todo el bloque de título), S8.d (contraste del antetítulo) y S7 (el bloque 3 pasa a ser el auspicio con el isologotipo, S7.g). Se mantiene el acento de "Martín" (S4.a). El bloque de título suma altura y a 1366×650 la cabeza empieza a ~67 px del borde superior, así que el tamaño del `h1` también tiene que depender del alto del viewport. Nuevas tareas: T1c (haiku), T2i (sonnet) y S2-style (opus, "agente de imagen").
+- **L25** (usuario, literal):
+  > Que sea un link a la página https://www.masoneria-argentina.org.ar/
+
+  (opus) T1c (haiku) listo: `assets/img/gran-logia-argentina.png` RGBA de 719×274, 28 269 bytes, todo `#ffbbba` sobre alfa, fondo transparente, sin halo; commit `a69e1a3`. Para el enlace se reescribe S7 (S7.d permite solo este `a`) y se añade S7.h: el logo enlaza al sitio en una pestaña nueva, con `rel="noopener"`, un nombre accesible que avisa la pestaña nueva y foco visible. Se suma a T2i, que estaba en curso.
