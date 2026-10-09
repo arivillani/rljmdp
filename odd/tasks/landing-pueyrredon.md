@@ -96,13 +96,27 @@ Criterios:
 - S6.a — El `font-family` computado de `body`, `h1` y `footer p` empieza por `"Times New Roman"`.
 - S6.b — La página no hace ninguna petición de red fuera de su propio origen.
 
-### S7 — Pie mínimo
+### S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem ipsum
 > "abajo que no tenga mucha información solo un Lorem ipsum"
+>
+> "Y está es la parte de abajo que va en la paleta de colores que te pedi" (L12)
+
+Se replica la *estructura* del pie de la referencia (L12) con texto de relleno: fondo claro y texto oscuro,
+bloques de ancho completo separados por filetes finos, todo alineado a la izquierda:
+1. `ul.pie__secciones` con tres renglones cortos (≈ 18–20 px), con mucho aire vertical: `Lorem ipsum`, `Dolor sit amet`, `Consectetur adipiscing`.
+2. `p` chico (≈ 13–14 px, interlineado ≈ 1,7) de Lorem ipsum (≈ 35 palabras).
+3. `p` chico de Lorem ipsum (≈ 20 palabras).
+4. `p.pie__copy` chico: `© Lorem ipsum`.
+
+Colores: fondo `--rosa-100`; renglones `--rojo-900`; párrafos y © `--rojo-800`; filetes 1 px `--rosa-300`.
+Sin enlaces, botones ni datos reales.
 
 Criterios:
-- S7.a — Debajo del hero solo existe un `footer` con exactamente un `p` cuyo texto empieza por `Lorem ipsum` (≤ 60 palabras).
-- S7.b — El `footer` no contiene `a`, `ul`, `ol`, `h1`–`h6`, `form`, `img` ni `svg`.
-- S7.c — `main` contiene únicamente la sección `.hero`.
+- S7.a — Los hijos de `body` son solo `main` y `footer`; `main` contiene únicamente la sección `.hero`.
+- S7.b — Estructura: el `footer` tiene exactamente 4 hijos directos con clase `pie__bloque`, en este orden: un `ul.pie__secciones` con exactamente 3 `li`; un `p`; un `p`; un `p.pie__copy` cuyo texto empieza por `©`.
+- S7.c — Solo Lorem ipsum: el primer `p` empieza por `Lorem ipsum`; el texto del `footer` sin el `©` contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
+- S7.d — El `footer` no contiene `a`, `button`, `form`, `img`, `svg` ni `h1`–`h6`.
+- S7.e — Formato: `text-align` de los bloques es `left` o `start`; los bloques 2, 3 y 4 tienen `border-top` de 1 px y el bloque 1 no; el color de esos filetes, el fondo del `footer` y el color del texto de cada bloque pertenecen a los tokens de S5.
 
 ### S8 — Calidad base
 Criterios:
@@ -121,6 +135,7 @@ Criterios:
 | T3 | S1–S8 | sonnet — verify | Veredicto por spec (solo lectura) + capturas 1440×900 y 390×844 | [x] | — (solo lectura, L6) |
 | T2b | S8.d | sonnet — apply (TDD) | Reabierta por R1: test de contraste en RED → ajustar velo/header en GREEN | [x] | `3d7215d` |
 | T2c | S1, S2, S4, S5, S6, S8.d | sonnet — apply (TDD) | Reabierta por L9 y L10: título pequeño arriba, sin fecha ni ciudad, cabeza sin cortar | [ ] | — |
+| T2d | S7 | sonnet — apply (TDD) | Reabierta por L12: pie con el formato de la referencia, en la paleta, solo Lorem ipsum | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [ ] | — |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8 |
 
@@ -155,3 +170,7 @@ Criterios:
   > Mira una foto de la página de tamburnis, el botón de menú no va
 
   (opus) La captura móvil de tamburins.com/en/ muestra: logotipo serif en mayúsculas arriba a la izquierda, botón de menú (hamburguesa) arriba a la derecha, retrato a sangre completa con la cabeza entera y aire arriba, nombre de producto y dos enlaces abajo al centro, e indicadores de carrusel. Se aplica: sin botón de menú (ya cubierto por S3.a/S3.b) y título con estilo de logotipo (mayúsculas por CSS, 16–26 px, S4.c). Se mantiene "centrado" (S4.b) por el pedido original; producto, enlaces y carrusel quedan fuera porque el pedido dice "solo un Lorem ipsum" abajo (S7). Se suma a T2c.
+- **L12** (usuario, referencia visual, literal):
+  > Y está es la parte de abajo que va en la paleta de colores que te pedi
+
+  (opus) La captura muestra el pie de la referencia: fondo blanco, tres renglones grandes alineados a la izquierda, filetes finos de ancho completo, dos párrafos chicos de datos legales y una línea de ©. Se reescribe S7: misma estructura en la paleta (fondo `--rosa-100`, texto `--rojo-900` y `--rojo-800`, filetes `--rosa-300`), con todo el texto en Lorem ipsum, sin enlaces ni datos reales, para respetar el pedido original ("solo un Lorem ipsum"). Nueva tarea T2d.
