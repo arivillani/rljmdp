@@ -21,6 +21,15 @@ body {
 body {
   background: var(--rojo-950);
   font-family: "Times New Roman", Times, "Liberation Serif", Tinos, serif;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--rosa-100);
+  color: var(--rojo-700);
 }
 
 /* Hero a sangre completa: alto exacto del viewport. Capas, de atrás hacia adelante:
@@ -72,9 +81,10 @@ body {
   transform: translateX(-50%);
   margin: 0;
   color: var(--rosa-100);
-  font-size: clamp(16px, 4.4vw, 24px);
+  padding-left: 0.14em; /* compensa el tracking que queda tras la última letra: centro óptico = centro de la caja */
+  font-size: clamp(16px, 4.2vw, 22px);
   font-weight: 400;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.14em;
   line-height: 1.2;
   text-align: center;
   text-transform: uppercase;
@@ -85,13 +95,14 @@ body {
 /* Pie con la estructura de la referencia (L12): bloques de ancho completo separados por filetes finos,
    alineados a la izquierda, todo en Lorem ipsum y con los colores de la paleta. */
 .pie {
+  --pie-margen: clamp(24px, 4.5vw, 64px);
   margin: 0;
   background: var(--rojo-700);
 }
 
 .pie__bloque {
   margin: 0;
-  padding: 28px clamp(16px, 4vw, 48px);
+  padding: 32px var(--pie-margen);
   text-align: left;
 }
 
@@ -101,21 +112,26 @@ body {
 
 .pie__secciones {
   display: grid;
-  gap: 36px;
-  padding-block: 48px;
+  gap: 32px;
+  padding-block: 56px;
   color: var(--rosa-100);
   font-size: clamp(18px, 1.4vw, 20px);
+  line-height: 1.3;
   list-style: none;
 }
 
 .pie p {
-  max-width: none;
+  /* Medida de 60ch (≤ 64ch, S9): con Times a 14 px son ≈ 70 caracteres por renglón, bajo el tope de 75 (64ch daba 78).
+     La caja (y su filete) sigue a ancho completo. */
+  padding-inline-end: max(var(--pie-margen), calc(100% - var(--pie-margen) - 60ch));
   color: var(--rosa-100);
   font-size: 14px;
   line-height: 1.7;
+  text-wrap: pretty;
 }
 
 .pie .pie__copy {
-  padding-block: 20px 40px;
+  padding-block: 24px 48px;
   font-size: 13px;
+  letter-spacing: 0.02em;
 }

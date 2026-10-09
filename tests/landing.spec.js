@@ -1,5 +1,5 @@
 // @ts-check
-// Suite de aceptación de odd/tasks/landing-pueyrredon.md (S1–S8).
+// Suite de aceptación de odd/tasks/landing-pueyrredon.md (S1–S9).
 // Cada test lleva el ID del criterio (S#.x) en su nombre.
 const { test, expect } = require('@playwright/test');
 
@@ -18,6 +18,14 @@ const HERO_VIEWPORTS = [
   ['390×844', MOBILE],
   ['360×740', { width: 360, height: 740 }],
 ];
+
+// S9.a: medida del pie en escritorio (con barra del navegador y sin ella).
+const MEASURE_VIEWPORTS = [
+  ['1440×900', DESKTOP],
+  ['1920×950', { width: 1920, height: 950 }],
+];
+const MAX_CHARS_PER_LINE = 75;
+const PIE_MIN_GUTTER = 24;
 
 // S4.c: logotipo de una sola línea, también a 360 px.
 const LOGO_VIEWPORTS = [
@@ -558,6 +566,135 @@ test.describe('S8 — Calidad base', () => {
         ratio,
         `h1: contraste ${ratio.toFixed(2)}:1 de #ffbbba sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
       ).toBeGreaterThanOrEqual(4.5);
+    });
+  }
+});
+
+test.describe('S9 — Refinamiento visual (revisión de estilo, L21)', () => {
+  for (const [label, viewport] of MEASURE_VIEWPORTS) {
+    test(`S9.a — ningún renglón de los párrafos del pie supera ${MAX_CHARS_PER_LINE} caracteres a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      // Renglones renderizados: se mide cada carácter con un Range sobre el nodo de texto y se agrupa por `top`.
+      const paragraphs = await page.evaluate(() =>
+        [...document.querySelectorAll('footer p')].map((p) => {
+          const node = p.firstChild;
+          const text = node.textContent;
+          const range = document.createRange();
+          /** @type {{ top: number, chars: string[] }[]} */
+          const lines = [];
+          for (let i = 0; i < text.length; i++) {
+            range.setStart(node, i);
+            range.setEnd(node, i + 1);
+            const rect = range.getClientRects()[0];
+            if (!rect) continue; // espacio colapsado en un salto de renglón
+            let line = lines.find((l) => Math.abs(l.top - rect.top) < 2);
+            if (!line) {
+              line = { top: rect.top, chars: [] };
+              lines.push(line);
+            }
+            line.chars.push(text[i]);
+          }
+          return { text: text.replace(/\s+/g, ' ').trim(), lines: lines.map((l) => l.chars.join('').trim()) };
+        }),
+      );
+      expect(paragraphs.length, 'párrafos en el pie').toBe(3);
+      let max = 0;
+      for (const para of paragraphs) {
+        // Guarda: los renglones medidos reconstruyen el párrafo entero (el método mide algo real).
+        expect(para.lines.join(' '), 'los renglones medidos no reconstruyen el párrafo').toBe(para.text);
+        for (const line of para.lines) max = Math.max(max, line.length);
+      }
+      const detail = paragraphs.map((q) => q.lines.map((l) => l.length).join('/')).join(' | ');
+      expect(max, `máximo ${max} caracteres por renglón (${detail}) a ${label}`).toBeLessThanOrEqual(MAX_CHARS_PER_LINE);
+    });
+  }
+
+  test(`S9.a — a 390×844 los bloques del pie empiezan a ≥ ${PIE_MIN_GUTTER} px del borde izquierdo y comparten el mismo borde de texto (±1 px)`, async ({ page }) => {
+    await page.setViewportSize(MOBILE);
+    const edges = await page.evaluate(() => {
+      const out = [];
+      document.querySelectorAll('footer .pie__bloque').forEach((block, i) => {
+        const leaves = block.tagName === 'UL' ? [...block.children] : [block];
+        for (const leaf of leaves) {
+          const walker = document.createTreeWalker(leaf, NodeFilter.SHOW_TEXT, {
+            acceptNode: (n) => (n.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
+          });
+          const node = walker.nextNode();
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          out.push({ block: i + 1, text: node.textContent.trim().slice(0, 18), left: range.getClientRects()[0].left });
+        }
+      });
+      return out;
+    });
+    expect(edges, 'textos medidos: 3 li + 3 p').toHaveLength(6);
+    const lefts = edges.map((e) => e.left);
+    const detail = edges.map((e) => `[${e.block}] "${e.text}" ${e.left.toFixed(2)}`).join('; ');
+    expect(Math.min(...lefts), `borde izquierdo mínimo: ${detail}`).toBeGreaterThanOrEqual(PIE_MIN_GUTTER);
+    expect(Math.max(...lefts) - Math.min(...lefts), `bordes izquierdos no alineados (±1 px): ${detail}`).toBeLessThanOrEqual(1);
+  });
+
+  test('S9.b — ::selection usa --rosa-100 de fondo y --rojo-700 de texto', async ({ page }) => {
+    const selections = await page.evaluate(() =>
+      ['body', 'h1', 'footer p'].map((sel) => {
+        const cs = getComputedStyle(document.querySelector(sel), '::selection');
+        return { sel, background: cs.backgroundColor, color: cs.color };
+      }),
+    );
+    for (const s of selections) {
+      expect(rgbKey(s.background), `${s.sel}::selection background: ${s.background}`).toBe(hexToRgbKey(TOKENS['--rosa-100']));
+      expect(rgbKey(s.color), `${s.sel}::selection color: ${s.color}`).toBe(hexToRgbKey(TOKENS['--rojo-700']));
+    }
+  });
+
+  test('S9.c — meta theme-color #1b0303 y meta color-scheme dark presentes', async ({ page }) => {
+    await expect(page.locator('meta[name="theme-color"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1b0303');
+    await expect(page.locator('meta[name="color-scheme"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'dark');
+  });
+
+  test('S9.d — link rel="icon" apunta a assets/favicon.svg, que responde 200 image/svg+xml', async ({ page, request }) => {
+    const link = page.locator('link[rel="icon"]');
+    await expect(link, 'falta <link rel="icon">').toHaveCount(1);
+    const href = await link.getAttribute('href');
+    expect(href, 'href del icono').toBe('assets/favicon.svg');
+    const resolved = await link.evaluate((el) => /** @type {HTMLLinkElement} */ (el).href);
+    expect(new URL(resolved).pathname, 'ruta resuelta del icono').toBe('/assets/favicon.svg');
+    const res = await request.get('/assets/favicon.svg');
+    expect(res.status(), 'GET /assets/favicon.svg').toBe(200);
+    expect(res.headers()['content-type']).toContain('image/svg+xml');
+    expect(await res.text(), 'el favicon no es un SVG').toContain('<svg');
+  });
+
+  test('S9.d — ninguna petición al cargar la página (contexto limpio) termina en 404', async ({ browser, baseURL }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const responses = [];
+    page.on('response', (res) => responses.push({ url: res.url(), status: res.status() }));
+    await page.goto(baseURL + '/', { waitUntil: 'networkidle' });
+    await expectLandingServed(page);
+    await context.close();
+    expect(responses.length, 'respuestas registradas').toBeGreaterThan(0);
+    expect(responses.filter((r) => r.status === 404), 'peticiones con 404').toEqual([]);
+  });
+
+  for (const [label, viewport] of VIEWPORTS) {
+    test(`S9.e — h1: letter-spacing ≥ 0,12 em y padding-left igual al letter-spacing (±0,5 px) a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const m = await page.locator('h1').evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return { fontSize: parseFloat(cs.fontSize), letterSpacing: cs.letterSpacing, paddingLeft: cs.paddingLeft };
+      });
+      const spacingPx = parseFloat(m.letterSpacing); // "normal" -> NaN
+      const paddingPx = parseFloat(m.paddingLeft);
+      expect(Number.isFinite(spacingPx), `letter-spacing computado: ${m.letterSpacing}`).toBe(true);
+      const em = spacingPx / m.fontSize;
+      expect(em, `letter-spacing ${m.letterSpacing} / font-size ${m.fontSize}px = ${em.toFixed(3)} em`).toBeGreaterThanOrEqual(0.12);
+      expect(
+        Math.abs(paddingPx - spacingPx),
+        `padding-left ${m.paddingLeft} vs letter-spacing ${m.letterSpacing}`,
+      ).toBeLessThanOrEqual(0.5);
     });
   }
 });
