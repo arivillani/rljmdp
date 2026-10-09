@@ -1,4 +1,4 @@
-/*! © 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados. */
+/*! © 2026 Respetable Logia Juan Martín De Pueyrredón Nº 251. Todos los derechos reservados. */
 :root {
   /* Paleta roja (L29): blanco hueso para todo el texto y el isologotipo; rojo lacre, más hondo que el #a60000 anterior. */
   --blanco: #f0ebe3; /* blanco hueso: apagado, sin tinte rosado (a* ≈ 0) */
@@ -157,6 +157,8 @@ body {
 
 /* Bloque de título (L9, L11, L24): pequeño, arriba y centrado, como un logotipo. Mayúsculas solo por CSS: el texto del
    DOM no cambia. "Respetable Logia" (p) va sobre el nombre (h1); las medidas áureas y la colocación están en .hero.
+   max-width (L43): ningún renglón llega a menos de 16 px del borde (S4.c); si el nombre con su número no entra en uno,
+   el número baja a su propio renglón en lugar de acercarse al borde.
    Sticky (L34, S4.g): en el flujo, centrado con margin auto y fijo a --titulo-top del viewport mientras el hero está a la
    vista; se va con el borde inferior del hero (su bloque contenedor), así que nunca llega al pie. Como el padding-top del
    hero vale lo mismo, en scroll 0 queda donde estaba cuando era absoluto. */
@@ -168,6 +170,7 @@ body {
   /* Aire para los descendentes (L38, S4.h): los renglones miden la altura de mayúsculas, pero en serifas como Noto Serif
      (Android) la J de JUAN baja ≈ 0,21 em. Sticky respeta el margin-bottom, así que el bloque se detiene 0,25 em del
      nombre antes del borde inferior del hero y ninguna letra queda recortada por su overflow: clip. */
+  max-width: calc(100% - 32px);
   margin: 0 auto calc(var(--t-nombre) * 0.25);
   color: var(--blanco);
   text-align: center;
@@ -198,13 +201,41 @@ body {
   line-height: var(--mayus);
 }
 
+/* Nombre de la logia (L43): «Juan Martín De Pueyrredón Nº 251». Nombre y número son dos piezas que no se parten
+   (white-space: nowrap heredado de .titulo); el único corte posible es entre ellas. En un renglón, el hueco entre las
+   dos es el de una palabra más (espacio de 0,25 em + tracking). Si el número baja, el hueco vertical es la separación
+   áurea del bloque (antetítulo / φ), la misma que hay entre el antetítulo y el nombre: tres renglones a igual paso. */
 .hero h1 {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--t-ante) / var(--phi)) calc(0.25em + var(--tr-nombre));
   margin: 0;
   padding-left: var(--tr-nombre);
   font-size: var(--t-nombre);
   font-weight: 400;
   letter-spacing: var(--tr-nombre);
   line-height: var(--mayus);
+}
+
+/* «Nº» se lee como un solo signo (L43): entre la N y el ordinal (º, U+00BA; no el ° de grado) va el tracking del
+   nombre ÷ φ², no el tracking completo, que los separaba. */
+.titulo__n {
+  letter-spacing: calc(var(--tr-nombre) / var(--phi) / var(--phi));
+}
+
+/* Hasta 579 px el nombre con su número no entra en un renglón con 16 px de margen (a 24 px mide ≈ 545 px; debajo de
+   571 px el nombre crece con el ancho, 4,2vw), así que el número va siempre en su propio renglón, centrado, al tamaño y
+   tracking del nombre. El alto del bloque suma ese renglón y su separación, y la colocación áurea (S4.f) lo incluye. */
+@media (max-width: 579px) {
+  .hero {
+    --alto-bloque: calc(var(--t-ante) * var(--mayus) + 2 * (var(--t-ante) / var(--phi) + var(--t-nombre) * var(--mayus)));
+  }
+
+  .hero h1 {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 /* Pie con la estructura de la referencia (L12): bloques de ancho completo separados por filetes finos,

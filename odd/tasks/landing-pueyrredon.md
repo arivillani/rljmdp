@@ -70,14 +70,14 @@ Bloque de título (L24): `hgroup.titulo` con `p.titulo__antetitulo` (`Respetable
 - tracking: `letter-spacing(antetítulo) = φ × letter-spacing(h1)`, medido en px (L26: en em la razón daría φ², porque el antetítulo mide h1/φ).
 
 Criterios:
-- S4.a — Existe exactamente un `h1` y su texto (trim) es exactamente `Juan Martín De Pueyrredón`.
+- S4.a — Existe exactamente un `h1` y su texto (trim) es exactamente `Juan Martín De Pueyrredón Nº 251` (U+00BA, U+00A0; L44).
 - S4.b — El centro horizontal de la caja del `h1` está a ±2 px del centro del viewport, y `text-align` es `center` (1440×900 y 390×844).
-- S4.c — El bloque de título está arriba, con el estilo de logotipo de la referencia (L11): antetítulo y `h1` con `text-transform: uppercase` (el texto del DOM no cambia, S4.a), el borde superior del `hgroup` entre 12 y 48 px del borde superior del hero, y el `font-size` del `h1` entre 16 y 26 px (1440×900 y 390×844). Cada línea cabe en un solo renglón con ≥ 16 px de margen lateral a 390 y a 360 px, y el antetítulo está centrado (±2 px) como el `h1`.
-- S4.d — `<title>` del documento es `Respetable Logia Juan Martín De Pueyrredón` (L24); `<html lang="es">`.
-- S4.f — Colocación áurea (L27, opción B, sin mover la imagen): en la franja libre entre el borde superior del hero y el borde superior de la cabeza (caja de S2.d), `margen superior del hgroup : aire entre el hgroup y la cabeza` = 1 : φ (±2 %), en los 6 viewports de S2.d. Cada renglón del bloque mide su altura de mayúsculas (`line-height` ≈ 0,66 em), así la separación áurea de S4.e es la que se ve entre la tinta de los dos renglones.
+- S4.c — El bloque de título está arriba, con el estilo de logotipo de la referencia (L11): antetítulo y `h1` en mayúsculas por CSS (el texto del DOM no cambia, S4.a), borde superior del `hgroup` entre 12 y 48 px del hero y `font-size` del nombre entre 16 y 26 px. El antetítulo cabe en un renglón. Desde 580 px de ancho, nombre y número comparten renglón; hasta 579 px el número va en un segundo renglón centrado (±2 px). Nombre y número no se parten y cada renglón tiene ≥ 16 px de margen lateral, en los 6 viewports de S2.d (L44).
+- S4.d — `<title>` del documento es `Respetable Logia Juan Martín De Pueyrredón Nº 251` (L24); `<html lang="es">`.
+- S4.f — Colocación áurea (L27, opción B, sin mover la imagen; L44: el alto del bloque incluye el renglón del número donde lo hay): en la franja libre entre el borde superior del hero y el borde superior de la cabeza (caja de S2.d), `margen superior del hgroup : aire entre el hgroup y la cabeza` = 1 : φ (±2 %), en los 6 viewports de S2.d. Cada renglón del bloque mide su altura de mayúsculas (`line-height` ≈ 0,66 em), así la separación áurea de S4.e es la que se ve entre la tinta de los dos renglones.
 - S4.g — Título que acompaña la imagen (L34), a 1440×900 y 390×844: al scrollear, el `hgroup.titulo` queda a la misma distancia del borde superior del viewport (su `top` áureo, ±1 px) mientras el hero esté a la vista. Al terminar el hero se va con su borde inferior: nunca se superpone al `footer` (borde inferior del `hgroup` ≤ borde inferior del hero). Se mide con el hero scrolleado 0, 25, 50 y 75 % de su alto y al pasar al pie. A esos mismos niveles de scroll, el contraste del título y del antetítulo (método de S8.d) es ≥ 4.5:1; si hace falta, se agrega una sombra suave que acompaña al título. Implementación: `position: sticky` dentro del hero, con `overflow: clip` en el hero en lugar de `hidden`.
 - S4.h — Sin recorte de letras (L38): mientras el título se va con el hero, la tinta real de cada renglón (línea base + descendente medido con la fuente computada) queda por encima del borde inferior del hero (+0,5 px), que la recorta con `overflow: clip`. Se mide con la pila de fuentes real y con una serif de J descendente (DejaVu Serif, como Noto Serif en Android) a 1440×900, 390×844 y 844×390 (celular apaisado). Solución: `margin-bottom` del `hgroup` = 0,25 × tamaño del nombre, que sticky respeta.
-- S4.e — Proporción áurea (L24), a 1440×900, 1366×650 y 390×844: `font-size(h1) / font-size(antetítulo)` = φ (±0,5 %); la separación vertical entre las cajas = `font-size(antetítulo) / φ` (±1 px); `letter-spacing(antetítulo) / letter-spacing(h1)` = φ (±1 %); el antetítulo está arriba del `h1`, dentro del mismo `hgroup.titulo`, y su texto es exactamente `Respetable Logia`.
+- S4.e — (L44: el número tiene el tamaño y el tracking del nombre; `letter-spacing(h1) / letter-spacing(N de «Nº»)` = φ² (±1 %); donde baja a su renglón, la separación nombre–número = `font-size(antetítulo)/φ` (±1 px).) Proporción áurea (L24), a 1440×900, 1366×650 y 390×844: `font-size(h1) / font-size(antetítulo)` = φ (±0,5 %); la separación vertical entre las cajas = `font-size(antetítulo) / φ` (±1 px); `letter-spacing(antetítulo) / letter-spacing(h1)` = φ (±1 %); el antetítulo está arriba del `h1`, dentro del mismo `hgroup.titulo`, y su texto es exactamente `Respetable Logia`.
 
 ### S5 — Paleta roja con blanco hueso
 > "que tenga la paleta de colores de la foto adjunta"
@@ -126,7 +126,7 @@ bloques de ancho completo separados por filetes finos, todo alineado a la izquie
 1. `ul.pie__secciones` con tres renglones cortos (≈ 18–20 px), con mucho aire vertical: `Lorem ipsum`, `Dolor sit amet`, `Consectetur adipiscing`.
 2. `p` chico (≈ 13–14 px, interlineado ≈ 1,7) de Lorem ipsum (≈ 35 palabras).
 3. `p.pie__auspicio` (L24): el texto `Bajo los auspicios de la` en mayúsculas espaciadas (L27: 12 px, `letter-spacing` 0,2 em, rima con el antetítulo) y, debajo, el isologotipo de la Gran Logia Argentina (260 px de ancho, ≈ medida de los párrafos ÷ φ) como `img` en línea (`alt="Gran Logia Argentina de Libres y Aceptados Masones"`), de modo que la oración se lee completa con lector de pantalla. El logo es un PNG con transparencia en `--blanco` (L29) (`assets/img/gran-logia-argentina.png`), generado desde el original blanco sobre negro (`assets/src/gran-logia-argentina-original.png`).
-4. `p.pie__copy` chico: `© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.` (L42)
+4. `p.pie__copy` chico: `© 2026 Respetable Logia Juan Martín De Pueyrredón Nº 251. Todos los derechos reservados.` (L42)
 
 Colores (L29): fondo `--rojo-800` (`#8a0b12`); todo el texto `--blanco` (contraste 8,28:1); filetes 1 px `--rojo-600`.
 Sin botones; el único contenido real es el bloque de auspicio (L24), y el único enlace es el isologotipo hacia `https://www.masoneria-argentina.org.ar/` (L25).
@@ -135,7 +135,7 @@ Criterios:
 - S7.a — Los hijos de `body` son solo `div.intro` (S10, decorativo), `main`, `footer` y, al final, el `script` de la guarda (S12.c); `main` contiene únicamente la sección `.hero`.
 - S7.b — Estructura: el `footer` tiene exactamente 4 hijos directos con clase `pie__bloque`, en este orden: un `ul.pie__secciones` con exactamente 3 `li`; un `p`; un `p.pie__auspicio`; un `p.pie__copy` cuyo texto empieza por `©`.
 - S7.c — Lorem ipsum en los bloques 1 y 2: el primer `p` empieza por `Lorem ipsum`; su texto contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
-- S7.i — Derechos reservados visibles (L42): el texto de `p.pie__copy` es exactamente `© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.`, igual que el `<meta name="copyright">` y el `LICENSE` (S12.a).
+- S7.i — Derechos reservados visibles (L42): el texto de `p.pie__copy` es exactamente `© 2026 Respetable Logia Juan Martín De Pueyrredón Nº 251. Todos los derechos reservados.`, igual que el `<meta name="copyright">` y el `LICENSE` (S12.a).
 - S7.h — Enlace (L25): el isologotipo está envuelto en un único `a` con `href` exactamente `https://www.masoneria-argentina.org.ar/`, `target="_blank"` y `rel` con `noopener`; su nombre accesible es `Gran Logia Argentina de Libres y Aceptados Masones (se abre en una pestaña nueva)`; con foco de teclado muestra un contorno visible en `--blanco`. La carga de la página sigue sin pedir nada fuera del propio origen (S6.b).
 - S7.g — Auspicio (L24): el texto de `p.pie__auspicio` (trim) es exactamente `Bajo los auspicios de la`; contiene un único `img` con `src` terminado en `assets/img/gran-logia-argentina.png`, `alt` `Gran Logia Argentina de Libres y Aceptados Masones`, que cargó (`naturalWidth` > 0), con píxel de esquina transparente (alfa 0) y renderizado debajo del texto, con ancho entre 200 y 320 px a 1440×900 y ≤ el ancho disponible a 360 px.
 - S7.d — El `footer` no contiene `button`, `form`, `svg` ni `h1`–`h6`; su único `img` es el isologotipo de S7.g y su único `a` es el enlace de S7.h.
@@ -201,7 +201,7 @@ Criterios:
 > "El tema es que no quiero que alguien copie el estilo de la pagina" · elegidas: "Derechos reservados", "Minificar lo publicado", "Bloquear atajos igual"
 
 Nada técnico impide copiar una página que el navegador tiene que descargar. Estas medidas suman protección legal y disuasión:
-- **Derechos reservados:** `LICENSE` con «© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.» El diseño, el código y el emblema de la intro quedan bajo esos derechos. Se excluyen el isologotipo de la Gran Logia Argentina y el retrato al óleo, que pertenecen a sus titulares. Al principio de `css/styles.css` va un comentario preservable (`/*! … */`) y en el `<head>` un `<meta name="copyright">`.
+- **Derechos reservados:** `LICENSE` con «© 2026 Respetable Logia Juan Martín De Pueyrredón Nº 251. Todos los derechos reservados.» El diseño, el código y el emblema de la intro quedan bajo esos derechos. Se excluyen el isologotipo de la Gran Logia Argentina y el retrato al óleo, que pertenecen a sus titulares. Al principio de `css/styles.css` va un comentario preservable (`/*! … */`) y en el `<head>` un `<meta name="copyright">`.
 - **Publicado comprimido:** `npm run build` arma `_site/` con el HTML y el CSS minificados (sin comentarios salvo el aviso `/*!`) y los mismos assets. El workflow de Pages publica ese `_site/`, y la suite completa corre también contra el build.
 - **Atajos:** un `<script>` en línea manda a `about:blank` (con `location.replace`) ante los atajos de ver código o herramientas de desarrollo: Ctrl+U, F12, Ctrl+Shift+I/J/C, y en Mac ⌘⌥U/I/J/C. Usa `event.code`, porque en Mac ⌥ cambia `event.key`. No bloquea el clic derecho, la selección ni otros atajos. Es disuasión: `view-source:` y el repo público siguen mostrando el código.
 
@@ -243,8 +243,8 @@ Criterios:
 | T3b | S11 | opus — CI/CD | Workflow de tests + GitHub Pages (solo archivos públicos) | [x] | ver L39 |
 | T2q | S12, S8.b, S11 | sonnet — apply (TDD) | LICENSE, build minificado + suite contra el build, guarda de atajos | [x] | `1f438fd` |
 | T2r | S7.c, S7.i | opus — apply (TDD) | Derechos reservados visibles en el pie (L42) | [x] | ver L42 |
-| S5-style | S4 | opus — style (`odd-style`) | Dónde y cómo va el «Nº 251» en el título (L43) | [ ] | — |
-| T2s | S4 | apply (TDD) | Aplicar el número de logia según S5-style | [ ] | — |
+| S5-style | S4 | opus — style (`odd-style`) | Dónde y cómo va el «Nº 251» en el título (L43, L44) | [x] | — (L44) |
+| T2s | S4, S7.i, S12 | opus — apply (TDD) | «Nº 251» en el `h1` (L44) | [x] | ver L44 |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -385,3 +385,8 @@ Criterios:
   > Agrégale a título respetable logia Juan Martin de Pueyrredón N°251 y pásalo por el agente visual para ver qué tal queda
 
   (opus) El PR #2 se fusionó y la rama se reinicia desde `main`. Restricciones vigentes: S4.a (`h1` = «Juan Martín De Pueyrredón»), S4.c (una línea con ≥ 16 px de margen a 360), S4.e/S4.f (proporciones áureas), S2.d (cabeza libre) y S4.h (sin recortes). Con « Nº 251» agregado al `h1`, a 360 px no entra en una línea. `odd-style` decide la ubicación y la grafía (º ordinal o ° de grado, espacio duro), y si `<title>` y el aviso de derechos llevan el número.
+- **L44** (usuario, literal, tras ver la opción A del agente):
+  > No espera esa opción no va el nombre es "JUAN MARTIN DE PUEYRREDÓN N°251"
+  > En El tirulo
+
+  (opus) Se descarta la opción A («Respetable Logia Nº 251» en el antetítulo), que no se había commiteado. El número va en el `h1`: «Juan Martín De Pueyrredón Nº 251», con º ordinal y espacio duro (el usuario escribió «N°251»; se le ofreció dejarlo literal). Desde 580 px de ancho, nombre y número van en un renglón; hasta 579 px el número baja a su renglón, centrado, con el tamaño y el tracking del nombre y la separación antetítulo/φ. `--alto-bloque` suma ese renglón para que S4.f siga exacto. «Nº 251» también en `<title>`, metas, pie, aviso del CSS y `LICENSE`. RED: 15 fallos por proyecto (S4.a, S4.c ×6, S4.d, S4.e ×3, S7.i, S12.a ×3) → GREEN **202/202**. Razón S4.f entre 1,6196 y 1,6234; cabeza a ≥ 23,6 px del bloque. R1: riesgo **pasivo**.
