@@ -75,24 +75,47 @@ body {
   );
 }
 
-/* Título pequeño arriba, centrado, como logotipo (L9, L11): mayúsculas solo por CSS, el texto del DOM no cambia. */
-.hero h1 {
+/* Bloque de título (L9, L11, L24): pequeño, arriba y centrado, como un logotipo. Mayúsculas solo por CSS: el texto del
+   DOM no cambia. "Respetable Logia" (p) va sobre el nombre (h1) y todo el bloque sigue la proporción áurea φ:
+     tamaño     h1 = φ × antetítulo
+     separación (antetítulo → h1) = tamaño del antetítulo / φ
+     tracking   antetítulo = φ × h1 (en px)
+   El tamaño del h1 depende también del alto del viewport (3vh) para que, en pantallas bajas, la cabeza (S2.d)
+   empiece debajo de todo el bloque. */
+.titulo {
+  --phi: 1.6180339887;
+  --t-nombre: clamp(16px, min(4.2vw, 3vh), 26px);
+  --t-ante: calc(var(--t-nombre) / var(--phi));
+  --tr-nombre: calc(var(--t-nombre) * 0.14); /* = 0.14em del h1 */
   position: absolute;
-  top: clamp(16px, 3vh, 28px);
+  top: clamp(12px, 2.5vh, 28px);
   left: 50%;
   z-index: 2;
   transform: translateX(-50%);
   margin: 0;
   color: var(--rosa-100);
-  padding-left: 0.14em; /* compensa el tracking que queda tras la última letra: centro óptico = centro de la caja */
-  font-size: clamp(16px, 4.2vw, 22px);
-  font-weight: 400;
-  letter-spacing: 0.14em;
-  line-height: 1.2;
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
   text-shadow: 0 0 12px rgb(27 3 3 / 0.7);
+}
+
+.titulo__antetitulo {
+  margin: 0 0 calc(var(--t-ante) / var(--phi));
+  /* El tracking deja un espacio tras la última letra: el padding-left igual compensa y centra la tinta (S9.e). */
+  padding-left: calc(var(--tr-nombre) * var(--phi));
+  font-size: var(--t-ante);
+  letter-spacing: calc(var(--tr-nombre) * var(--phi));
+  line-height: 1.1;
+}
+
+.hero h1 {
+  margin: 0;
+  padding-left: var(--tr-nombre);
+  font-size: var(--t-nombre);
+  font-weight: 400;
+  letter-spacing: var(--tr-nombre);
+  line-height: 1.1;
 }
 
 /* Pie con la estructura de la referencia (L12): bloques de ancho completo separados por filetes finos,
@@ -137,4 +160,35 @@ body {
   padding-block: 24px 48px;
   font-size: 13px;
   letter-spacing: 0.02em;
+}
+
+/* Auspicio (L24): "Bajo los auspicios de la" y, debajo, el isologotipo de la Gran Logia como enlace (L25). El logo es un
+   PNG transparente en --rosa-100. El enlace es de bloque (y ajustado al logo) para que quede siempre debajo del texto. */
+.pie__enlace {
+  display: block;
+  width: fit-content;
+  margin-top: 16px;
+  border-radius: 2px;
+  transition: opacity 0.2s ease;
+}
+
+.pie__enlace:hover {
+  opacity: 0.82;
+}
+
+.pie__enlace:focus-visible {
+  outline: 1px solid var(--rosa-100);
+  outline-offset: 6px;
+}
+
+.pie__logo {
+  display: block;
+  width: clamp(200px, 22vw, 280px);
+  height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pie__enlace {
+    transition: none;
+  }
 }

@@ -37,10 +37,19 @@ const LOGO_VIEWPORTS = [
   ['360×740', { width: 360, height: 740 }],
 ];
 
+// S4.e (L24): proporción áurea del bloque de título, en estos tres viewports.
+const PHI = (1 + Math.sqrt(5)) / 2;
+const PHI_VIEWPORTS = [
+  ['1440×900', DESKTOP],
+  ['1366×650', { width: 1366, height: 650 }],
+  ['390×844', MOBILE],
+];
+
 // Caja de la cabeza con pelo, patillas y mentón (S2), en px del panorama: la del original
 // (x 270–760, y 150–710) más el desplazamiento del pegado (845, 0) que imprime scripts/build_panorama.py.
 const HEAD_BOX = { x1: 1115, x2: 1605, y1: 150, y2: 710 };
 const HEAD_MARGIN = 8;
+const HEAD_TITLE_GAP = 4; // S2.d: la cabeza empieza ≥ 4 px debajo de todo el hgroup.titulo (L24)
 const PANORAMA_PATH = '/assets/img/pueyrredon-panorama.jpg';
 const PANORAMA_MAX_BYTES = 700 * 1000; // S2.b: ≤ 700 KB (lectura estricta, igual que el script)
 
@@ -60,6 +69,18 @@ const TOKENS = {
 };
 
 const TITLE = 'Juan Martín De Pueyrredón';
+const KICKER = 'Respetable Logia';
+const DOCUMENT_TITLE = `${KICKER} ${TITLE}`; // S4.d (L24)
+const KICKER_SELECTOR = 'hgroup.titulo p.titulo__antetitulo';
+
+// S7.g y S7.h (L24, L25): auspicio con el isologotipo enlazado.
+const AUSPICIO_TEXT = 'Bajo los auspicios de la';
+const LOGO_SRC_END = 'assets/img/gran-logia-argentina.png';
+const LOGO_ALT = 'Gran Logia Argentina de Libres y Aceptados Masones';
+const LOGO_LINK_HREF = 'https://www.masoneria-argentina.org.ar/';
+const LOGO_LINK_NAME = `${LOGO_ALT} (se abre en una pestaña nueva)`;
+const LOGO_MIN_WIDTH = 200;
+const LOGO_MAX_WIDTH = 320;
 
 /** '#rrggbb' -> 'r,g,b' */
 function hexToRgbKey(hex) {
@@ -226,7 +247,7 @@ test.describe('S2 — Imagen de fondo, con la cabeza entera', () => {
   }
 
   for (const [label, viewport] of HERO_VIEWPORTS) {
-    test(`S2.d — cabeza entera con ≥ 8 px de margen y sin tocar el h1 a ${label}`, async ({ page }) => {
+    test(`S2.d — cabeza entera con ≥ 8 px de margen y ≥ ${HEAD_TITLE_GAP} px por debajo de todo el hgroup.titulo a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
       // Geometría de object-fit: cover + object-position (en %) aplicada a la caja de la cabeza.
       const m = await page.evaluate(async ({ headBox }) => {
@@ -238,7 +259,8 @@ test.describe('S2 — Imagen de fondo, con la cabeza entera', () => {
           /* se informa vía naturalWidth */
         }
         const r = img.getBoundingClientRect();
-        const h1 = document.querySelector('h1').getBoundingClientRect();
+        const block = document.querySelector('hgroup.titulo');
+        const t = block ? block.getBoundingClientRect() : null;
         const iw = img.naturalWidth;
         const ih = img.naturalHeight;
         const position = getComputedStyle(img).objectPosition;
@@ -261,7 +283,7 @@ test.describe('S2 — Imagen de fondo, con la cabeza entera', () => {
             top: r.top - hero.top + dy + headBox.y1 * scale,
             bottom: r.top - hero.top + dy + headBox.y2 * scale,
           },
-          h1: { left: h1.left, right: h1.right, top: h1.top - hero.top, bottom: h1.bottom - hero.top },
+          titulo: t && { left: t.left, right: t.right, top: t.top - hero.top, bottom: t.bottom - hero.top },
         };
       }, { headBox: HEAD_BOX });
       // Guarda: la proyección solo significa algo con el panorama (la caja está en sus px) y con object-fit: cover.
@@ -269,15 +291,19 @@ test.describe('S2 — Imagen de fondo, con la cabeza entera', () => {
       expect(m.objectFit, 'object-fit del img').toBe('cover');
       expect(m.naturalWidth, 'la imagen no cargó').toBeGreaterThan(0);
       expect(Number.isFinite(m.scale), `object-position "${m.position}" no está en %`).toBe(true);
-      const { head, h1 } = m;
+      expect(m.titulo, 'falta hgroup.titulo (L24)').not.toBeNull();
+      const { head, titulo } = /** @type {{ head: any, titulo: any }} */ (m);
       const box = `cabeza x ${head.left.toFixed(1)}–${head.right.toFixed(1)}, y ${head.top.toFixed(1)}–${head.bottom.toFixed(1)} ` +
         `(viewport ${m.clientWidth}×${m.heroHeight}, escala ${m.scale.toFixed(3)}, object-position ${m.position})`;
       expect.soft(head.left, `margen izquierdo: ${box}`).toBeGreaterThanOrEqual(HEAD_MARGIN);
       expect.soft(head.top, `margen superior: ${box}`).toBeGreaterThanOrEqual(HEAD_MARGIN);
       expect.soft(head.right, `margen derecho: ${box}`).toBeLessThanOrEqual(m.clientWidth - HEAD_MARGIN);
       expect.soft(head.bottom, `margen inferior: ${box}`).toBeLessThanOrEqual(m.heroHeight - HEAD_MARGIN);
-      const overlaps = h1.left < head.right && h1.right > head.left && h1.top < head.bottom && h1.bottom > head.top;
-      expect.soft(overlaps, `h1 (x ${h1.left.toFixed(1)}–${h1.right.toFixed(1)}, y ${h1.top.toFixed(1)}–${h1.bottom.toFixed(1)}) se superpone con la cabeza: ${box}`).toBe(false);
+      expect.soft(
+        head.top,
+        `la cabeza empieza en y ${head.top.toFixed(1)} y el hgroup.titulo termina en y ${titulo.bottom.toFixed(1)} ` +
+          `(holgura ${(head.top - titulo.bottom).toFixed(1)} px, mínimo ${HEAD_TITLE_GAP}): ${box}`,
+      ).toBeGreaterThanOrEqual(titulo.bottom + HEAD_TITLE_GAP);
     });
   }
 });
@@ -327,40 +353,111 @@ test.describe('S4 — Título centrado, pequeño y arriba', () => {
   }
 
   for (const [label, viewport] of LOGO_VIEWPORTS) {
-    test(`S4.c — h1 de logotipo: MAYÚSCULAS, borde superior a 12–48 px del hero, font-size 16–26 px y una línea con ≥ 16 px de margen lateral a ${label}`, async ({ page }) => {
+    test(`S4.c — bloque de título tipo logotipo: MAYÚSCULAS, hgroup a 12–48 px del borde superior del hero, h1 de 16–26 px, cada línea en un renglón con ≥ 16 px de margen lateral y antetítulo centrado a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      const m = await page.evaluate(() => {
+      const m = await page.evaluate((kickerSelector) => {
         const hero = document.querySelector('.hero').getBoundingClientRect();
+        const block = document.querySelector('hgroup.titulo');
+        const kicker = document.querySelector(kickerSelector);
         const h1 = document.querySelector('h1');
-        const r = h1.getBoundingClientRect();
-        const cs = getComputedStyle(h1);
-        const fontSize = parseFloat(cs.fontSize);
-        const lineHeight = cs.lineHeight === 'normal' ? fontSize * 1.2 : parseFloat(cs.lineHeight);
-        return {
-          top: r.top - hero.top,
-          left: r.left,
-          right: document.documentElement.clientWidth - r.right,
-          height: r.height,
-          fontSize,
-          lineHeight,
-          textTransform: cs.textTransform,
+        if (!block || !kicker) return null;
+        const clientWidth = document.documentElement.clientWidth;
+        const line = (el) => {
+          const r = el.getBoundingClientRect();
+          const cs = getComputedStyle(el);
+          const fontSize = parseFloat(cs.fontSize);
+          const lineHeight = cs.lineHeight === 'normal' ? fontSize * 1.2 : parseFloat(cs.lineHeight);
+          return {
+            left: r.left,
+            right: clientWidth - r.right,
+            centerX: r.left + r.width / 2,
+            height: r.height,
+            fontSize,
+            lineHeight,
+            textTransform: cs.textTransform,
+          };
         };
-      });
-      expect(m.textTransform, 'text-transform del h1').toBe('uppercase');
-      expect(m.top, `borde superior del h1: ${m.top}px`).toBeGreaterThanOrEqual(12);
-      expect(m.top, `borde superior del h1: ${m.top}px`).toBeLessThanOrEqual(48);
-      expect(m.fontSize, `font-size del h1: ${m.fontSize}px`).toBeGreaterThanOrEqual(16);
-      expect(m.fontSize, `font-size del h1: ${m.fontSize}px`).toBeLessThanOrEqual(26);
-      expect(m.height, `alto ${m.height}px vs line-height ${m.lineHeight}px: más de una línea`).toBeLessThan(1.6 * m.lineHeight);
-      expect(m.left, `margen izquierdo del h1: ${m.left}px`).toBeGreaterThanOrEqual(16);
-      expect(m.right, `margen derecho del h1: ${m.right}px`).toBeGreaterThanOrEqual(16);
+        return {
+          blockTop: block.getBoundingClientRect().top - hero.top,
+          viewportCenterX: clientWidth / 2,
+          h1: line(h1),
+          kicker: line(kicker),
+        };
+      }, KICKER_SELECTOR);
+      expect(m, 'falta hgroup.titulo con p.titulo__antetitulo (L24)').not.toBeNull();
+      const { blockTop, viewportCenterX, h1, kicker } = /** @type {NonNullable<typeof m>} */ (m);
+      expect(blockTop, `borde superior del hgroup: ${blockTop}px`).toBeGreaterThanOrEqual(12);
+      expect(blockTop, `borde superior del hgroup: ${blockTop}px`).toBeLessThanOrEqual(48);
+      expect(h1.fontSize, `font-size del h1: ${h1.fontSize}px`).toBeGreaterThanOrEqual(16);
+      expect(h1.fontSize, `font-size del h1: ${h1.fontSize}px`).toBeLessThanOrEqual(26);
+      for (const [name, l] of /** @type {const} */ ([['h1', h1], ['antetítulo', kicker]])) {
+        expect(l.textTransform, `text-transform del ${name}`).toBe('uppercase');
+        expect(l.height, `${name}: alto ${l.height}px vs line-height ${l.lineHeight}px: más de una línea`).toBeLessThan(1.6 * l.lineHeight);
+        expect(l.left, `margen izquierdo del ${name}: ${l.left}px`).toBeGreaterThanOrEqual(16);
+        expect(l.right, `margen derecho del ${name}: ${l.right}px`).toBeGreaterThanOrEqual(16);
+      }
+      expect(
+        Math.abs(kicker.centerX - viewportCenterX),
+        `centro del antetítulo ${kicker.centerX} vs centro del viewport ${viewportCenterX}`,
+      ).toBeLessThanOrEqual(2);
     });
   }
 
-  test('S4.d — <title> correcto y <html lang="es">', async ({ page }) => {
-    await expect(page).toHaveTitle(TITLE);
+  test('S4.d — <title> del documento con el nombre de la logia y <html lang="es">', async ({ page }) => {
+    await expect(page).toHaveTitle(DOCUMENT_TITLE);
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   });
+
+  for (const [label, viewport] of PHI_VIEWPORTS) {
+    test(`S4.e — proporción áurea: tamaño ×φ, separación ÷φ y tracking ×φ; antetítulo "${KICKER}" sobre el h1 en hgroup.titulo a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const m = await page.evaluate(() => {
+        const block = document.querySelector('hgroup.titulo');
+        const kicker = block && block.querySelector(':scope > p.titulo__antetitulo');
+        const h1 = block && block.querySelector(':scope > h1');
+        if (!kicker || !h1) return null;
+        const k = kicker.getBoundingClientRect();
+        const n = h1.getBoundingClientRect();
+        return {
+          kickerText: kicker.textContent,
+          kickerFirst: !!(kicker.compareDocumentPosition(h1) & Node.DOCUMENT_POSITION_FOLLOWING),
+          kickerBottom: k.bottom,
+          h1Top: n.top,
+          kickerFontSize: parseFloat(getComputedStyle(kicker).fontSize),
+          h1FontSize: parseFloat(getComputedStyle(h1).fontSize),
+          kickerTracking: getComputedStyle(kicker).letterSpacing,
+          h1Tracking: getComputedStyle(h1).letterSpacing,
+        };
+      });
+      expect(m, 'falta hgroup.titulo > p.titulo__antetitulo + h1 (L24)').not.toBeNull();
+      const r = /** @type {NonNullable<typeof m>} */ (m);
+      expect.soft(r.kickerText, 'texto del antetítulo').toBe(KICKER);
+      expect.soft(r.kickerFirst, 'el antetítulo debe preceder al h1').toBe(true);
+      expect.soft(r.kickerBottom, 'el antetítulo debe quedar arriba del h1').toBeLessThanOrEqual(r.h1Top);
+
+      const sizeRatio = r.h1FontSize / r.kickerFontSize;
+      expect.soft(
+        Math.abs(sizeRatio - PHI) / PHI,
+        `tamaño: h1 ${r.h1FontSize}px / antetítulo ${r.kickerFontSize}px = ${sizeRatio.toFixed(4)} (φ = ${PHI.toFixed(4)}, ±0,5 %)`,
+      ).toBeLessThanOrEqual(0.005);
+
+      const gap = r.h1Top - r.kickerBottom;
+      const wanted = r.kickerFontSize / PHI;
+      expect.soft(
+        Math.abs(gap - wanted),
+        `separación: ${gap.toFixed(2)}px entre las cajas vs antetítulo/φ = ${wanted.toFixed(2)}px (±1 px)`,
+      ).toBeLessThanOrEqual(1);
+
+      const kickerPx = parseFloat(r.kickerTracking); // "normal" -> NaN
+      const h1Px = parseFloat(r.h1Tracking);
+      expect(Number.isFinite(kickerPx) && Number.isFinite(h1Px) && h1Px > 0, `letter-spacing computado: antetítulo ${r.kickerTracking}, h1 ${r.h1Tracking}`).toBe(true);
+      const trackingRatio = kickerPx / h1Px;
+      expect.soft(
+        Math.abs(trackingRatio - PHI) / PHI,
+        `tracking: antetítulo ${r.kickerTracking} / h1 ${r.h1Tracking} = ${trackingRatio.toFixed(4)} (φ = ${PHI.toFixed(4)}, ±1 %)`,
+      ).toBeLessThanOrEqual(0.01);
+    });
+  }
 });
 
 test.describe('S5 — Paleta de la foto adjunta', () => {
@@ -431,7 +528,7 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
     expect(footerBelowHero).toBe(true);
   });
 
-  test('S7.b — footer con 4 bloques .pie__bloque en orden: ul.pie__secciones (3 li), p, p, p.pie__copy que empieza por ©', async ({ page }) => {
+  test('S7.b — footer con 4 bloques .pie__bloque en orden: ul.pie__secciones (3 li), p, p.pie__auspicio, p.pie__copy que empieza por ©', async ({ page }) => {
     const blocks = await page.evaluate(() =>
       [...document.querySelector('footer').children].map((el) => ({
         tag: el.tagName.toLowerCase(),
@@ -444,22 +541,127 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
     for (const b of blocks) expect(b.classes, `${b.tag} sin .pie__bloque`).toContain('pie__bloque');
     expect(blocks[0].classes).toContain('pie__secciones');
     expect(blocks[0].items).toEqual(['li', 'li', 'li']);
+    expect(blocks[2].classes, 'el bloque 3 debe ser p.pie__auspicio (L24)').toContain('pie__auspicio');
     expect(blocks[3].classes).toContain('pie__copy');
     expect(blocks[3].text.startsWith('©')).toBe(true);
   });
 
-  test('S7.c — solo Lorem ipsum: primer p empieza por "Lorem ipsum"; sin ©, solo letras, espacios, comas y puntos (≤ 120 palabras)', async ({ page }) => {
+  test('S7.c — Lorem ipsum salvo el auspicio: primer p empieza por "Lorem ipsum"; bloques 1, 2 y 4 sin ©, solo letras, espacios, comas y puntos (≤ 120 palabras)', async ({ page }) => {
     const firstParagraph = ((await page.locator('footer p').first().textContent()) || '').trim();
     expect(firstParagraph.startsWith('Lorem ipsum'), `primer p: ${firstParagraph.slice(0, 30)}`).toBe(true);
-    const text = (await page.locator('footer').evaluate((el) => /** @type {HTMLElement} */ (el).innerText))
+    // Los bloques 1, 2 y 4 son los que no son el auspicio (que lleva texto real y un logo, S7.g).
+    const lorem = page.locator('footer > .pie__bloque:not(.pie__auspicio)');
+    await expect(lorem, 'bloques 1, 2 y 4 (todos menos p.pie__auspicio)').toHaveCount(3);
+    const text = (await lorem.evaluateAll((els) => els.map((el) => /** @type {HTMLElement} */ (el).innerText).join('\n')))
       .replace('©', '')
       .trim();
-    expect(text, 'el texto del footer tiene caracteres que no son letras, espacios, comas ni puntos').toMatch(/^[A-Za-zÀ-ÿ\s,.]+$/);
+    expect(text, 'el texto de los bloques 1, 2 y 4 tiene caracteres que no son letras, espacios, comas ni puntos').toMatch(/^[A-Za-zÀ-ÿ\s,.]+$/);
     expect(text.split(/\s+/).length).toBeLessThanOrEqual(120);
   });
 
-  test('S7.d — footer sin a, button, form, img, svg ni h1–h6', async ({ page }) => {
-    await expect(page.locator('footer a, footer button, footer form, footer img, footer svg, footer h1, footer h2, footer h3, footer h4, footer h5, footer h6')).toHaveCount(0);
+  test('S7.d — footer sin button, form, svg ni h1–h6; su único img es el isologotipo (S7.g) y su único a es el enlace (S7.h)', async ({ page }) => {
+    await expect(page.locator('footer button, footer form, footer svg, footer h1, footer h2, footer h3, footer h4, footer h5, footer h6')).toHaveCount(0);
+    const imgs = page.locator('footer img');
+    await expect(imgs, 'el footer debe tener exactamente un img (el isologotipo)').toHaveCount(1);
+    expect(await imgs.getAttribute('src'), 'src del único img').toMatch(/assets\/img\/gran-logia-argentina\.png$/);
+    const links = page.locator('footer a');
+    await expect(links, 'el footer debe tener exactamente un a (el enlace del isologotipo)').toHaveCount(1);
+    expect(await links.getAttribute('href'), 'href del único a').toBe(LOGO_LINK_HREF);
+    await expect(links.locator('img'), 'el único a envuelve al isologotipo').toHaveCount(1);
+  });
+
+  /**
+   * Isologotipo de la Gran Logia: lo carga (es `loading="lazy"` y está bajo el pliegue) y lo mide en la página.
+   * @param {import('@playwright/test').Page} page
+   */
+  async function measureAuspicioLogo(page) {
+    const img = page.locator('footer .pie__auspicio img');
+    await expect(img, 'p.pie__auspicio debe contener exactamente un img').toHaveCount(1);
+    await img.scrollIntoViewIfNeeded();
+    return img.evaluate(async (node) => {
+      const el = /** @type {HTMLImageElement} */ (node);
+      try {
+        await el.decode();
+      } catch (e) {
+        /* se informa vía naturalWidth */
+      }
+      let cornerAlpha = -1;
+      if (el.naturalWidth > 0) {
+        const canvas = document.createElement('canvas');
+        canvas.width = el.naturalWidth;
+        canvas.height = el.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(el, 0, 0);
+        cornerAlpha = ctx.getImageData(0, 0, 1, 1).data[3];
+      }
+      const p = /** @type {HTMLElement} */ (el.closest('p.pie__auspicio'));
+      const textNode = [...p.childNodes].find((n) => n.nodeType === Node.TEXT_NODE && (n.textContent || '').trim());
+      const range = document.createRange();
+      range.selectNodeContents(/** @type {Node} */ (textNode));
+      const pStyle = getComputedStyle(p);
+      const r = el.getBoundingClientRect();
+      return {
+        paragraphText: (p.textContent || '').trim(),
+        src: el.src,
+        alt: el.alt,
+        naturalWidth: el.naturalWidth,
+        cornerAlpha,
+        imgTop: r.top,
+        imgLeft: r.left,
+        imgRight: r.right,
+        width: r.width,
+        textBottom: range.getBoundingClientRect().bottom,
+        availableWidth: p.clientWidth - parseFloat(pStyle.paddingLeft) - parseFloat(pStyle.paddingRight),
+        clientWidth: document.documentElement.clientWidth,
+      };
+    });
+  }
+
+  test(`S7.g — auspicio: texto exacto, único img cargado con alt exacto, esquina transparente, debajo del texto y ancho ${LOGO_MIN_WIDTH}–${LOGO_MAX_WIDTH} px a 1440×900`, async ({ page }) => {
+    const m = await measureAuspicioLogo(page);
+    expect(m.paragraphText, 'texto de p.pie__auspicio').toBe(AUSPICIO_TEXT);
+    expect(m.src.endsWith(LOGO_SRC_END), `src: ${m.src}`).toBe(true);
+    expect(m.alt, 'alt del isologotipo').toBe(LOGO_ALT);
+    expect(m.naturalWidth, 'el isologotipo no cargó').toBeGreaterThan(0);
+    expect(m.cornerAlpha, `alfa del píxel (0,0) = ${m.cornerAlpha}`).toBe(0);
+    expect(m.imgTop, `img top ${m.imgTop.toFixed(1)} vs fondo del texto ${m.textBottom.toFixed(1)}: el logo va debajo del texto`).toBeGreaterThanOrEqual(m.textBottom);
+    expect(m.width, `ancho del logo: ${m.width.toFixed(1)}px`).toBeGreaterThanOrEqual(LOGO_MIN_WIDTH);
+    expect(m.width, `ancho del logo: ${m.width.toFixed(1)}px`).toBeLessThanOrEqual(LOGO_MAX_WIDTH);
+  });
+
+  test('S7.g — el isologotipo cabe en el ancho disponible del bloque a 360×740', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    const m = await measureAuspicioLogo(page);
+    expect(m.naturalWidth, 'el isologotipo no cargó').toBeGreaterThan(0);
+    expect(m.width, `ancho del logo ${m.width.toFixed(1)}px vs ancho disponible ${m.availableWidth.toFixed(1)}px`).toBeLessThanOrEqual(m.availableWidth + 0.5);
+    expect(m.imgRight, `borde derecho del logo ${m.imgRight.toFixed(1)}px vs viewport ${m.clientWidth}px`).toBeLessThanOrEqual(m.clientWidth);
+  });
+
+  test('S7.h — el isologotipo está dentro de un único enlace a la Gran Logia (nueva pestaña, noopener, nombre accesible) con foco de teclado visible en --rosa-100', async ({ page }) => {
+    const links = page.locator('footer a');
+    await expect(links, 'el footer debe tener exactamente un a').toHaveCount(1);
+    await expect(links.locator('img.pie__logo'), 'el a debe envolver al isologotipo').toHaveCount(1);
+    await expect(links).toHaveAttribute('href', LOGO_LINK_HREF);
+    await expect(links).toHaveAttribute('target', '_blank');
+    const rel = ((await links.getAttribute('rel')) || '').split(/\s+/);
+    expect(rel, `rel: ${rel.join(' ')}`).toContain('noopener');
+    await expect(page.getByRole('link', { name: LOGO_LINK_NAME, exact: true }), 'enlace con ese nombre accesible').toHaveCount(1);
+
+    // Foco de teclado: Tab hasta llegar al enlace (es el único elemento enfocable de la página).
+    let focused = false;
+    for (let i = 0; i < 5 && !focused; i++) {
+      await page.keyboard.press('Tab');
+      focused = await links.evaluate((el) => el === document.activeElement);
+    }
+    expect(focused, 'el enlace no recibió el foco con Tab').toBe(true);
+    const outline = await links.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { visible: el.matches(':focus-visible'), style: cs.outlineStyle, width: cs.outlineWidth, color: cs.outlineColor };
+    });
+    expect(outline.visible, 'el enlace debe coincidir con :focus-visible').toBe(true);
+    expect(outline.style, `outline-style: ${outline.style}`).not.toBe('none');
+    expect(parseFloat(outline.width), `outline-width: ${outline.width}`).toBeGreaterThan(0);
+    expect(outline.color, 'outline-color').toBe('rgb(255, 187, 186)');
   });
 
   test('S7.e — formato: alineado a la izquierda, filete de 1 px en los bloques 2–4 (no en el 1), colores de la paleta', async ({ page }) => {
@@ -549,26 +751,33 @@ test.describe('S8 — Calidad base', () => {
   });
 
   for (const [label, viewport] of VIEWPORTS) {
-    test(`S8.d — contraste ≥ 4.5:1 del h1 a ${label}`, async ({ page }) => {
+    test(`S8.d — contraste ≥ 4.5:1 del h1 y del antetítulo a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      // Caja medida con el texto visible (visibility no altera el layout).
-      const box = await page.locator('h1').evaluate((el) => {
-        const r = el.getBoundingClientRect();
-        return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
-      });
-      const x = Math.floor(box.left);
-      const y = Math.floor(box.top);
-      const clip = { x, y, width: Math.ceil(box.right) - x, height: Math.ceil(box.bottom) - y };
-      // Fondo sin texto: se oculta el h1.
-      await page.addStyleTag({ content: 'h1 { visibility: hidden !important; }' });
+      // Cajas medidas con el texto visible (visibility no altera el layout).
+      const boxes = await page.evaluate((kickerSelector) => {
+        const kicker = document.querySelector(kickerSelector);
+        if (!kicker) return null;
+        const box = (el) => {
+          const r = el.getBoundingClientRect();
+          return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+        };
+        return { h1: box(document.querySelector('h1')), antetítulo: box(kicker) };
+      }, KICKER_SELECTOR);
+      expect(boxes, 'falta hgroup.titulo con p.titulo__antetitulo (L24)').not.toBeNull();
+      // Fondo sin texto: se ocultan el h1 y el antetítulo.
+      await page.addStyleTag({ content: 'h1, .titulo__antetitulo { visibility: hidden !important; }' });
       const textColor = [0xff, 0xbb, 0xba]; // --rosa-100
-      const png = await page.screenshot({ clip });
-      const avg = await averageColor(page, png);
-      const ratio = contrastRatio(textColor, avg);
-      expect(
-        ratio,
-        `h1: contraste ${ratio.toFixed(2)}:1 de #ffbbba sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
-      ).toBeGreaterThanOrEqual(4.5);
+      for (const [name, b] of Object.entries(/** @type {NonNullable<typeof boxes>} */ (boxes))) {
+        const x = Math.floor(b.left);
+        const y = Math.floor(b.top);
+        const clip = { x, y, width: Math.ceil(b.right) - x, height: Math.ceil(b.bottom) - y };
+        const avg = await averageColor(page, await page.screenshot({ clip }));
+        const ratio = contrastRatio(textColor, avg);
+        expect.soft(
+          ratio,
+          `${name}: contraste ${ratio.toFixed(2)}:1 de #ffbbba sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
     });
   }
 });

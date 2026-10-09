@@ -5,7 +5,7 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ## Qué hay
 
 - Panorama a sangre completa (`object-fit: cover`): el retrato original pegado píxel a píxel entre dos costados de nubes; sin fondo desenfocado y con la cabeza entera en los viewports probados (S2.d).
-- Título pequeño arriba, centrado, en mayúsculas; sin menú.
+- Título pequeño arriba, centrado, en mayúsculas: "Respetable Logia" sobre el nombre, en proporción áurea (tamaño ×φ, separación ÷φ, tracking ×φ); sin menú.
 - Paleta roja de la foto adjunta: 12 tokens declarados en `:root`.
 
 | Token | Hex | Token | Hex |
@@ -18,7 +18,7 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 | `--carmesi-700` | `#81001f` | `--tinta` | `#1c1c26` |
 
 - Times New Roman (con respaldos), sin fuentes web.
-- Pie: tres renglones, filetes finos, dos párrafos y © (todo en Lorem ipsum).
+- Pie: tres renglones, filetes finos, un párrafo y © en Lorem ipsum, más el bloque "Bajo los auspicios de la" con el isologotipo de la Gran Logia Argentina, que enlaza a https://www.masoneria-argentina.org.ar/ en una pestaña nueva.
 
 ## Estructura
 
@@ -28,7 +28,9 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ├── css/styles.css                   tokens, layout y pie
 ├── assets/img/pueyrredon.jpg        retrato optimizado
 ├── assets/img/pueyrredon-panorama.jpg  panorama del hero (generado, ≤ 700 KB)
+├── assets/img/gran-logia-argentina.png isologotipo de la Gran Logia (PNG transparente en --rosa-100)
 ├── assets/src/pueyrredon-gemini.jpg extensión lateral hecha con Gemini (fuente)
+├── assets/src/gran-logia-argentina-original.png  isologotipo original, blanco sobre negro (fuente)
 ├── scripts/build_panorama.py        genera el panorama (Python 3 + Pillow + numpy)
 ├── tests/landing.spec.js            tests Playwright
 ├── playwright.config.js             Chromium 1440×900, puerto 4173
@@ -42,13 +44,13 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ```bash
 npm install   # dependencias de desarrollo (Playwright, http-server)
 npm start     # sirve el sitio en http://127.0.0.1:4173
-npm test      # tests Playwright (Chromium): 53 en total
+npm test      # tests Playwright (Chromium): 59 en total
 python3 -I scripts/build_panorama.py   # regenera assets/img/pueyrredon-panorama.jpg (requiere Pillow y numpy)
 ```
 
 - Requiere Node 18 o superior.
 - En una máquina nueva, instalar Chromium para Playwright con `npx playwright install chromium`.
-- Los 53 tests cubren los criterios S1.a–S9.f; varios se repiten por viewport (S1.a, S2.c, S2.d, S4.b, S4.c, S8.d, S9.a, S9.e, S9.f).
+- Los 59 tests cubren los criterios S1.a–S9.f; varios se repiten por viewport (S1.a, S2.c, S2.d, S4.b, S4.c, S4.e, S7.g, S8.d, S9.a, S9.e, S9.f).
 
 ## Cómo se desarrolló
 
