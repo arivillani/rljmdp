@@ -182,7 +182,7 @@ Criterios:
 | T1d | S2.f | sonnet — asset | Corregir la unión derecha del panorama (color local) | [x] | `afdd76f` |
 | T2j | S4.f, S4.e, S7.g | sonnet — apply (TDD) | Aplicar la revisión de estilo L27 (opción B) | [x] | `975113e` |
 | S3-style | S5 | opus — style (`odd-style`) | Paleta roja con blanco hueso (L29), prototipo en una copia | [x] | — (L29) |
-| T2k | S5, S7, S8.d, S9.b | sonnet — apply (TDD) | Aplicar la paleta L29: CSS, tests, logo blanco, favicon, README | [ ] | — |
+| T2k | S5, S7, S8.d, S9.b | sonnet — apply (TDD) | Aplicar la paleta L29: CSS, tests, logo blanco, favicon, README | [x] | `f97d7cc` |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -270,3 +270,4 @@ Criterios:
   > Que no sea un blanco chillón que sea un blanco apagado, elegante
 
   (opus) `odd-style` (opus) lo prototipó en una copia, con la suite en 65/65 tras actualizar los tests que tenían la paleta fijada. Propuesta: `--blanco` `#f0ebe3` (blanco hueso); pie en lacre `--rojo-800` `#8a0b12`, porque con este blanco `#a60000` daba solo 6,75:1; filetes `--rojo-600` `#b0262c`; velo inferior teñido con el rojo del pie. Contraste del texto del pie de 4,99 a 8,28:1; sobre el cuadro, `h1` 8,16 / 8,14 y antetítulo 9,83 / 9,56. Se reescriben S5 (4 tokens), S7 (colores, logo blanco, foco), S7.f (≥ 7:1), S8.d, el velo de S9 y S9.b. Nueva tarea T2k.
+- **L30** (sonnet T2k + opus R1): RED 8 fallos (S5.a, S5.b, S7.e, S7.f, S7.g, S7.h, S9.b, S9.d); S8.d ya pasaba con el rosa → GREEN **65/65**. Contraste: `h1` 8,17 / 8,11, antetítulo 9,84 / 9,55, pie 8,28 (1440 / 390). Logo regenerado con el alfa idéntico bit a bit; solo cambia el RGB a (240, 235, 227); S7.g verifica todos los píxeles opacos. Favicon lacre con «P» blanco hueso. Commit `f97d7cc`. R1 sobre `14e61dc..f97d7cc`: riesgo **pasivo** (CSS, asset y tests); revisión visual a 390 (página completa), sin restos de rosa → **reconocido**.
