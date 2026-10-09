@@ -133,10 +133,11 @@ Criterios:
 ### S9 — Refinamiento visual (revisión de estilo, L21)
 > "Hace que el front lo revise algún agente de estilo e identidad visual así queda lindo y elegante" (L17)
 
-Propuestas de `odd-style` aceptadas (ver L21). El velo inferior del hero queda pendiente de la decisión del usuario.
-- Pie: columna de texto de ≤ 64ch en los párrafos (los filetes siguen a ancho completo), `text-wrap: pretty`, margen lateral `clamp(24px, 4.5vw, 64px)` común a todos los bloques y escala de espaciado de 8 px.
+Propuestas de `odd-style` aceptadas (ver L21). Velo inferior: el usuario eligió "Sombra + corte" (L22).
+- Pie: columna de texto de 60ch en los párrafos (L22) (los filetes siguen a ancho completo), `text-wrap: pretty`, margen lateral `clamp(24px, 4.5vw, 64px)` común a todos los bloques y escala de espaciado de 8 px.
 - Título como logotipo: `letter-spacing: .14em` con compensación óptica (`padding-left` igual al tracking), `font-size: clamp(16px, 4.2vw, 22px)`.
 - Suavizado tipográfico, selección de texto con la paleta, `theme-color` y `color-scheme`, favicon SVG propio.
+- Velo inferior (L22): `.hero::after` en `mix-blend-mode: multiply` con degradé `rgb(27 3 3 / .55) 0` → `rgb(27 3 3 / 0) 14%` → `rgb(129 0 31 / 0) 68%` → `rgb(129 0 31 / .7) 100%`. La base del cuadro se hunde en una sombra borravino casi negra y pasa al rojo del pie con un corte limpio, sin el tono lila.
 
 Criterios:
 - S9.a — Ningún renglón de los párrafos del pie supera 75 caracteres, a 1440×900 y a 1920×950; a 390×844 los bloques empiezan a ≥ 24 px del borde izquierdo y todos comparten el mismo borde izquierdo de texto (±1 px).
@@ -144,6 +145,7 @@ Criterios:
 - S9.c — `<meta name="theme-color" content="#1b0303">` y `<meta name="color-scheme" content="dark">` presentes.
 - S9.d — `<link rel="icon">` apunta a `assets/favicon.svg`, que responde 200 con `image/svg+xml`; ninguna petición al cargar la página termina en 404.
 - S9.e — El `letter-spacing` computado del `h1` es ≥ 0,12 em y su `padding-left` es igual a su `letter-spacing` (±0,5 px).
+- S9.f — Sombra + corte (L22): el `mix-blend-mode` de `.hero::after` es `multiply`, y el color promedio de los últimos 22 px del hero tiene luminancia relativa ≤ 0,012 a 1440×900 y a 390×844 (antes: ≈ 0,025, lila).
 
 ## Tasks
 
@@ -160,7 +162,8 @@ Criterios:
 | T1b | S2 | sonnet — asset | `scripts/build_panorama.py` → `assets/img/pueyrredon-panorama.jpg` (S2.b, S2.e) | [x] | `bc8c98e` |
 | T2f | S2 | sonnet — apply (TDD) | Hero con el panorama a sangre completa (S2.a, S2.c, S2.d) | [x] | `969a32b` |
 | S1 | S1–S8 | opus — style (`odd-style`) | Revisión de estilo e identidad visual (L17), solo lectura | [x] | — (L21) |
-| T2g | S9 | sonnet — apply (TDD) | Aplicar las propuestas de estilo aceptadas, menos el velo | [ ] | — |
+| T2g | S9 | sonnet — apply (TDD) | Aplicar las propuestas de estilo aceptadas, menos el velo | [x] | `3c478c7` |
+| T2h | S9.f | sonnet — apply (TDD) | Velo inferior "Sombra + corte" (L22) | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -220,3 +223,7 @@ Criterios:
   (opus) Queda: fondo `#a60000` y letra `#ffbbba` (misma columna de la lámina), filetes `#ca302e`. Sin cambios.
 - **L20** (sonnet T1b/T2f + opus R1): registro del original en la imagen de Gemini con s = 0.5075, (429, 0), residuo 12.76/255; Gemini ampliado ×1.9704 → 2869×1419 + 5 px reflejados abajo → **2869×1424**; ajuste de color (ganancia/sesgo) R 1.039/−2.3, G 1.059/−4.4, B 1.070/−4.2; original pegado en x = 845 con fundido smoothstep de 48 px. **S2.e: 1.80/255** sobre el JPEG guardado. Panorama: 566 879 bytes, q82, determinista. Gemini escaló el original de forma levemente anisótropa (≈ 1,5 % más en vertical); el desfase local en las uniones es de 3–5 px y queda oculto por el fundido. T2f — RED 13 fallos (S2.a, S2.c ×6, S2.d ×6; S2.d con guarda para que no pase en vacío) → GREEN **42/42**. `object-position: 47% 15%`. Cabeza dentro del viewport en los 6 tamaños (margen mínimo 44.9 px a 390), `h1` ≥ 19 px por encima. R1 sobre `f8296f5..969a32b`: riesgo **pasivo** (asset + script offline + CSS/HTML estático); revisión visual de uniones, rostro y capturas a 1920×950 y 390×844, sin hallazgos → **reconocido**.
 - **L21** (opus, revisión de estilo `odd-style` sobre `1edc908`, solo lectura; el agente aún no estaba cargado en la sesión, así que corrió con sus mismas instrucciones): 8 propuestas, todas probadas en una copia con la suite en 42/42. Aceptadas → S9 (T2g): columna de ≤ 64ch en el pie (antes un renglón de 211 caracteres a 1440), márgenes y espaciado de 8 px, título con tracking .14em y centrado óptico, suavizado tipográfico, `::selection`, `theme-color`/`color-scheme` y favicon. Pendiente de decisión del usuario: el velo inferior. Según el agente, el carmesí con alfa sobre el uniforme azul se ve lila (tono ≈ 340°) y compite con el rojo del pie; propone `mix-blend-mode: multiply` con una sombra más larga, para que el paso al pie sea un corte limpio de oscuro a rojo.
+- **L22** (usuario, respuesta a la pregunta sobre el difuminado; opción elegida, literal):
+  > Sombra + corte (Recomendado)
+
+  (opus) T2g (sonnet): RED 8 fallos (S9.a ×3, S9.b, S9.c, S9.d, S9.e ×2) → GREEN **51/51**. Desvío aceptado: la columna del pie queda en 60ch y no en 64ch, porque con 64ch salía un renglón de 78 caracteres y S9.a exige ≤ 75 (máximo medido con 60ch: 73). Título: 22 px a 1440, 16,4 px a 390, centrado exacto, contraste 6,26–6,36. El suavizado tipográfico no tiene un test útil en Chromium para Linux, así que se aplica sin test. Commit `3c478c7`. Nueva tarea T2h para el velo (S9.f).
