@@ -60,6 +60,8 @@ Criterios:
 >
 > "El título "respetable logia Juan Martin de Pueyrredón" tiene que recorrer la imagen cuando scrolleo para abajo tanto ennpc como en celular, solo en la imagen, observa el título en la página de tamburnis." (L34)
 >
+> "Agrégale a título respetable logia Juan Martin de Pueyrredón N°251 y pásalo por el agente visual para ver qué tal queda" (L43)
+>
 > "Arriba, en el título poné "Respetable Logia" más chico centrado sobre "Juan Martin De Pueyrredón" más grande, en una relación que comprenda matemáticamente la proporción aurea." (L24)
 
 Bloque de título (L24): `hgroup.titulo` con `p.titulo__antetitulo` (`Respetable Logia`) arriba y el `h1` (`Juan Martín De Pueyrredón`, se mantiene el acento de S4.a) debajo, ambos en mayúsculas por CSS y centrados. Relaciones áureas (φ = 1,6180339…):
@@ -241,6 +243,8 @@ Criterios:
 | T3b | S11 | opus — CI/CD | Workflow de tests + GitHub Pages (solo archivos públicos) | [x] | ver L39 |
 | T2q | S12, S8.b, S11 | sonnet — apply (TDD) | LICENSE, build minificado + suite contra el build, guarda de atajos | [x] | `1f438fd` |
 | T2r | S7.c, S7.i | opus — apply (TDD) | Derechos reservados visibles en el pie (L42) | [x] | ver L42 |
+| S5-style | S4 | opus — style (`odd-style`) | Dónde y cómo va el «Nº 251» en el título (L43) | [ ] | — |
+| T2s | S4 | apply (TDD) | Aplicar el número de logia según S5-style | [ ] | — |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -377,3 +381,7 @@ Criterios:
   > Commitea asi los veo en la pagina
 
   (opus) La línea del pie seguía como `© Lorem ipsum` (L12). Pasa a mostrar el mismo aviso que `LICENSE` y el meta. S7.c ya no cubre el bloque 4 (S7.i). Como el PR #1 está fusionado, la rama se reinicia desde `main` y el cambio va en un PR nuevo. RED: S7.i falla en los dos proyectos («© Lorem ipsum») → GREEN tras cambiar el `p.pie__copy`.
+- **L43** (usuario, literal):
+  > Agrégale a título respetable logia Juan Martin de Pueyrredón N°251 y pásalo por el agente visual para ver qué tal queda
+
+  (opus) El PR #2 se fusionó y la rama se reinicia desde `main`. Restricciones vigentes: S4.a (`h1` = «Juan Martín De Pueyrredón»), S4.c (una línea con ≥ 16 px de margen a 360), S4.e/S4.f (proporciones áureas), S2.d (cabeza libre) y S4.h (sin recortes). Con « Nº 251» agregado al `h1`, a 360 px no entra en una línea. `odd-style` decide la ubicación y la grafía (º ordinal o ° de grado, espacio duro), y si `<title>` y el aviso de derechos llevan el número.
