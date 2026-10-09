@@ -23,72 +23,84 @@ body {
   font-family: "Times New Roman", Times, "Liberation Serif", Tinos, serif;
 }
 
-/* Header transparente superpuesto al hero: solo microtexto. */
-.topbar {
-  position: absolute;
-  inset: 0 0 auto 0;
-  z-index: 1;
-  display: flex;
-  justify-content: space-between;
-  padding: clamp(18px, 3vw, 32px) clamp(16px, 4vw, 48px);
-  background: transparent;
-  color: var(--rosa-100);
-  font-size: 11px;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgb(27 3 3 / 0.6);
-}
-
-/* Hero a sangre completa: alto exacto del viewport; el retrato es la única capa de fondo. */
+/* Hero a sangre completa: alto exacto del viewport. Capas, de atrás hacia adelante:
+   ::before (retrato desenfocado a sangre) → img (retrato nítido entero) → ::after (velo) → h1. */
 .hero {
   position: relative;
   height: 100vh;
   height: 100svh;
-  background: url("../assets/img/pueyrredon.jpg") center 35% / cover no-repeat;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--rojo-950);
 }
 
-/* Velo en degradé de la paleta: banda superior para el header y banda oscura tras el título (S2, S8.d). */
+/* Fondo: el mismo retrato, desenfocado y oscurecido, llena el viewport en cualquier proporción (S2.c).
+   El inset negativo evita el borde claro del desenfoque. */
 .hero::before {
   content: "";
   position: absolute;
+  inset: -60px;
+  z-index: -1;
+  background: url("../assets/img/pueyrredon.jpg") center 30% / cover no-repeat;
+  filter: blur(36px) brightness(0.45) saturate(1.1);
+}
+
+/* Retrato nítido a alto completo: la cabeza nunca queda cortada (S2.d).
+   Los bordes laterales se funden con el fondo desenfocado. */
+.hero__retrato {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 0;
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  transform: translateX(-50%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%);
+}
+
+/* En pantallas angostas el retrato desborda a los lados: se ancla en la cabeza (no en el centro de la imagen). */
+@media (max-width: 600px) {
+  .hero__retrato {
+    transform: translateX(-44%);
+  }
+}
+
+/* Velo de la paleta: banda superior para el título y cierre carmesí abajo; el rostro queda sin velo. */
+.hero::after {
+  content: "";
+  position: absolute;
   inset: 0;
+  z-index: 1;
+  pointer-events: none;
   background: linear-gradient(
     to bottom,
-    rgb(27 3 3 / 0.52) 0%,
-    rgb(27 3 3 / 0.38) 10%,
-    rgb(27 3 3 / 0.15) 40%,
-    rgb(27 3 3 / 0.22) 52%,
-    rgb(27 3 3 / 0.46) 64%,
-    rgb(64 0 1 / 0.58) 82%,
-    rgb(129 0 31 / 0.6) 100%
+    rgb(27 3 3 / 0.55) 0,
+    rgb(27 3 3 / 0) 14%,
+    rgb(27 3 3 / 0) 78%,
+    rgb(129 0 31 / 0.45) 100%
   );
 }
 
-/* Centrado horizontal estricto; vertical al 68 % para no tapar el rostro (L4). */
+/* Título pequeño arriba, centrado, como logotipo (L9, L11): mayúsculas solo por CSS, el texto del DOM no cambia. */
 .hero h1 {
   position: absolute;
-  top: 68%;
+  top: clamp(16px, 3vh, 28px);
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(100% - 32px, 16ch);
+  z-index: 2;
+  transform: translateX(-50%);
   margin: 0;
   color: var(--rosa-100);
-  font-size: clamp(2.6rem, 7vw, 6.5rem);
+  font-size: clamp(16px, 4.4vw, 24px);
   font-weight: 400;
-  line-height: 1.05;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
   text-align: center;
-  text-wrap: balance;
-  text-shadow: 0 1px 24px rgb(27 3 3 / 0.55);
-}
-
-/* Filete de acento bajo el título. */
-.hero h1::after {
-  content: "";
-  display: block;
-  width: 48px;
-  height: 1px;
-  margin: 0.35em auto 0;
-  background: var(--rosa-300);
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 0 12px rgb(27 3 3 / 0.7);
 }
 
 footer {

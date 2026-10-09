@@ -9,6 +9,26 @@ const VIEWPORTS = [
   ['1440×900', DESKTOP],
   ['390×844', MOBILE],
 ];
+// S2.d: viewports reales de escritorio (con barra del navegador) y de móvil.
+const HEAD_VIEWPORTS = [
+  ['1440×900', DESKTOP],
+  ['1920×950', { width: 1920, height: 950 }],
+  ['1366×650', { width: 1366, height: 650 }],
+  ['390×844', MOBILE],
+  ['360×740', { width: 360, height: 740 }],
+];
+
+// S4.c: logotipo de una sola línea, también a 360 px.
+const LOGO_VIEWPORTS = [
+  ['1440×900', DESKTOP],
+  ['390×844', MOBILE],
+  ['360×740', { width: 360, height: 740 }],
+];
+
+// Retrato original (px) y caja de la cabeza con pelo, patillas y mentón (S2).
+const PORTRAIT = { width: 1181, height: 1424 };
+const HEAD_BOX = { x1: 270, x2: 760, y1: 150, y2: 710 };
+const HEAD_MARGIN = 8;
 
 const TOKENS = {
   '--rojo-950': '#1b0303',
@@ -107,22 +127,16 @@ test.describe('S1 — Formato Tamburins', () => {
     });
   }
 
-  test('S1.b — header es absolute/fixed, transparente y está en top: 0', async ({ page }) => {
-    const header = page.locator('header');
-    await expect(header).toHaveCount(1);
-    const info = await header.evaluate((el) => {
-      const cs = getComputedStyle(el);
-      return {
-        position: cs.position,
-        background: cs.backgroundColor,
-        top: cs.top,
-        boxTop: el.getBoundingClientRect().top,
-      };
-    });
-    expect(['absolute', 'fixed']).toContain(info.position);
-    expect(['transparent', 'rgba(0, 0, 0, 0)']).toContain(info.background);
-    expect(info.top).toBe('0px');
-    expect(info.boxTop).toBe(0);
+  test('S1.b — sin elemento header; ni el texto visible ni la meta description contienen Buenos Aires, 1777 ni 1850', async ({ page }) => {
+    await expect(page.locator('header')).toHaveCount(0);
+    const { text, description } = await page.evaluate(() => ({
+      text: document.body.innerText,
+      description: document.querySelector('meta[name="description"]')?.getAttribute('content') || '',
+    }));
+    for (const banned of ['Buenos Aires', '1777', '1850']) {
+      expect(text, `texto visible contiene "${banned}"`).not.toContain(banned);
+      expect(description, `meta description contiene "${banned}"`).not.toContain(banned);
+    }
   });
 
   test('S1.c — sin scroll horizontal a 390 px', async ({ page }) => {
@@ -135,10 +149,22 @@ test.describe('S1 — Formato Tamburins', () => {
   });
 });
 
-test.describe('S2 — Imagen de fondo', () => {
-  test('S2.a — .hero usa pueyrredon.jpg como background-image', async ({ page }) => {
-    const bg = await page.locator('.hero').evaluate((el) => getComputedStyle(el).backgroundImage);
-    expect(bg).toContain('pueyrredon.jpg');
+test.describe('S2 — Imagen de fondo, con la cabeza entera', () => {
+  test('S2.a — único img.hero__retrato en .hero, src pueyrredon.jpg, alt no vacío y cargada (naturalWidth 1181)', async ({ page }) => {
+    await expect(page.locator('img.hero__retrato')).toHaveCount(1);
+    await expect(page.locator('.hero > img.hero__retrato')).toHaveCount(1);
+    const info = await page.locator('img.hero__retrato').evaluate(async (img) => {
+      const el = /** @type {HTMLImageElement} */ (img);
+      try {
+        await el.decode();
+      } catch (e) {
+        /* se informa vía naturalWidth */
+      }
+      return { src: el.src, alt: el.alt, naturalWidth: el.naturalWidth };
+    });
+    expect(info.src.endsWith('assets/img/pueyrredon.jpg'), `src: ${info.src}`).toBe(true);
+    expect(info.alt.trim().length, 'alt vacío').toBeGreaterThan(0);
+    expect(info.naturalWidth).toBe(PORTRAIT.width);
   });
 
   test('S2.b — GET /assets/img/pueyrredon.jpg responde 200 image/jpeg', async ({ request }) => {
@@ -147,10 +173,48 @@ test.describe('S2 — Imagen de fondo', () => {
     expect(res.headers()['content-type']).toContain('image/jpeg');
   });
 
-  test('S2.c — background-size es cover', async ({ page }) => {
-    const size = await page.locator('.hero').evaluate((el) => getComputedStyle(el).backgroundSize);
-    expect(size).toBe('cover');
+  test('S2.c — .hero::before: background-image pueyrredon.jpg, background-size cover y filter con blur', async ({ page }) => {
+    const info = await page.locator('.hero').evaluate((el) => {
+      const cs = getComputedStyle(el, '::before');
+      return { backgroundImage: cs.backgroundImage, backgroundSize: cs.backgroundSize, filter: cs.filter };
+    });
+    expect(info.backgroundImage).toContain('pueyrredon.jpg');
+    expect(info.backgroundSize).toBe('cover');
+    expect(info.filter).toContain('blur');
   });
+
+  for (const [label, viewport] of HEAD_VIEWPORTS) {
+    test(`S2.d — cabeza entera con ≥ 8 px de margen y sin tocar el h1 a ${label}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const m = await page.evaluate(({ portrait, head }) => {
+        const hero = document.querySelector('.hero').getBoundingClientRect();
+        const r = document.querySelector('img.hero__retrato').getBoundingClientRect();
+        const h1 = document.querySelector('h1').getBoundingClientRect();
+        const scale = r.width / portrait.width;
+        return {
+          scale,
+          clientWidth: document.documentElement.clientWidth,
+          heroHeight: hero.height,
+          head: {
+            left: r.left + head.x1 * scale,
+            right: r.left + head.x2 * scale,
+            top: r.top - hero.top + head.y1 * scale,
+            bottom: r.top - hero.top + head.y2 * scale,
+          },
+          h1: { left: h1.left, right: h1.right, top: h1.top - hero.top, bottom: h1.bottom - hero.top },
+        };
+      }, { portrait: PORTRAIT, head: HEAD_BOX });
+      const { head, h1 } = m;
+      const box = `cabeza x ${head.left.toFixed(1)}–${head.right.toFixed(1)}, y ${head.top.toFixed(1)}–${head.bottom.toFixed(1)} ` +
+        `(viewport ${m.clientWidth}×${m.heroHeight}, escala ${m.scale.toFixed(3)})`;
+      expect.soft(head.left, `margen izquierdo: ${box}`).toBeGreaterThanOrEqual(HEAD_MARGIN);
+      expect.soft(head.top, `margen superior: ${box}`).toBeGreaterThanOrEqual(HEAD_MARGIN);
+      expect.soft(head.right, `margen derecho: ${box}`).toBeLessThanOrEqual(m.clientWidth - HEAD_MARGIN);
+      expect.soft(head.bottom, `margen inferior: ${box}`).toBeLessThanOrEqual(m.heroHeight - HEAD_MARGIN);
+      const overlaps = h1.left < head.right && h1.right > head.left && h1.top < head.bottom && h1.bottom > head.top;
+      expect.soft(overlaps, `h1 (x ${h1.left.toFixed(1)}–${h1.right.toFixed(1)}, y ${h1.top.toFixed(1)}–${h1.bottom.toFixed(1)}) se superpone con la cabeza: ${box}`).toBe(false);
+    });
+  }
 });
 
 test.describe('S3 — Sin menú lateral', () => {
@@ -174,7 +238,7 @@ test.describe('S3 — Sin menú lateral', () => {
   });
 });
 
-test.describe('S4 — Título centrado', () => {
+test.describe('S4 — Título centrado, pequeño y arriba', () => {
   test('S4.a — exactamente un h1 con el texto exacto', async ({ page }) => {
     const h1 = page.locator('h1');
     await expect(h1).toHaveCount(1);
@@ -195,16 +259,36 @@ test.describe('S4 — Título centrado', () => {
       expect(Math.abs(info.centerX - info.viewportCenterX)).toBeLessThanOrEqual(2);
       expect(info.textAlign).toBe('center');
     });
+  }
 
-    test(`S4.c — centro vertical del h1 al 68 % (±5 %) del alto del hero a ${label}`, async ({ page }) => {
+  for (const [label, viewport] of LOGO_VIEWPORTS) {
+    test(`S4.c — h1 de logotipo: MAYÚSCULAS, borde superior a 12–48 px del hero, font-size 16–26 px y una línea con ≥ 16 px de margen lateral a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      const ratio = await page.evaluate(() => {
+      const m = await page.evaluate(() => {
         const hero = document.querySelector('.hero').getBoundingClientRect();
-        const h1 = document.querySelector('h1').getBoundingClientRect();
-        return (h1.top + h1.height / 2 - hero.top) / hero.height;
+        const h1 = document.querySelector('h1');
+        const r = h1.getBoundingClientRect();
+        const cs = getComputedStyle(h1);
+        const fontSize = parseFloat(cs.fontSize);
+        const lineHeight = cs.lineHeight === 'normal' ? fontSize * 1.2 : parseFloat(cs.lineHeight);
+        return {
+          top: r.top - hero.top,
+          left: r.left,
+          right: document.documentElement.clientWidth - r.right,
+          height: r.height,
+          fontSize,
+          lineHeight,
+          textTransform: cs.textTransform,
+        };
       });
-      expect(ratio).toBeGreaterThanOrEqual(0.63);
-      expect(ratio).toBeLessThanOrEqual(0.73);
+      expect(m.textTransform, 'text-transform del h1').toBe('uppercase');
+      expect(m.top, `borde superior del h1: ${m.top}px`).toBeGreaterThanOrEqual(12);
+      expect(m.top, `borde superior del h1: ${m.top}px`).toBeLessThanOrEqual(48);
+      expect(m.fontSize, `font-size del h1: ${m.fontSize}px`).toBeGreaterThanOrEqual(16);
+      expect(m.fontSize, `font-size del h1: ${m.fontSize}px`).toBeLessThanOrEqual(26);
+      expect(m.height, `alto ${m.height}px vs line-height ${m.lineHeight}px: más de una línea`).toBeLessThan(1.6 * m.lineHeight);
+      expect(m.left, `margen izquierdo del h1: ${m.left}px`).toBeGreaterThanOrEqual(16);
+      expect(m.right, `margen derecho del h1: ${m.right}px`).toBeGreaterThanOrEqual(16);
     });
   }
 
@@ -225,13 +309,12 @@ test.describe('S5 — Paleta de la foto adjunta', () => {
     }
   });
 
-  test('S5.b — colores computados de body, h1, header y footer pertenecen a los tokens', async ({ page }) => {
+  test('S5.b — colores computados de body, h1 y footer pertenecen a los tokens', async ({ page }) => {
     const computed = await page.evaluate(() => {
       const cs = (sel) => getComputedStyle(document.querySelector(sel));
       return {
         'body background': cs('body').backgroundColor,
         'h1 color': cs('h1').color,
-        'header color': cs('header').color,
         'footer background': cs('footer').backgroundColor,
         'footer p color': cs('footer p').color,
       };
@@ -245,9 +328,9 @@ test.describe('S5 — Paleta de la foto adjunta', () => {
 });
 
 test.describe('S6 — Tipografía', () => {
-  test('S6.a — font-family computado de body, h1, header y footer p empieza por "Times New Roman"', async ({ page }) => {
+  test('S6.a — font-family computado de body, h1 y footer p empieza por "Times New Roman"', async ({ page }) => {
     const families = await page.evaluate(() =>
-      ['body', 'h1', 'header', 'footer p'].map((sel) => [sel, getComputedStyle(document.querySelector(sel)).fontFamily]),
+      ['body', 'h1', 'footer p'].map((sel) => [sel, getComputedStyle(document.querySelector(sel)).fontFamily]),
     );
     for (const [sel, family] of families) {
       expect(family.startsWith('"Times New Roman"'), `${sel}: ${family}`).toBe(true);
@@ -283,7 +366,7 @@ test.describe('S7 — Pie mínimo', () => {
       const hero = document.querySelector('.hero').getBoundingClientRect();
       const footer = document.querySelector('footer').getBoundingClientRect();
       const extra = [...document.body.children].filter(
-        (el) => !['HEADER', 'MAIN', 'FOOTER'].includes(el.tagName),
+        (el) => !['MAIN', 'FOOTER'].includes(el.tagName),
       );
       return { footerBelowHero: footer.top >= hero.bottom - 1, extra: extra.length };
     });
@@ -328,36 +411,26 @@ test.describe('S8 — Calidad base', () => {
   });
 
   for (const [label, viewport] of VIEWPORTS) {
-    test(`S8.d — contraste ≥ 4.5:1 de h1 y header a ${label}`, async ({ page }) => {
+    test(`S8.d — contraste ≥ 4.5:1 del h1 a ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      const targets = [
-        ['h1', page.locator('h1')],
-        ['header span:nth-child(1)', page.locator('header span').nth(0)],
-        ['header span:nth-child(2)', page.locator('header span').nth(1)],
-      ];
-      // Cajas medidas con el texto visible (visibility no altera el layout).
-      const boxes = [];
-      for (const [name, locator] of targets) {
-        const box = await locator.evaluate((el) => {
-          const r = el.getBoundingClientRect();
-          return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
-        });
-        const x = Math.floor(box.left);
-        const y = Math.floor(box.top);
-        boxes.push([name, { x, y, width: Math.ceil(box.right) - x, height: Math.ceil(box.bottom) - y }]);
-      }
-      // Fondo sin texto: se oculta el h1 y los spans del header.
-      await page.addStyleTag({ content: 'h1, header span { visibility: hidden !important; }' });
+      // Caja medida con el texto visible (visibility no altera el layout).
+      const box = await page.locator('h1').evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+      });
+      const x = Math.floor(box.left);
+      const y = Math.floor(box.top);
+      const clip = { x, y, width: Math.ceil(box.right) - x, height: Math.ceil(box.bottom) - y };
+      // Fondo sin texto: se oculta el h1.
+      await page.addStyleTag({ content: 'h1 { visibility: hidden !important; }' });
       const textColor = [0xff, 0xbb, 0xba]; // --rosa-100
-      for (const [name, clip] of boxes) {
-        const png = await page.screenshot({ clip });
-        const avg = await averageColor(page, png);
-        const ratio = contrastRatio(textColor, avg);
-        expect.soft(
-          ratio,
-          `${name}: contraste ${ratio.toFixed(2)}:1 de #ffbbba sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
-        ).toBeGreaterThanOrEqual(4.5);
-      }
+      const png = await page.screenshot({ clip });
+      const avg = await averageColor(page, png);
+      const ratio = contrastRatio(textColor, avg);
+      expect(
+        ratio,
+        `h1: contraste ${ratio.toFixed(2)}:1 de #ffbbba sobre fondo promedio rgb(${avg.map(Math.round).join(', ')})`,
+      ).toBeGreaterThanOrEqual(4.5);
     });
   }
 });
