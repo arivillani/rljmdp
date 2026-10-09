@@ -5,10 +5,15 @@
   "description": "Landing page de Juan Martín De Pueyrredón",
   "scripts": {
     "start": "http-server . -p 4173 -a 127.0.0.1 -c-1 --silent",
+    "start:site": "http-server _site -p 4174 -a 127.0.0.1 -c-1 --silent",
+    "build": "node scripts/build-site.mjs",
+    "pretest": "npm run build",
     "test": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
-    "http-server": "^14.1.1"
+    "html-minifier-terser": "7.2.0",
+    "http-server": "^14.1.1",
+    "lightningcss": "1.33.0"
   }
 }

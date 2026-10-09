@@ -25,7 +25,8 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ```text
 .
 ├── index.html                       página (intro + hero + pie)
-├── css/styles.css                   tokens, intro, layout y pie
+├── css/styles.css                   tokens, intro, layout y pie (abre con el aviso /*! … */ de derechos)
+├── LICENSE                          todos los derechos reservados (S12.a)
 ├── assets/img/pueyrredon.jpg        retrato optimizado
 ├── assets/img/pueyrredon-panorama.jpg  panorama del hero (generado, ≤ 700 KB)
 ├── assets/img/gran-logia-argentina.png isologotipo de la Gran Logia (PNG transparente en --blanco)
@@ -33,8 +34,11 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ├── assets/src/gran-logia-argentina-original.png  isologotipo original, blanco sobre negro (fuente)
 ├── scripts/build_panorama.py        genera el panorama (Python 3 + Pillow + numpy)
 ├── scripts/build_logo.py            genera el isologotipo en --blanco desde el original
+├── scripts/build-site.mjs           `npm run build`: arma _site/ minificado (HTML con html-minifier-terser, CSS con Lightning CSS)
+├── _site/                           generado por el build y publicado en Pages (ignorado por git)
 ├── tests/landing.spec.js            tests Playwright
-├── playwright.config.js             Chromium 1440×900, puerto 4173, reducedMotion reduce
+├── playwright.config.js             Chromium 1440×900, reducedMotion reduce; proyectos `fuente` (4173) y `sitio-publicado` (4174)
+├── .github/workflows/pages.yml      tests en cada PR; en main, build y despliegue a GitHub Pages
 ├── odd/tasks/landing-pueyrredon.md  documento de feature (Specs, Tasks, Log)
 ├── AGENTS.md                        protocolo ODD y ruteo de modelos
 └── .claude/agents/                  agentes odd-* (opus, sonnet, haiku)
@@ -43,16 +47,30 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ## Uso
 
 ```bash
-npm install   # dependencias de desarrollo (Playwright, http-server)
+npm install   # dependencias de desarrollo (Playwright, http-server, html-minifier-terser, lightningcss)
 npm start     # sirve el sitio en http://127.0.0.1:4173
-npm test      # tests Playwright (Chromium): 76 en total
+npm run build # arma _site/ (HTML y CSS minificados + assets), lo que publica GitHub Pages
+npm test      # arma _site/ y corre la suite en Chromium contra la fuente y contra _site/: 97 tests por proyecto, 194 en total
 python3 -I scripts/build_panorama.py   # regenera assets/img/pueyrredon-panorama.jpg y verifica S2.e y S2.f (requiere Pillow y numpy)
 ```
 
 - Requiere Node 18 o superior.
 - En una máquina nueva, instalar Chromium para Playwright con `npx playwright install chromium`.
-- Los 76 tests cubren los criterios S1.a–S10.d salvo S2.f, que verifica `scripts/build_panorama.py` al generar el panorama; varios se repiten por viewport (S1.a, S2.c, S2.d, S4.b, S4.c, S4.e, S4.f, S4.g, S7.g, S8.d, S9.a, S9.e, S9.f, S10.a).
+- Los 97 tests cubren los criterios S1.a–S12.c salvo S2.f, que verifica `scripts/build_panorama.py` al generar el panorama; varios se repiten por viewport (S1.a, S2.c, S2.d, S4.b, S4.c, S4.e, S4.f, S4.g, S4.h, S7.g, S8.d, S9.a, S9.e, S9.f, S10.a).
+- Dos proyectos de Playwright comparten los mismos tests: `fuente` (la raíz del repo, puerto 4173) y `sitio-publicado` (`_site/`, puerto 4174). `npm test` ejecuta antes `npm run build` (`pretest`); con `npx playwright test` suelto hay que correr `npm run build` primero.
 - La suite corre por defecto con `reducedMotion: 'reduce'` (vía `contextOptions` en `playwright.config.js`), que oculta la intro (S10.d); los tests de S10.a–S10.c piden `no-preference` y S10.b y S10.c miden la animación en tiempo real (hasta ≈ 3,2 s).
+
+## Protección del estilo (S12)
+
+Nada técnico impide copiar una página que el navegador tiene que descargar: el HTML, el CSS y las imágenes llegan completos a cualquier visitante. Estas tres medidas suman protección legal y disuasión, no seguridad.
+
+| Medida | Qué hace | Qué no hace |
+|---|---|---|
+| Derechos reservados | `LICENSE` («© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.»), un `<meta name="copyright">` y un comentario `/*! … */` al inicio del CSS, que sobrevive a la minificación. Respalda un reclamo legal. | No impide copiar. Excluye el isologotipo de la Gran Logia Argentina y el retrato al óleo, que pertenecen a sus titulares. |
+| Publicado minificado | `npm run build` arma `_site/` con el HTML (incluido el script) y el CSS sin comentarios ni espacios, y los mismos assets. Es lo que sirve GitHub Pages. | No oculta nada: cualquier formateador lo deja legible otra vez. La fuente sigue en el repositorio. |
+| Guarda de atajos | Un `<script>` en línea al final del `body` manda a `about:blank` (`location.replace`) ante Ctrl+U, F12, Ctrl+Shift+I/J/C y, en Mac, ⌘⌥U/I/J/C. Usa `event.code`, porque en Mac ⌥ cambia `event.key`. No toca el clic derecho, la selección ni otros atajos. | Es disuasión: `view-source:` en la barra de direcciones, el menú del navegador, `curl` y el repositorio público siguen mostrando el código. |
+
+El build usa Lightning CSS sin `targets` (no transpila la sintaxis moderna: `svh`, `translate`, `overflow: clip`, `mix-blend-mode`) y `html-minifier-terser` con Terser para el script. Cambios que introduce el build: en el CSS, los colores con alfa pasan a hexadecimal de 8 dígitos y `--phi` se acorta de `1.6180339887` a `1.61803` (diferencia relativa de 2·10⁻⁶); en el HTML, el meta viewport pierde el espacio tras la coma. La página se ve igual: capturas idénticas píxel a píxel en 6 viewports.
 
 ## Cómo se desarrolló
 

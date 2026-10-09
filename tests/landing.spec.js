@@ -1,6 +1,9 @@
 // @ts-check
-// Suite de aceptación de odd/tasks/landing-pueyrredon.md (S1–S10).
-// Cada test lleva el ID del criterio (S#.x) en su nombre.
+// Suite de aceptación de odd/tasks/landing-pueyrredon.md (S1–S12).
+// Cada test lleva el ID del criterio (S#.x) en su nombre. Corre en dos proyectos de Playwright (playwright.config.js):
+// `fuente` (la raíz del repo) y `sitio-publicado` (el _site/ minificado que arma `npm run build`).
+const fs = require('fs');
+const path = require('path');
 const { test, expect } = require('@playwright/test');
 
 const DESKTOP = { width: 1440, height: 900 };
@@ -762,8 +765,11 @@ test.describe('S6 — Tipografía', () => {
 });
 
 test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem ipsum', () => {
-  test('S7.a — los hijos de body son solo div.intro, main y footer; main contiene únicamente la sección .hero', async ({ page }) => {
-    const tags = await page.evaluate(() => [...document.body.children].map((el) => el.tagName.toLowerCase()));
+  test('S7.a — los hijos de body son solo div.intro, main y footer (más el script de la guarda, S8.b); main contiene únicamente la sección .hero', async ({ page }) => {
+    // El script en línea de S12.c es el único hijo extra permitido; su posición (último) la verifica S8.b.
+    const tags = await page.evaluate(() =>
+      [...document.body.children].map((el) => el.tagName.toLowerCase()).filter((tag) => tag !== 'script'),
+    );
     expect(tags).toEqual(['div', 'main', 'footer']);
     await expect(page.locator('body > div:first-child')).toHaveClass('intro');
     const main = page.locator('main');
@@ -1014,11 +1020,23 @@ test.describe('S7 — Pie con el formato de Tamburins, en la paleta, solo Lorem 
 test.describe('S8 — Calidad base', () => {
   test('S8.a — meta viewport presente', async ({ page }) => {
     const content = await page.locator('meta[name="viewport"]').getAttribute('content');
-    expect(content).toBe('width=device-width, initial-scale=1');
+    // El HTML publicado quita el espacio tras la coma (html-minifier-terser normaliza este meta siempre): mismo valor.
+    expect(content?.replace(/\s+/g, '')).toBe('width=device-width,initial-scale=1');
   });
 
-  test('S8.b — sin JavaScript (ningún script)', async ({ page }) => {
-    await expect(page.locator('script')).toHaveCount(0);
+  test('S8.b — exactamente un script, en línea (sin src) y último hijo de body: la guarda de atajos (S12.c)', async ({ page }) => {
+    const scripts = await page.evaluate(() =>
+      [...document.querySelectorAll('script')].map((el) => ({
+        hasSrc: el.hasAttribute('src'),
+        length: (el.textContent || '').trim().length,
+        isLastBodyChild: el === document.body.lastElementChild,
+      })),
+    );
+    expect(scripts, 'scripts de la página').toHaveLength(1);
+    expect(scripts[0].hasSrc, 'el script no es externo').toBe(false);
+    expect(scripts[0].length, 'el script tiene código en línea').toBeGreaterThan(0);
+    expect(scripts[0].isLastBodyChild, 'el script es el último hijo de body').toBe(true);
+    // Sin scripts externos: S6.b sigue comprobando que la carga no pide nada fuera del propio origen.
   });
 
   test('S8.c — sin errores de consola al cargar', async ({ browser, baseURL }) => {
@@ -1382,6 +1400,106 @@ test.describe('S10 — Intro animada (L31)', () => {
   });
 });
 
+
+// S12 (L40): protección del estilo. Derechos reservados, publicado minificado y guarda de atajos.
+const COPYRIGHT = '© 2026 Respetable Logia Juan Martín De Pueyrredón. Todos los derechos reservados.';
+const ROOT = path.join(__dirname, '..');
+const SITE_DIR = path.join(ROOT, '_site');
+// S12.c: atajos de "ver código" y herramientas de desarrollo (Windows/Linux con Control, Mac con ⌘⌥).
+const GUARD_KEYS = ['Control+U', 'F12', 'Control+Shift+I', 'Control+Shift+J', 'Control+Shift+C', 'Meta+Alt+U', 'Meta+Alt+I'];
+// S12.c: teclas que NO se bloquean (copiar, seleccionar todo, foco, una letra suelta).
+const INERT_KEYS = ['Control+C', 'Control+A', 'Tab', 'KeyX'];
+const INERT_WAIT_MS = 300;
+
+/** Rutas relativas (con `/`) de todos los archivos bajo `dir`, incluidos los ocultos. @param {string} dir @returns {string[]} */
+function listFiles(dir, prefix = '') {
+  return fs.readdirSync(path.join(dir, prefix), { withFileTypes: true }).flatMap((entry) => {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    return entry.isDirectory() ? listFiles(dir, rel) : [rel];
+  });
+}
+
+test.describe('S12 — Protección del estilo (L40)', () => {
+  test('S12.a — LICENSE: derechos reservados del titular y exclusiones del isologotipo y del retrato', async () => {
+    const license = fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8');
+    expect(license).toContain(COPYRIGHT);
+    expect(license).toContain('Todos los derechos reservados');
+    expect(license).toMatch(/isologotipo de la Gran Logia Argentina/);
+    expect(license).toMatch(/retrato al óleo/);
+    expect(license).toMatch(/pertenecen a sus (respectivos )?titulares/);
+  });
+
+  test('S12.a — <meta name="copyright"> con el aviso en el <head>', async ({ page }) => {
+    await expect(page.locator('head > meta[name="copyright"]')).toHaveCount(1);
+    await expect(page.locator('head > meta[name="copyright"]')).toHaveAttribute('content', COPYRIGHT);
+  });
+
+  test('S12.a — el CSS servido empieza con el aviso preservable /*! … */', async ({ request }) => {
+    const response = await request.get('/css/styles.css');
+    expect(response.status()).toBe(200);
+    expect((await response.text()).startsWith(`/*! ${COPYRIGHT} */`)).toBe(true);
+  });
+
+  test('S12.b — _site/ tiene solo los archivos públicos; HTML y CSS minificados, sin comentarios salvo el aviso /*!', async () => {
+    expect(fs.existsSync(SITE_DIR), '_site/ no existe: correr `npm run build`').toBe(true);
+    expect(listFiles(SITE_DIR).sort()).toEqual([
+      '.nojekyll',
+      'assets/favicon.svg',
+      'assets/img/gran-logia-argentina.png',
+      'assets/img/pueyrredon-panorama.jpg',
+      'css/styles.css',
+      'index.html',
+    ]);
+    for (const asset of ['assets/favicon.svg', 'assets/img/gran-logia-argentina.png', 'assets/img/pueyrredon-panorama.jpg']) {
+      expect(fs.readFileSync(path.join(SITE_DIR, asset)).equals(fs.readFileSync(path.join(ROOT, asset))), `${asset} es idéntico al fuente`).toBe(true);
+    }
+
+    const html = fs.readFileSync(path.join(SITE_DIR, 'index.html'), 'utf8');
+    const htmlSource = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    expect(html.length, 'index.html publicado más chico que el fuente').toBeLessThan(htmlSource.length);
+    expect(html).not.toContain('<!--');
+    expect(html, 'el comentario del script también se quita').not.toContain('/*');
+    expect(html).toContain('about:blank');
+
+    const css = fs.readFileSync(path.join(SITE_DIR, 'css/styles.css'), 'utf8');
+    const cssSource = fs.readFileSync(path.join(ROOT, 'css/styles.css'), 'utf8');
+    expect(css.length, 'styles.css publicado más chico que el fuente').toBeLessThan(cssSource.length);
+    expect(css.startsWith('/*! ')).toBe(true);
+    expect(css.indexOf('/*'), 'ningún comentario salvo el aviso inicial').toBe(0);
+    expect(css.split('/*').length - 1, 'un solo /*').toBe(1);
+  });
+
+  for (const key of GUARD_KEYS) {
+    test(`S12.c — ${key} lleva a about:blank`, async ({ page }) => {
+      await page.keyboard.press(key);
+      await expect.poll(() => page.url(), { message: `URL tras ${key}` }).toBe('about:blank');
+    });
+  }
+
+  for (const key of INERT_KEYS) {
+    test(`S12.c — ${key} no cambia la URL`, async ({ page }) => {
+      const before = page.url();
+      await page.keyboard.press(key);
+      await page.waitForTimeout(INERT_WAIT_MS);
+      expect(page.url()).toBe(before);
+    });
+  }
+
+  test('S12.c — el clic derecho sobre el hero no cambia la URL y el contextmenu no se cancela', async ({ page }) => {
+    const before = page.url();
+    const hero = await page.locator('.hero').boundingBox();
+    expect(hero).not.toBeNull();
+    await page.mouse.click(hero.x + hero.width / 2, hero.y + hero.height / 2, { button: 'right' });
+    await page.waitForTimeout(INERT_WAIT_MS);
+    expect(page.url()).toBe(before);
+    const prevented = await page.evaluate(() => {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 2 });
+      document.querySelector('.hero').dispatchEvent(event);
+      return event.defaultPrevented;
+    });
+    expect(prevented, 'contextmenu.defaultPrevented').toBe(false);
+  });
+});
 
 // S4.h (L38) con una serif cuya J desciende, como Noto Serif en Android (en este contenedor: DejaVu Serif, J ≈ 0,21 em
 // bajo la línea base), y en un celular apaisado como el de la captura del usuario.

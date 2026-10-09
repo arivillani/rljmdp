@@ -1,5 +1,6 @@
 # Tests en cada pull request y publicación en GitHub Pages al fusionar a main (S11, L39).
-# El sitio publicado contiene solo los archivos públicos: index.html, css/ y los assets que usa la página.
+# `npm test` arma _site/ (pretest → `npm run build`) y corre la suite contra la fuente y contra ese build (S12.b, L40).
+# El sitio publicado es ese _site/: index.html y css/styles.css minificados y los assets que usa la página.
 name: Tests y GitHub Pages
 
 on:
@@ -40,14 +41,13 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Armar el sitio (solo archivos públicos)
-        run: |
-          mkdir -p _site/css _site/assets/img
-          cp index.html _site/
-          cp css/styles.css _site/css/
-          cp assets/favicon.svg _site/assets/
-          cp assets/img/pueyrredon-panorama.jpg assets/img/gran-logia-argentina.png _site/assets/img/
-          touch _site/.nojekyll
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Armar el sitio (HTML y CSS minificados, solo archivos públicos)
+        run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
