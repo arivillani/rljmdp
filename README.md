@@ -27,6 +27,9 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 ├── index.html                       página (hero + pie)
 ├── css/styles.css                   tokens, layout y pie
 ├── assets/img/pueyrredon.jpg        retrato optimizado
+├── assets/img/pueyrredon-panorama.jpg  panorama del hero (generado, ≤ 700 KB)
+├── assets/src/pueyrredon-gemini.jpg extensión lateral hecha con Gemini (fuente)
+├── scripts/build_panorama.py        genera el panorama (Python 3 + Pillow + numpy)
 ├── tests/landing.spec.js            tests Playwright
 ├── playwright.config.js             Chromium 1440×900, puerto 4173
 ├── odd/tasks/landing-pueyrredon.md  documento de feature (Specs, Tasks, Log)
@@ -40,6 +43,7 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 npm install   # dependencias de desarrollo (Playwright, http-server)
 npm start     # sirve el sitio en http://127.0.0.1:4173
 npm test      # tests Playwright (Chromium): 35 en total
+python3 -I scripts/build_panorama.py   # regenera assets/img/pueyrredon-panorama.jpg (requiere Pillow y numpy)
 ```
 
 - Requiere Node 18 o superior.
