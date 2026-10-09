@@ -16,7 +16,7 @@ Landing de una sola pantalla con el formato minimalista de tamburins.com (solo e
 | `--rojo-800` | `#8a0b12` | fondo del pie, tinte del velo inferior, favicon, texto de la selección |
 | `--rojo-600` | `#b0262c` | filetes de 1 px del pie |
 
-- Intro animada (S10, solo CSS): pantalla a sangre completa en `--rojo-800` con un emblema propio de escuadra y compás en blanco hueso (facetas con `fill-opacity` y un entrelazado enmascarado donde el compás cruza la escuadra) que gira sobre su eje vertical (2 vueltas de 1,1 s, con perspectiva) y se desvanece en 0,6 s (≈ 2,8 s en total) para dejar ver el retrato. Decorativa (`aria-hidden`), no recibe clics al terminar y no se muestra con `prefers-reduced-motion: reduce`.
+- Intro animada (S10, solo CSS): pantalla a sangre completa en `--rojo-800` con un emblema propio de escuadra y compás en blanco hueso (facetas con `fill-opacity` y un entrelazado enmascarado donde el compás cruza la escuadra) que gira sobre su eje vertical, con perspectiva: 2 vueltas en un solo gesto. Todos los tiempos son 3 s/φⁿ y el retrato queda a la vista a los 3 s exactos (L37). Decorativa (`aria-hidden`), no recibe clics al terminar y no se muestra con `prefers-reduced-motion: reduce`.
 - Times New Roman (con respaldos), sin fuentes web.
 - Pie: tres renglones, filetes finos, un párrafo y © en Lorem ipsum, más el bloque "BAJO LOS AUSPICIOS DE LA" (mayúsculas espaciadas) con el isologotipo de la Gran Logia Argentina (260 px), que enlaza a https://www.masoneria-argentina.org.ar/ en una pestaña nueva.
 

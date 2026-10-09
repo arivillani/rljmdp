@@ -130,7 +130,7 @@ Colores (L29): fondo `--rojo-800` (`#8a0b12`); todo el texto `--blanco` (contras
 Sin botones; el único contenido real es el bloque de auspicio (L24), y el único enlace es el isologotipo hacia `https://www.masoneria-argentina.org.ar/` (L25).
 
 Criterios:
-- S7.a — Los hijos de `body` son solo `div.intro` (S10, decorativo), `main` y `footer`; `main` contiene únicamente la sección `.hero`.
+- S7.a — Los hijos de `body` son solo `div.intro` (S10, decorativo), `main`, `footer` y, al final, el `script` de la guarda (S12.c); `main` contiene únicamente la sección `.hero`.
 - S7.b — Estructura: el `footer` tiene exactamente 4 hijos directos con clase `pie__bloque`, en este orden: un `ul.pie__secciones` con exactamente 3 `li`; un `p`; un `p.pie__auspicio`; un `p.pie__copy` cuyo texto empieza por `©`.
 - S7.c — Lorem ipsum salvo el auspicio: el primer `p` empieza por `Lorem ipsum`; el texto de los bloques 1, 2 y 4 sin el `©` contiene solo letras, espacios, comas y puntos (ni dígitos ni `@`), y suma ≤ 120 palabras.
 - S7.h — Enlace (L25): el isologotipo está envuelto en un único `a` con `href` exactamente `https://www.masoneria-argentina.org.ar/`, `target="_blank"` y `rel` con `noopener`; su nombre accesible es `Gran Logia Argentina de Libres y Aceptados Masones (se abre en una pestaña nueva)`; con foco de teclado muestra un contorno visible en `--blanco`. La carga de la página sigue sin pedir nada fuera del propio origen (S6.b).
@@ -141,8 +141,8 @@ Criterios:
 
 ### S8 — Calidad base
 Criterios:
-- S8.a — `<meta name="viewport" content="width=device-width, initial-scale=1">` presente.
-- S8.b — Sin JavaScript salvo un único `<script>` en línea: la guarda de atajos de S12.c (L40). No hay scripts externos.
+- S8.a — `<meta name="viewport">` presente con `width=device-width, initial-scale=1` (se compara sin espacios, porque el HTML publicado los elimina, L41).
+- S8.b — Sin JavaScript salvo un único `<script>` en línea, sin `src` y como último hijo de `body`: la guarda de atajos de S12.c (L40). No hay scripts externos.
 - S8.c — Sin errores de consola al cargar.
 - S8.d — Legibilidad (añadido en R1, ver L7; ajustado en L9): con el texto oculto (`visibility: hidden`), el color promedio del fondo detrás de la caja del `h1` y de la del antetítulo (L24) da un contraste WCAG ≥ 4.5:1 contra `--blanco` (L29), a 1440×900 y a 390×844. Los ojos, nariz y boca del retrato siguen visibles y sin texto encima.
 
@@ -238,7 +238,7 @@ Criterios:
 | T2o | S10 | opus — style (`odd-style`) + apply | Intro áurea de 3 s (L37) | [x] | ver L37 |
 | T2p | S4.h | opus — fix (TDD) | La J de JUAN no se recorta al irse con la imagen (L38) | [x] | ver L38 |
 | T3b | S11 | opus — CI/CD | Workflow de tests + GitHub Pages (solo archivos públicos) | [x] | ver L39 |
-| T2q | S12, S8.b, S11 | sonnet — apply (TDD) | LICENSE, build minificado + suite contra el build, guarda de atajos | [ ] | — |
+| T2q | S12, S8.b, S11 | sonnet — apply (TDD) | LICENSE, build minificado + suite contra el build, guarda de atajos | [x] | `1f438fd` |
 | T4 | — | haiku — archive | `README.md` + cierre del Log | [x] | ver L14 |
 | R1 | — | opus — RDD | Evaluación de riesgo y revisión 4R a la profundidad que corresponda | [x] | L7, L8, L13 |
 
@@ -369,3 +369,4 @@ Criterios:
   > Derechos reservados, Minificar lo publicado, Bloquear atajos igual
 
   (opus) La preocupación real es la copia del estilo. Se explicó que ninguna técnica la impide y se ofrecieron medidas que suman: el usuario eligió las tres de S12 y descartó el repo privado. S8.b se reescribe para admitir un único script en línea. Nueva tarea T2q (sonnet).
+- **L41** (sonnet T2q + opus R1): RED 12 fallos (S8.b, S12.a ×3, S12.b y las 7 teclas de S12.c). Los 5 casos negativos de S12.c no pueden fallar antes de que exista la guarda; se probaron con una mutación (una guarda que bloquea todo) y fallaron los 5. GREEN **194/194**, 97 por proyecto (`fuente` y `sitio-publicado`), estable en 3 corridas. Minificadores fijados: `html-minifier-terser@7.2.0` y `lightningcss@1.33.0` sin targets (se descartó `csso@5.0.5` porque emitía `translate:0-2vh`, que es inválido). Publicado: HTML de 4907 a 4293 B y CSS de 11 542 a 3724 B, con el aviso `/*!` conservado y capturas idénticas píxel a píxel con la fuente en 6 viewports. Las 7 teclas de la guarda funcionan en Chromium, tanto en la fuente como en el build. Ajustes: S7.a admite el `script` final; S8.a compara sin espacios; S8.b exige que el script sea el último hijo de `body`. README: se corrige el párrafo de la intro, que había quedado desactualizado. R1 sobre `1d207a2..1f438fd`: riesgo **medio**, porque hay dependencias nuevas de build y JavaScript en la página. Lente único, Reliability: dependencias fijadas, `npm ci` limpio y la suite completa corre contra lo que se publica. Sin hallazgos → **reconocido**.
